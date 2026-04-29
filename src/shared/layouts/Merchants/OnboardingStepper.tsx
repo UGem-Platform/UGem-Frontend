@@ -2,7 +2,6 @@ const steps = [
   "Thông tin quán",
   "Địa chỉ & vị trí",
   "Thực đơn & hình ảnh",
-  "Lý do underrated",
   "Kiểm tra & gửi",
 ];
 

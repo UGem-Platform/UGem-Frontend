@@ -40,9 +40,6 @@ export type OnboardingFormValues = {
     imageUrl?: string;
     category?: string;
   }[];
-
-  // Chưa có field riêng ở BE, chỉ giữ UI rồi gộp vào description
-  underratedReason: string;
 };
 
 export type CreateApplicationPayload = {

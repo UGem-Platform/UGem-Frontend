@@ -1,5 +1,4 @@
 import {
-  Bell,
   CheckCircle2,
   Circle,
   Clock3,
@@ -16,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "@/features/auth";
 import { useMyApplications } from "../hooks/useMyApplications";
 import type { MerchantApplication } from "../types";
+import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
+import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 
 function getLatestApplication(applications: MerchantApplication[]) {
   return [...applications].sort((a, b) => {
@@ -85,208 +86,205 @@ export function MerchantApplicationStatusPage() {
   const isRejected = status === "Rejected";
 
   return (
-    <main className="merchant-status-page">
-      <header className="merchant-status-topbar">
-        <button type="button" onClick={() => navigate("/merchant")}>
-          UGem Merchant
-        </button>
+    <main className="merchant-portal-layout">
+      <MerchantSidebar />
 
-        <div>
-          <Bell size={17} />
-          <HelpCircle size={17} />
-          <div className="status-avatar">
-            {(user?.Email || "M").charAt(0).toUpperCase()}
-          </div>
-        </div>
-      </header>
+      <section className="merchant-main">
+        <MerchantHeader />
 
-      <section className="merchant-status-content">
-        <div className="status-heading">
-          <h1>Trạng thái hồ sơ</h1>
-          <p>Theo dõi quá trình thẩm định quán của bạn.</p>
-        </div>
+        <div className="merchant-content">
+          <section className="merchant-status-content">
+            <div className="status-heading">
+              <h1>Trạng thái hồ sơ</h1>
+              <p>Theo dõi quá trình thẩm định quán của bạn.</p>
+            </div>
 
-        {isLoading && (
-          <section className="status-empty-card">
-            <Clock3 size={28} />
-            <h2>Đang tải hồ sơ...</h2>
-            <p>Vui lòng chờ trong giây lát.</p>
-          </section>
-        )}
+            {isLoading && (
+              <section className="status-empty-card">
+                <Clock3 size={28} />
+                <h2>Đang tải hồ sơ...</h2>
+                <p>Vui lòng chờ trong giây lát.</p>
+              </section>
+            )}
 
-        {isError && (
-          <section className="status-empty-card">
-            <HelpCircle size={28} />
-            <h2>Không tải được trạng thái</h2>
-            <p>
-              {error instanceof Error
-                ? error.message
-                : "Có lỗi xảy ra khi lấy hồ sơ."}
-            </p>
-          </section>
-        )}
-
-        {!isLoading && !application && (
-          <section className="status-empty-card">
-            <Store size={28} />
-            <h2>Chưa gửi hồ sơ</h2>
-            <p>
-              Bạn chưa có hồ sơ quán nào. Hãy gửi hồ sơ để bắt đầu thẩm định.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => navigate("/merchant/application/create")}
-            >
-              Gửi hồ sơ quán
-            </button>
-          </section>
-        )}
-
-        {application && (
-          <>
-            <section className="application-summary-card">
-              <div className="application-cover">
-                <img
-                  src={
-                    application.logoUrl ||
-                    "https://images.unsplash.com/photo-1543353071-10c8ba85a904?auto=format&fit=crop&w=900&q=80"
-                  }
-                  alt=""
-                />
-
-                <span>{getStatusBadge(status)}</span>
-              </div>
-
-              <div className="application-info">
-                <h2>{application.name}</h2>
-
+            {isError && (
+              <section className="status-empty-card">
+                <HelpCircle size={28} />
+                <h2>Không tải được trạng thái</h2>
                 <p>
-                  <MapPin size={15} />
-                  {extractDescriptionLine(application.description, "Địa chỉ") ||
-                    "Địa chỉ đang chờ cập nhật"}
+                  {error instanceof Error
+                    ? error.message
+                    : "Có lỗi xảy ra khi lấy hồ sơ."}
+                </p>
+              </section>
+            )}
+
+            {!isLoading && !application && (
+              <section className="status-empty-card">
+                <Store size={28} />
+                <h2>Chưa gửi hồ sơ</h2>
+                <p>
+                  Bạn chưa có hồ sơ quán nào. Hãy gửi hồ sơ để bắt đầu thẩm
+                  định.
                 </p>
 
-                <p>
-                  <Mail size={15} />
-                  {application.email || user?.Email || "merchant@gmail.com"}
-                </p>
-
-                <p>
-                  <Clock3 size={15} />
-                  Ngày gửi: {formatDate(application.createdAt)}
-                </p>
-              </div>
-            </section>
-
-            <section className="review-timeline-card">
-              <h2>Tiến trình xét duyệt</h2>
-
-              <div className="status-steps">
-                <StepItem
-                  done
-                  title="Đã gửi hồ sơ"
-                  description="Hồ sơ quán đã được gửi lên hệ thống."
-                  icon={<CheckCircle2 size={18} />}
-                />
-
-                <StepItem
-                  active={isPending}
-                  done={isApproved || isRejected}
-                  title="Censor đang thẩm định"
-                  description="Censor kiểm tra xem quán có thật sự underrated hay không."
-                  icon={<SearchCheck size={18} />}
-                />
-
-                <div className="status-note-box">
-                  ƯỚC TÍNH: 1–2 NGÀY LÀM VIỆC
-                </div>
-
-                <StepItem
-                  active={isApproved || isRejected}
-                  done={isApproved}
-                  title="Chờ Staff phê duyệt"
-                  description="Staff xem xét kết quả thẩm định."
-                  icon={
-                    isApproved ? (
-                      <CheckCircle2 size={18} />
-                    ) : (
-                      <ShieldCheck size={18} />
-                    )
-                  }
-                />
-
-                <StepItem
-                  active={isApproved || isRejected}
-                  done={isApproved}
-                  title="Kết quả xét duyệt"
-                  description={
-                    isApproved
-                      ? "Hồ sơ đã được duyệt."
-                      : isRejected
-                        ? "Hồ sơ bị từ chối. Bạn có thể gửi lại."
-                        : "Thông báo chính thức về hồ sơ."
-                  }
-                  icon={
-                    isApproved ? (
-                      <CheckCircle2 size={18} />
-                    ) : (
-                      <Circle size={18} />
-                    )
-                  }
-                />
-
-                <StepItem
-                  active={isApproved}
-                  done={isApproved}
-                  title="Active trên UGem"
-                  description={
-                    isApproved
-                      ? "Quán đã sẵn sàng hiển thị cho Customer."
-                      : "Quán đã được hiển thị cho Customer."
-                  }
-                  icon={<Home size={18} />}
-                />
-              </div>
-
-              {isRejected && (
                 <button
-                  className="resubmit-button"
                   type="button"
                   onClick={() => navigate("/merchant/application/create")}
                 >
-                  Chỉnh sửa và gửi lại hồ sơ
+                  Gửi hồ sơ quán
                 </button>
-              )}
+              </section>
+            )}
 
-              {isApproved && (
-                <button
-                  className="resubmit-button"
-                  type="button"
-                  onClick={() => navigate("/merchant")}
-                >
-                  Về Merchant Portal
-                </button>
-              )}
-            </section>
+            {application && (
+              <>
+                <section className="application-summary-card">
+                  <div className="application-cover">
+                    <img
+                      src={
+                        application.logoUrl ||
+                        "https://images.unsplash.com/photo-1543353071-10c8ba85a904?auto=format&fit=crop&w=900&q=80"
+                      }
+                      alt=""
+                    />
 
-            <section className="support-card">
-              <div>
-                <User size={20} />
-              </div>
+                    <span>{getStatusBadge(status)}</span>
+                  </div>
 
-              <div>
-                <h3>Cần hỗ trợ?</h3>
-                <p>
-                  Nếu bạn có thắc mắc về quá trình thẩm định, hãy nhắn cho chúng
-                  tôi.
-                </p>
-              </div>
+                  <div className="application-info">
+                    <h2>{application.name}</h2>
 
-              <button type="button">Nhắn tin với Support</button>
-            </section>
-          </>
-        )}
+                    <p>
+                      <MapPin size={15} />
+                      {extractDescriptionLine(
+                        application.description,
+                        "Địa chỉ",
+                      ) || "Địa chỉ đang chờ cập nhật"}
+                    </p>
+
+                    <p>
+                      <Mail size={15} />
+                      {application.email || user?.Email || "merchant@gmail.com"}
+                    </p>
+
+                    <p>
+                      <Clock3 size={15} />
+                      Ngày gửi: {formatDate(application.createdAt)}
+                    </p>
+                  </div>
+                </section>
+
+                <section className="review-timeline-card">
+                  <h2>Tiến trình xét duyệt</h2>
+
+                  <div className="status-steps">
+                    <StepItem
+                      done
+                      title="Đã gửi hồ sơ"
+                      description="Hồ sơ quán đã được gửi lên hệ thống."
+                      icon={<CheckCircle2 size={18} />}
+                    />
+
+                    <StepItem
+                      active={isPending}
+                      done={isApproved || isRejected}
+                      title="Censor đang thẩm định"
+                      description="Censor kiểm tra xem quán có thật sự underrated hay không."
+                      icon={<SearchCheck size={18} />}
+                    />
+
+                    <div className="status-note-box">
+                      ƯỚC TÍNH: 1–2 NGÀY LÀM VIỆC
+                    </div>
+
+                    <StepItem
+                      active={isApproved || isRejected}
+                      done={isApproved}
+                      title="Chờ Staff phê duyệt"
+                      description="Staff xem xét kết quả thẩm định."
+                      icon={
+                        isApproved ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <ShieldCheck size={18} />
+                        )
+                      }
+                    />
+
+                    <StepItem
+                      active={isApproved || isRejected}
+                      done={isApproved}
+                      title="Kết quả xét duyệt"
+                      description={
+                        isApproved
+                          ? "Hồ sơ đã được duyệt."
+                          : isRejected
+                            ? "Hồ sơ bị từ chối. Bạn có thể gửi lại."
+                            : "Thông báo chính thức về hồ sơ."
+                      }
+                      icon={
+                        isApproved ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <Circle size={18} />
+                        )
+                      }
+                    />
+
+                    <StepItem
+                      active={isApproved}
+                      done={isApproved}
+                      title="Active trên UGem"
+                      description={
+                        isApproved
+                          ? "Quán đã sẵn sàng hiển thị cho Customer."
+                          : "Quán đã được hiển thị cho Customer."
+                      }
+                      icon={<Home size={18} />}
+                    />
+                  </div>
+
+                  {isRejected && (
+                    <button
+                      className="resubmit-button"
+                      type="button"
+                      onClick={() => navigate("/merchant/application/create")}
+                    >
+                      Chỉnh sửa và gửi lại hồ sơ
+                    </button>
+                  )}
+
+                  {isApproved && (
+                    <button
+                      className="resubmit-button"
+                      type="button"
+                      onClick={() => navigate("/merchant")}
+                    >
+                      Về Merchant Portal
+                    </button>
+                  )}
+                </section>
+
+                <section className="support-card">
+                  <div>
+                    <User size={20} />
+                  </div>
+
+                  <div>
+                    <h3>Cần hỗ trợ?</h3>
+                    <p>
+                      Nếu bạn có thắc mắc về quá trình thẩm định, hãy nhắn cho
+                      chúng tôi.
+                    </p>
+                  </div>
+
+                  <button type="button">Nhắn tin với Support</button>
+                </section>
+              </>
+            )}
+          </section>
+        </div>
       </section>
 
       <nav className="mobile-status-nav">

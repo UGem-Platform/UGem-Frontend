@@ -13,19 +13,19 @@ const HERO_IMAGES = [
 const CAPTIONS = [
   {
     title: "Hidden Gem miền Bắc",
-    subtitle: "Phở Gánh Hàng Chiếu • 7 Chợ Gạo, Hoàn Kiếm, Hà Nội",
+    subtitle: "Phở Gánh Hàng Chiếu • Hà Nội",
   },
   {
     title: "Hương vị miền Trung",
-    subtitle: "Bún Bò Huế O Xuân • 5D Quang Trung, Quận 3, TP.HCM",
+    subtitle: "Bún Bò Huế O Xuân • TP.HCM",
   },
   {
     title: "Quán ngon miền Nam",
-    subtitle: "Cơm Tấm Ba Ghiền • 84 Đặng Văn Ngữ, Phú Nhuận, TP.HCM",
+    subtitle: "Cơm Tấm Ba Ghiền • TP.HCM",
   },
   {
     title: "Đặc sản miền Trung",
-    subtitle: "Mì Quảng Bà Mua • 19 Trần Bình Trọng, Hải Châu, Đà Nẵng",
+    subtitle: "Mì Quảng Bà Mua • Đà Nẵng",
   },
 ];
 
@@ -33,69 +33,77 @@ export function LoginPage() {
   const [slide, setSlide] = useState(0);
 
   function handleGoogleLogin() {
-    alert(
-      "Backend hiện có API đăng nhập bằng email và mật khẩu. Chưa có endpoint Google OAuth.",
-    );
+    alert("Chưa có Google OAuth backend");
   }
 
   return (
-    <main className="login-shell">
-      <section className="login-hero">
-        <HeroCarousel images={HERO_IMAGES} onChange={(i) => setSlide(i)} />
+    <main className="grid min-h-screen grid-cols-1 bg-[#f7efe3] lg:grid-cols-[1.2fr_0.8fr]">
+      {/* LEFT - HERO */}
+      <section className="relative min-h-[48vh] lg:min-h-screen">
+        <HeroCarousel images={HERO_IMAGES} onChange={setSlide} />
 
-        <div className="hero-badge">
-          <span className="badge-plate">🥗</span>
-
-          <div>
-            <strong>{CAPTIONS[slide]?.title ?? "Hidden Gem"}</strong>
-            <small>{CAPTIONS[slide]?.subtitle ?? "Local favorite"}</small>
+        <div className="absolute bottom-6 left-6 z-30 max-w-sm rounded-2xl border border-white/30 bg-white/85 p-4 shadow-xl backdrop-blur-lg">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-100 text-lg">
+              🥗
+            </span>
+            <div>
+              <strong className="block text-sm text-stone-900">
+                {CAPTIONS[slide]?.title}
+              </strong>
+              <small className="text-xs text-stone-600">
+                {CAPTIONS[slide]?.subtitle}
+              </small>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="login-panel">
-        <div className="utility-actions" aria-label="Tùy chọn nhanh">
-          {/* nút chỉnh tối / sáng */}
-        </div>
+      {/* RIGHT - LOGIN */}
+      <section className="flex min-h-screen items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md">
+          <div className="rounded-3xl bg-white/80 p-8 shadow-2xl backdrop-blur-xl border border-white/50">
+            <Logo />
 
-        <div className="login-card">
-          <Logo />
+            <div className="mt-6 space-y-2">
+              <h1 className="text-2xl font-bold text-stone-900">
+                Khám phá quán ăn ẩn
+              </h1>
+              <p className="text-sm text-stone-600">
+                Những quán ngon địa phương chưa nhiều người biết đến
+              </p>
+            </div>
 
-          <div className="login-copy">
-            <h1>Khám phá những quán ngon chưa được biết đến</h1>
-            <p>
-              Tìm những quán ăn địa phương ngon, chất lượng nhưng chưa được
-              nhiều người biết đến.
-            </p>
+            <button
+              onClick={handleGoogleLogin}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white py-3 font-medium hover:bg-stone-50"
+            >
+              <span className="text-emerald-600 font-bold">G</span>
+              Đăng nhập bằng Google
+            </button>
+
+            <div className="my-5 flex items-center gap-3 text-xs text-stone-400">
+              <div className="h-px flex-1 bg-stone-200" />
+              Hoặc
+              <div className="h-px flex-1 bg-stone-200" />
+            </div>
+
+            <LoginForm />
+
+            <div className="mt-4 text-center space-y-1">
+              <button className="text-sm text-emerald-700 hover:underline">
+                Quên mật khẩu?
+              </button>
+              <button className="block text-sm font-medium text-amber-700 hover:underline">
+                Chưa có tài khoản? Đăng ký
+              </button>
+            </div>
           </div>
 
-          <button
-            className="google-button"
-            type="button"
-            onClick={handleGoogleLogin}
-          >
-            <span className="google-g">G</span>
-            Đăng nhập bằng Google
-          </button>
-
-          <div className="divider">
-            <span>Hoặc</span>
-          </div>
-
-          <LoginForm />
-
-          <button className="forgot-password" type="button">
-            Quên mật khẩu?
-          </button>
-          <button className="register-link" type="button">
-            Chưa có tài khoản? Đăng ký ngay
-          </button>
+          <p className="mt-4 text-center text-xs text-stone-500">
+            Bằng cách tiếp tục, bạn đồng ý điều khoản & chính sách
+          </p>
         </div>
-
-        <p className="terms">
-          Bằng cách tiếp tục, bạn đồng ý với <u>điều khoản sử dụng</u> và{" "}
-          <u>chính sách bảo mật</u> của UGem.
-        </p>
       </section>
     </main>
   );

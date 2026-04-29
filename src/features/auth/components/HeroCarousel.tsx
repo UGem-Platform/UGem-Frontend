@@ -12,10 +12,11 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
 
   useEffect(() => {
     if (images.length <= 1) return;
+
     timer.current = window.setInterval(() => {
       setIndex((i) => {
         const next = (i + 1) % images.length;
-        if (onChange) onChange(next);
+        onChange?.(next);
         return next;
       });
     }, intervalMs);
@@ -28,53 +29,56 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
   function go(i: number) {
     const next = i % images.length;
     setIndex(next);
+
     if (timer.current) {
       window.clearInterval(timer.current);
       timer.current = window.setInterval(() => {
         setIndex((k) => (k + 1) % images.length);
       }, intervalMs);
     }
-    if (onChange) onChange(next);
+
+    onChange?.(next);
   }
 
   return (
-    <div className="carousel" aria-live="polite">
+    <div
+      className="relative h-full min-h-[48vh] w-full overflow-hidden bg-stone-950 lg:min-h-screen"
+      aria-live="polite"
+    >
       {images.map((src, i) => (
         <div
           key={i}
-          className={`carousel-slide ${i === index ? "active" : ""}`}
+          className={`
+            absolute inset-0 bg-cover bg-center bg-no-repeat
+            transition-all duration-700 ease-out
+            ${i === index ? "opacity-100 scale-100" : "opacity-0 scale-105"}
+          `}
           style={{ backgroundImage: `url("${src}")` }}
           role="img"
-          aria-hidden={i === index ? "false" : "true"}
+          aria-hidden={i !== index}
         />
       ))}
 
+      {/* overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-stone-950/70 via-stone-950/30 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
+
+      {/* dots */}
       {images.length > 1 && (
-        <div className="carousel-controls">
-          {/* <button
-            aria-label="Previous"
-            type="button"
-            onClick={() => go((index - 1 + images.length) % images.length)}
-          >
-            ‹
-          </button> */}
-          <div className="carousel-dots">
+        <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-xl">
+          <div className="flex items-center gap-2">
             {images.map((_, i) => (
               <button
                 key={i}
-                className={i === index ? "dot active" : "dot"}
-                aria-label={`Go to slide ${i + 1}`}
                 onClick={() => go(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`
+                  h-2.5 rounded-full transition-all duration-300
+                  ${i === index ? "w-8 bg-amber-400" : "w-2.5 bg-white/60 hover:bg-white"}
+                `}
               />
             ))}
           </div>
-          {/* <button
-            aria-label="Next"
-            type="button"
-            onClick={() => go((index + 1) % images.length)}
-          >
-            ›
-          </button> */}
         </div>
       )}
     </div>

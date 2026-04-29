@@ -23,14 +23,11 @@ export const onboardingSchema = z.object({
         description: z.string().min(1, "Vui lòng nhập mô tả món"),
         price: z.coerce.number().min(1000, "Giá món không hợp lệ"),
         imageUrl: z.string().optional(),
+        imageUploadDataUrl: z.string().optional(),
         category: z.string().optional(),
       }),
     )
     .min(1, "Vui lòng thêm ít nhất 1 món"),
-
-  underratedReason: z
-    .string()
-    .min(10, "Vui lòng nhập lý do tối thiểu 10 ký tự"),
 });
 
 export type OnboardingSchema = z.infer<typeof onboardingSchema>;
