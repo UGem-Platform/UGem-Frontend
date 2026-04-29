@@ -1,5 +1,4 @@
 import {
-  BadgeCheck,
   BookOpen,
   Building2,
   ClipboardCheck,

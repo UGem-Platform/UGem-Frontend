@@ -9,7 +9,6 @@ import { MenuDetailsStep } from "../components/MenuDetailsStep";
 
 import { PartnerBenefitCard } from "../components/PartnerBenefitCard";
 import { ReviewSubmitStep } from "../components/ReviewSubmitStep";
-import { UnderratedReasonStep } from "../components/UnderratedReasonStep";
 import { onboardingSchema, type OnboardingSchema } from "../schema";
 import { useCreateApplication } from "../hooks/useCreateApplication";
 import { OnboardingSidebar } from "../../../shared/layouts/Merchants/OnboardingSidebar";
@@ -45,13 +44,13 @@ export function MerchantOnboardingPage() {
       latitude: 0,
       longitude: 0,
       logoUrl: "",
-      underratedReason: "",
       menu: [
         {
           name: "",
           description: "",
           price: 0,
           imageUrl: "",
+          imageUploadDataUrl: "",
           category: "",
         },
       ],
@@ -81,24 +80,18 @@ export function MerchantOnboardingPage() {
       ],
       2: ["address", "latitude", "longitude"],
       3: ["menu"],
-      4: ["underratedReason"],
-      5: [],
+      4: [],
     };
 
     const valid = await trigger(fieldsByStep[currentStep]);
 
     if (!valid) return;
 
-    setCurrentStep(Math.min(currentStep + 1, 5));
+    setCurrentStep(Math.min(currentStep + 1, 4));
   }
 
   function previousStep() {
     setCurrentStep(Math.max(currentStep - 1, 1));
-  }
-
-  function saveDraft() {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(watch()));
-    alert("Đã lưu nháp trên trình duyệt.");
   }
 
   function buildDescription(values: OnboardingSchema) {
@@ -110,7 +103,6 @@ ${values.description}
 Loại hình quán: ${values.restaurantType}
 Loại món chính: ${values.mainDishType}
 Khoảng giá trung bình: ${values.priceRange}
-Lý do underrated: ${values.underratedReason}
 `.trim();
   }
 
@@ -124,7 +116,14 @@ Lý do underrated: ${values.underratedReason}
         logoUrl: values.logoUrl || "",
         latitude: values.latitude,
         longitude: values.longitude,
-        menu: values.menu,
+        menu: values.menu.map((menuItem) => {
+          const { imageUploadDataUrl, ...rest } = menuItem;
+
+          return {
+            ...rest,
+            imageUrl: imageUploadDataUrl?.trim() || rest.imageUrl,
+          };
+        }),
       },
       {
         onSuccess: () => {
@@ -177,14 +176,11 @@ Lý do underrated: ${values.underratedReason}
                   control={control}
                   register={register}
                   errors={errors}
+                  setValue={setValue}
                 />
               )}
 
-              {currentStep === 4 && (
-                <UnderratedReasonStep register={register} errors={errors} />
-              )}
-
-              {currentStep === 5 && <ReviewSubmitStep watch={watch} />}
+              {currentStep === 4 && <ReviewSubmitStep watch={watch} />}
 
               {createMutation.isError && (
                 <p className="form-error">
@@ -195,14 +191,6 @@ Lý do underrated: ${values.underratedReason}
               )}
 
               <div className="onboarding-actions">
-                <button
-                  type="button"
-                  className="draft-button"
-                  onClick={saveDraft}
-                >
-                  Lưu nháp
-                </button>
-
                 <div>
                   {currentStep > 1 && (
                     <button
@@ -215,7 +203,7 @@ Lý do underrated: ${values.underratedReason}
                     </button>
                   )}
 
-                  {currentStep < 5 ? (
+                  {currentStep < 4 ? (
                     <button
                       type="button"
                       className="next-button"
