@@ -1,8 +1,7 @@
+import logoUrl from "../../../assets/ugem-logo.png";
+
 export function Logo() {
   return (
-    <div className="logo-mark" aria-label="UGem">
-      <span className="gem-icon">◆</span>
-      <span>UGem</span>
-    </div>
+    <img className="logo-mark" src={logoUrl} alt="UGem" aria-label="UGem" />
   );
 }
