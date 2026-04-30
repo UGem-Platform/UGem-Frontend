@@ -40,3 +40,7 @@ export async function getMyApplications() {
 
   return data.data ?? [];
 }
+export async function getMerchantOrders() {
+  const res = await api.get("/Order");
+  return res.data.data;
+}

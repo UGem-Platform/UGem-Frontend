@@ -17,7 +17,13 @@ export function useLogin() {
     mutationFn: (payload: LoginRequest) => loginApi(payload),
 
     onSuccess: (data) => {
-      const user = saveAuthToken(data.accessToken);
+      const token = data.accessToken || data.AccessToken;
+
+      if (!token) {
+        throw new Error("Không nhận được token từ server.");
+      }
+
+      const user = saveAuthToken(token);
 
       navigate(getRouteByRole(user.Role), {
         replace: true,

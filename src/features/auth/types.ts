@@ -4,7 +4,8 @@ export type LoginRequest = {
 };
 
 export type LoginResponse = {
-  accessToken: string;
+  accessToken?: string;
+  AccessToken?: string;
 };
 
 export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin" | string;

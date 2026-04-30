@@ -67,7 +67,8 @@ export function LoginPage() {
 
             <div className="mt-6 space-y-2">
               <h1 className="text-2xl font-bold text-stone-900">
-                Khám phá quán ăn ẩn
+                Khám phá quán ăn đang bị{" "}
+                <span className="text-amber-600 text-2xl">FLOP</span>
               </h1>
               <p className="text-sm text-stone-600">
                 Những quán ngon địa phương chưa nhiều người biết đến

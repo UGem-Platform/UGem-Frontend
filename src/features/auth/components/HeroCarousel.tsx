@@ -42,7 +42,7 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
 
   return (
     <div
-      className="relative h-full min-h-[48vh] w-full overflow-hidden bg-stone-950 lg:min-h-screen"
+      className="relative h-full min-h-[48vh] w-full overflow-hidden rounded-2xl bg-stone-950 lg:min-h-screen"
       aria-live="polite"
     >
       {images.map((src, i) => (
@@ -60,8 +60,8 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
       ))}
 
       {/* overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-stone-950/70 via-stone-950/30 to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-stone-950/70 via-stone-950/30 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-stone-950/60 via-transparent to-transparent" />
 
       {/* dots */}
       {images.length > 1 && (
