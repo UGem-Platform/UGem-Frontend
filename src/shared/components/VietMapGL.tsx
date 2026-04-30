@@ -181,10 +181,11 @@ export default function VietMapGL({
     map.addControl(new maplibregl.NavigationControl({}), "top-right");
 
     mapRef.current = map;
+    const markersById = markerMapRef.current;
 
     return () => {
-      markerMapRef.current.forEach(({ marker }) => marker.remove());
-      markerMapRef.current.clear();
+      markersById.forEach(({ marker }) => marker.remove());
+      markersById.clear();
       map.remove();
       mapRef.current = null;
       routeReadyRef.current = false;

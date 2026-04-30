@@ -1,5 +1,6 @@
 import { useReviews } from "../hooks";
 import { Star } from "lucide-react";
+import type { Review } from "../services";
 
 export default function ReviewsPage() {
   const { data: reviews = [], isLoading, isError, error } = useReviews();
@@ -21,7 +22,7 @@ export default function ReviewsPage() {
         ) : (
           <div className="space-y-4">
             {reviews.length > 0 ? (
-              reviews.map((review: any, idx: number) => (
+              reviews.map((review: Review, idx: number) => (
                 <div
                   key={review.id || idx}
                   className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur"

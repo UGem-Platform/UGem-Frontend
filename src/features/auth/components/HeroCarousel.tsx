@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
   images: string[];
   intervalMs?: number;
-  // eslint-disable-next-line no-unused-vars
   onChange?: (...args: [number]) => void;
 };
 
