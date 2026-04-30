@@ -3,14 +3,11 @@
 // Tích hợp: Geocode (text → tọa độ) + Route (tìm đường)
 // ============================================================
 
-const VIETMAP_API_KEY =
-  import.meta.env.VITE_VIETMAP_API_KEY ?? "";
-const VIETMAP_SERVICE_KEY =
-  import.meta.env.VITE_VIETMAP_SERVICE_KEY ?? "";
+const VIETMAP_API_KEY = import.meta.env.VITE_VIETMAP_API_KEY ?? "";
+const VIETMAP_SERVICE_KEY = import.meta.env.VITE_VIETMAP_SERVICE_KEY ?? "";
 
 const HAS_VIETMAP_KEY =
-  Boolean(VIETMAP_API_KEY) &&
-  VIETMAP_API_KEY !== "YOUR_VIETMAP_API_KEY_HERE";
+  Boolean(VIETMAP_API_KEY) && VIETMAP_API_KEY !== "YOUR_VIETMAP_API_KEY_HERE";
 
 const HAS_VIETMAP_SERVICE_KEY =
   Boolean(VIETMAP_SERVICE_KEY) &&
@@ -22,10 +19,15 @@ const HAS_VIETMAP_SERVICE_KEY =
  * - Nếu không có → dùng OpenFreeMap miễn phí (OSM)
  */
 export const VIETMAP_STYLE_URL = HAS_VIETMAP_KEY
-  ? `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${VIETMAP_API_KEY}`
+  ? "https://tiles.openfreemap.org/styles/liberty" // Tạm dùng fallback để test
   : "https://tiles.openfreemap.org/styles/liberty";
 
-export { HAS_VIETMAP_KEY, HAS_VIETMAP_SERVICE_KEY, VIETMAP_API_KEY, VIETMAP_SERVICE_KEY };
+export {
+  HAS_VIETMAP_KEY,
+  HAS_VIETMAP_SERVICE_KEY,
+  VIETMAP_API_KEY,
+  VIETMAP_SERVICE_KEY,
+};
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -56,10 +58,9 @@ export interface RouteResult {
 
 // ─── Geocode: địa chỉ text → tọa độ ─────────────────────────
 
-export async function geocodeAddress(
-  text: string
-): Promise<GeocodeResult[]> {
-  if (!HAS_VIETMAP_SERVICE_KEY) throw new Error("Chưa cấu hình VietMap Service key");
+export async function geocodeAddress(text: string): Promise<GeocodeResult[]> {
+  if (!HAS_VIETMAP_SERVICE_KEY)
+    throw new Error("Chưa cấu hình VietMap Service key");
 
   const url = new URL("https://maps.vietmap.vn/api/search/v3");
   url.searchParams.set("apikey", VIETMAP_SERVICE_KEY);
@@ -70,7 +71,7 @@ export async function geocodeAddress(
   if (!res.ok) throw new Error(`Geocode API error: ${res.status}`);
 
   const json = await res.json();
-  return Array.isArray(json) ? json : json.data ?? [];
+  return Array.isArray(json) ? json : (json.data ?? []);
 }
 
 // ─── Route: tính đường đi giữa 2 điểm ───────────────────────
@@ -78,7 +79,7 @@ export async function geocodeAddress(
 export async function getRoute(
   origin: LngLat,
   destination: LngLat,
-  vehicle: "car" | "bike" | "foot" | "motorcycle" = "motorcycle"
+  vehicle: "car" | "bike" | "foot" | "motorcycle" = "motorcycle",
 ): Promise<RouteResult> {
   // 1. Nếu có Service Key VietMap -> Dùng VietMap Route API v1.1
   if (HAS_VIETMAP_SERVICE_KEY) {
@@ -106,7 +107,7 @@ export async function getRoute(
         distance: ins.distance,
         duration: ins.time / 1000,
         instruction: ins.text,
-      })
+      }),
     );
 
     return {
@@ -118,28 +119,32 @@ export async function getRoute(
   }
 
   // 2. Fallback miễn phí: Dùng OSRM (Open Source Routing Machine) khi chưa có API key
-  const osrmVehicle = vehicle === "foot" ? "foot" : vehicle === "bike" ? "bike" : "driving";
+  const osrmVehicle =
+    vehicle === "foot" ? "foot" : vehicle === "bike" ? "bike" : "driving";
   const osrmUrl = `https://router.project-osrm.org/route/v1/${osrmVehicle}/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
-  
+
   const res = await fetch(osrmUrl);
   if (!res.ok) throw new Error("Không thể tìm đường đi (OSRM error)");
-  
+
   const json = await res.json();
   const route = json?.routes?.[0];
   if (!route) throw new Error("Không tìm được đường đi");
 
   const coordinates: [number, number][] = route.geometry?.coordinates ?? [];
-  const steps: RouteStep[] = (route.legs?.[0]?.steps ?? []).map((step: any) => ({
-    distance: step.distance,
-    duration: step.duration,
-    instruction: step.maneuver?.type === "turn" 
-      ? `Rẽ ${step.maneuver.modifier} vào ${step.name || "đường không tên"}`
-      : step.maneuver?.type === "depart" 
-      ? "Bắt đầu xuất phát" 
-      : step.maneuver?.type === "arrive" 
-      ? "Đến nơi" 
-      : `Đi tiếp ${step.name || ""}`,
-  }));
+  const steps: RouteStep[] = (route.legs?.[0]?.steps ?? []).map(
+    (step: any) => ({
+      distance: step.distance,
+      duration: step.duration,
+      instruction:
+        step.maneuver?.type === "turn"
+          ? `Rẽ ${step.maneuver.modifier} vào ${step.name || "đường không tên"}`
+          : step.maneuver?.type === "depart"
+            ? "Bắt đầu xuất phát"
+            : step.maneuver?.type === "arrive"
+              ? "Đến nơi"
+              : `Đi tiếp ${step.name || ""}`,
+    }),
+  );
 
   return {
     coordinates,

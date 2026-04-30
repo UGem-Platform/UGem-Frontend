@@ -11,8 +11,8 @@ export const onboardingSchema = z.object({
   description: z.string().min(10, "Mô tả tối thiểu 10 ký tự"),
 
   address: z.string().min(1, "Vui lòng nhập địa chỉ"),
-  latitude: z.coerce.number().default(0),
-  longitude: z.coerce.number().default(0),
+  latitude: z.number().default(0),
+  longitude: z.number().default(0),
 
   logoUrl: z.string().default(""),
 
@@ -21,7 +21,7 @@ export const onboardingSchema = z.object({
       z.object({
         name: z.string().min(1, "Vui lòng nhập tên món"),
         description: z.string().min(1, "Vui lòng nhập mô tả món"),
-        price: z.coerce.number().min(1000, "Giá món không hợp lệ"),
+        price: z.number().min(1000, "Giá món không hợp lệ"),
         imageUrl: z.string().optional(),
         imageUploadDataUrl: z.string().optional(),
         category: z.string().optional(),
@@ -30,4 +30,5 @@ export const onboardingSchema = z.object({
     .min(1, "Vui lòng thêm ít nhất 1 món"),
 });
 
-export type OnboardingSchema = z.infer<typeof onboardingSchema>;
+export type OnboardingFormValues = z.input<typeof onboardingSchema>;
+export type OnboardingSchema = z.output<typeof onboardingSchema>;

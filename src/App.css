@@ -369,21 +369,27 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 240px 1fr;
-  background: #fff7ee;
-  color: #3b2b22;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(34, 211, 238, 0.18),
+      transparent 32%
+    ),
+    linear-gradient(180deg, #f5fbff 0%, #eef6ff 100%);
+  color: #10304a;
 }
 
 .merchant-sidebar {
   min-height: 100vh;
-  background: #fffaf4;
-  border-right: 1px solid #f1dfd2;
+  background: rgba(255, 255, 255, 0.82);
+  border-right: 1px solid rgba(186, 230, 253, 0.9);
   padding: 24px 18px;
   display: flex;
   flex-direction: column;
 }
 
 .merchant-sidebar-logo {
-  color: #f06a3d;
+  color: #0f766e;
   margin-bottom: 28px;
 }
 
@@ -398,7 +404,7 @@
   min-height: 44px;
   border-radius: 12px;
   background: transparent;
-  color: #8a776b;
+  color: #5b7587;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -408,8 +414,12 @@
 }
 
 .merchant-nav-item.active {
-  background: #fff0df;
-  color: #f06a3d;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.16),
+    rgba(251, 191, 36, 0.18)
+  );
+  color: #0f766e;
 }
 
 .merchant-nav-item:disabled {
@@ -421,7 +431,7 @@
   margin-top: auto;
   display: grid;
   gap: 8px;
-  border-top: 1px solid #f1dfd2;
+  border-top: 1px solid rgba(186, 230, 253, 0.85);
   padding-top: 18px;
 }
 
@@ -431,8 +441,8 @@
 
 .merchant-topbar {
   height: 64px;
-  background: #fffaf4;
-  border-bottom: 1px solid #f1dfd2;
+  background: rgba(255, 255, 255, 0.84);
+  border-bottom: 1px solid rgba(186, 230, 253, 0.85);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -452,14 +462,14 @@
 
 .merchant-user span {
   font-size: 12px;
-  color: #9a8577;
+  color: #6b8799;
 }
 
 .merchant-avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #0f766e;
+  background: linear-gradient(135deg, #0f766e, #0284c7);
   color: white;
   display: grid;
   place-items: center;
@@ -468,7 +478,7 @@
 
 .merchant-user button {
   background: transparent;
-  color: #9a8577;
+  color: #6b8799;
   font-weight: 700;
 }
 
@@ -489,9 +499,9 @@
   min-height: 240px;
   border-radius: 18px;
   padding: 40px 36px;
-  background: linear-gradient(135deg, #ff6a3f, #f17b57);
-  color: #4a2316;
-  box-shadow: 0 24px 60px rgba(241, 109, 58, 0.16);
+  background: linear-gradient(135deg, #0891b2, #0f766e 55%, #2563eb);
+  color: #ecfeff;
+  box-shadow: 0 24px 60px rgba(8, 145, 178, 0.18);
 }
 
 .merchant-submit-card h1 {
@@ -502,7 +512,7 @@
 
 .merchant-submit-card p {
   max-width: 520px;
-  color: rgba(75, 43, 30, 0.9);
+  color: rgba(236, 254, 255, 0.9);
   font-weight: 600;
 }
 
@@ -511,19 +521,23 @@
   min-height: 50px;
   border-radius: 999px;
   background: white;
-  color: #f06a3d;
+  color: #0f766e;
   padding: 0 20px;
   display: inline-flex;
   align-items: center;
   gap: 12px;
   font-weight: 800;
-  box-shadow: 0 8px 30px rgba(241, 108, 50, 0.12);
+  box-shadow: 0 8px 30px rgba(15, 118, 110, 0.12);
 }
 
 .merchant-status-card {
   border-radius: 16px;
-  background: linear-gradient(180deg, #fff7ef, #f9efe1);
-  border: 1px solid #efe0cf;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(236, 254, 255, 0.92)
+  );
+  border: 1px solid rgba(186, 230, 253, 0.8);
   padding: 28px 20px;
   text-align: center;
   display: grid;
@@ -536,7 +550,7 @@
   height: 64px;
   margin: 0 auto 14px;
   border-radius: 12px;
-  background: #fff4e7;
+  background: #ecfeff;
   display: grid;
   place-items: center;
   font-size: 28px;
@@ -545,17 +559,17 @@
 .merchant-status-card p {
   margin: 0 0 8px;
   font-size: 12px;
-  color: #a08a7d;
+  color: #6b8799;
   font-weight: 800;
 }
 
 .merchant-status-card h2 {
   margin: 0 0 10px;
-  color: #dc5d36;
+  color: #0f766e;
 }
 
 .merchant-status-card span {
-  color: #80695b;
+  color: #446175;
   line-height: 1.5;
 }
 
@@ -574,7 +588,7 @@
 
 .merchant-process-card > p {
   margin: 0 0 30px;
-  color: #927b6d;
+  color: #5b7587;
 }
 
 .process-line {
@@ -589,16 +603,16 @@
   height: 34px;
   border-radius: 50%;
   margin: 0 auto 10px;
-  background: #fff3ed;
-  border: 1px solid #ffc6af;
-  color: #f06a3d;
+  background: #ecfeff;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
   display: grid;
   place-items: center;
   font-weight: 900;
 }
 
 .process-step:first-child div {
-  background: #c6471e;
+  background: linear-gradient(135deg, #0f766e, #0284c7);
   color: white;
 }
 
@@ -611,7 +625,7 @@
 .process-step span {
   display: block;
   font-size: 12px;
-  color: #8a776b;
+  color: #5b7587;
   line-height: 1.4;
 }
 
@@ -623,7 +637,11 @@
 }
 
 .merchant-tips-grid article {
-  background: #fff3df;
+  background: linear-gradient(
+    135deg,
+    rgba(236, 254, 255, 0.92),
+    rgba(240, 249, 255, 0.9)
+  );
   border-radius: 18px;
   padding: 22px;
   display: flex;
@@ -631,7 +649,7 @@
 }
 
 .merchant-tips-grid svg {
-  color: #f06a3d;
+  color: #0891b2;
   flex: 0 0 auto;
 }
 
@@ -641,7 +659,7 @@
 
 .merchant-tips-grid p {
   margin: 0;
-  color: #80695b;
+  color: #446175;
   line-height: 1.5;
 }
 
@@ -649,7 +667,11 @@
   height: 180px;
   border-radius: 18px;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.3));
+  background: linear-gradient(
+    180deg,
+    rgba(8, 145, 178, 0.08),
+    rgba(15, 23, 42, 0.32)
+  );
   display: flex;
   align-items: end;
   padding: 26px;
@@ -681,25 +703,25 @@
 
 .merchant-mock-card p {
   margin: 0 0 16px;
-  color: #80695b;
+  color: #446175;
   line-height: 1.5;
 }
 
 .mock-empty {
   min-height: 90px;
   border-radius: 14px;
-  background: #fff7ee;
-  border: 1px dashed #edcbb8;
+  background: rgba(236, 254, 255, 0.92);
+  border: 1px dashed rgba(45, 212, 191, 0.6);
   display: grid;
   place-items: center;
-  color: #c77855;
+  color: #0f766e;
   font-weight: 800;
 }
 
 .mock-bars {
   height: 90px;
   border-radius: 14px;
-  background: #fff7ee;
+  background: rgba(236, 254, 255, 0.8);
   display: flex;
   align-items: end;
   gap: 10px;
@@ -709,7 +731,7 @@
 .mock-bars span {
   flex: 1;
   border-radius: 999px 999px 0 0;
-  background: #f06a3d;
+  background: linear-gradient(180deg, #0891b2, #0f766e);
 }
 
 .mock-bars span:nth-child(1) {
@@ -752,19 +774,25 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 250px 1fr;
-  background: #fff7ef;
-  color: #3b2a22;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(34, 211, 238, 0.14),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #f4fbff 0%, #eef7ff 100%);
+  color: #10304a;
 }
 
 .onboarding-sidebar {
-  background: #fffaf4;
-  border-right: 1px solid #f1dfd2;
+  background: rgba(255, 255, 255, 0.82);
+  border-right: 1px solid rgba(186, 230, 253, 0.9);
   padding: 28px 24px;
 }
 
 .onboarding-brand {
   display: block;
-  color: #ff6b3d;
+  color: #0f766e;
   font-size: 18px;
   margin-bottom: 34px;
 }
@@ -775,19 +803,19 @@
 
 .onboarding-progress span {
   display: block;
-  color: #ff6b3d;
+  color: #0f766e;
   font-weight: 800;
 }
 
 .onboarding-progress small {
-  color: #8b7568;
+  color: #5b7587;
 }
 
 .onboarding-progress div {
   height: 5px;
   margin-top: 8px;
   border-radius: 999px;
-  background: #f0dfd3;
+  background: rgba(186, 230, 253, 0.75);
   overflow: hidden;
 }
 
@@ -795,7 +823,7 @@
   display: block;
   width: 65%;
   height: 100%;
-  background: #ff6b3d;
+  background: linear-gradient(90deg, #0891b2, #0f766e);
 }
 
 .onboarding-sidebar nav {
@@ -807,7 +835,7 @@
   height: 44px;
   border-radius: 12px;
   background: transparent;
-  color: #8a7468;
+  color: #5b7587;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -816,8 +844,12 @@
 }
 
 .onboarding-sidebar nav button.active {
-  background: #fff0df;
-  color: #ff6b3d;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.16),
+    rgba(251, 191, 36, 0.16)
+  );
+  color: #0f766e;
 }
 
 .onboarding-sidebar nav button:disabled {
@@ -829,8 +861,8 @@
   margin-left: auto;
   font-style: normal;
   font-size: 10px;
-  background: #fff0df;
-  color: #ff6b3d;
+  background: rgba(236, 254, 255, 0.95);
+  color: #0f766e;
   border-radius: 999px;
   padding: 2px 6px;
 }
@@ -841,8 +873,8 @@
 
 .onboarding-topbar {
   height: 68px;
-  background: #fffaf4;
-  border-bottom: 1px solid #f1dfd2;
+  background: rgba(255, 255, 255, 0.84);
+  border-bottom: 1px solid rgba(186, 230, 253, 0.85);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -857,7 +889,7 @@
 .onboarding-topbar nav button,
 .onboarding-user button {
   background: transparent;
-  color: #8b7568;
+  color: #5b7587;
   font-weight: 700;
 }
 
@@ -873,7 +905,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #154e45;
+  background: linear-gradient(135deg, #0f766e, #0284c7);
   color: white;
   font-weight: 900;
 }
@@ -1358,8 +1390,8 @@
 
 .merchant-status-page {
   min-height: 100vh;
-  background: #fff8f1;
-  color: #38261e;
+  background: linear-gradient(180deg, #f6fbff, #eef7ff);
+  color: #10304a;
   padding-bottom: 120px;
 }
 

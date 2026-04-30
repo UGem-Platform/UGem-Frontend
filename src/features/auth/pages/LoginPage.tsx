@@ -37,21 +37,21 @@ export function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen grid-cols-1 bg-[#f7efe3] lg:grid-cols-[1.2fr_0.8fr]">
+    <main className="grid min-h-screen grid-cols-1 bg-gradient-to-br from-cyan-50 via-sky-50 to-amber-50 lg:grid-cols-[1.2fr_0.8fr]">
       {/* LEFT - HERO */}
       <section className="relative min-h-[48vh] lg:min-h-screen">
         <HeroCarousel images={HERO_IMAGES} onChange={setSlide} />
 
-        <div className="absolute bottom-6 left-6 z-30 max-w-sm rounded-2xl border border-white/30 bg-white/85 p-4 shadow-xl backdrop-blur-lg">
+        <div className="absolute bottom-6 left-6 z-30 max-w-sm rounded-2xl border border-white/30 bg-white/88 p-4 shadow-xl backdrop-blur-lg">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-100 text-lg">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-100 text-lg">
               🥗
             </span>
             <div>
-              <strong className="block text-sm text-stone-900">
+              <strong className="block text-sm text-slate-900">
                 {CAPTIONS[slide]?.title}
               </strong>
-              <small className="text-xs text-stone-600">
+              <small className="text-xs text-slate-600">
                 {CAPTIONS[slide]?.subtitle}
               </small>
             </div>
@@ -62,24 +62,24 @@ export function LoginPage() {
       {/* RIGHT - LOGIN */}
       <section className="flex min-h-screen items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          <div className="rounded-3xl bg-white/80 p-8 shadow-2xl backdrop-blur-xl border border-white/50">
+          <div className="rounded-3xl bg-white/85 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
             <Logo />
 
             <div className="mt-6 space-y-2">
-              <h1 className="text-2xl font-bold text-stone-900">
+              <h1 className="text-2xl font-bold text-slate-900">
                 Khám phá quán ăn đang bị{" "}
-                <span className="text-amber-600 text-2xl">FLOP</span>
+                <span className="text-cyan-700 text-2xl">FLOP</span>
               </h1>
-              <p className="text-sm text-stone-600">
+              <p className="text-sm text-slate-600">
                 Những quán ngon địa phương chưa nhiều người biết đến
               </p>
             </div>
 
             <button
               onClick={handleGoogleLogin}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white py-3 font-medium hover:bg-stone-50"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 font-medium hover:bg-cyan-50"
             >
-              <span className="text-emerald-600 font-bold">
+              <span className="text-cyan-600 font-bold">
                 <img
                   src="https://static.dezeen.com/uploads/2025/05/sq-google-g-logo-update_dezeen_2364_col_0.jpg"
                   alt="Google Logo"
@@ -89,16 +89,16 @@ export function LoginPage() {
               Đăng nhập bằng Google
             </button>
 
-            <div className="my-5 flex items-center gap-3 text-xs text-stone-400">
-              <div className="h-px flex-1 bg-stone-200" />
+            <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
+              <div className="h-px flex-1 bg-slate-200" />
               Hoặc
-              <div className="h-px flex-1 bg-stone-200" />
+              <div className="h-px flex-1 bg-slate-200" />
             </div>
 
             <LoginForm />
 
             <div className="mt-4 text-center space-y-1">
-              <button className="text-sm text-emerald-700 hover:underline">
+              <button className="text-sm text-cyan-700 hover:underline">
                 Quên mật khẩu?
               </button>
               <button className="block text-sm font-medium text-amber-700 hover:underline">
@@ -107,7 +107,7 @@ export function LoginPage() {
             </div>
           </div>
 
-          <p className="mt-4 text-center text-xs text-stone-500">
+          <p className="mt-4 text-center text-xs text-slate-500">
             Bằng cách tiếp tục, bạn đồng ý điều khoản & chính sách
           </p>
         </div>

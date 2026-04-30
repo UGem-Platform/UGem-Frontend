@@ -9,20 +9,6 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function load() {
-    setLoading(true);
-
-    try {
-      const data = await getWishlist();
-      setItems(data);
-    } catch (error) {
-      console.error(error);
-      alert("Không tải được wishlist.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleRemove(merchantId?: string) {
     if (!merchantId) {
       alert(
@@ -46,11 +32,36 @@ export default function WishlistPage() {
   }
 
   useEffect(() => {
-    load();
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+
+      try {
+        const data = await getWishlist();
+
+        if (active) {
+          setItems(data ?? []);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Không tải được wishlist.");
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-5">
+    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-5 text-2xl font-bold">Quán yêu thích</h1>
 
@@ -64,10 +75,10 @@ export default function WishlistPage() {
               return (
                 <div
                   key={merchantId || `${merchant.name}-${index}`}
-                  className="rounded-2xl border bg-white p-4 shadow-sm"
+                  className="rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
                 >
                   <div className="flex gap-4">
-                    <div className="h-20 w-20 overflow-hidden rounded-xl bg-gray-100">
+                    <div className="h-20 w-20 overflow-hidden rounded-xl bg-cyan-100">
                       {merchant.logoUrl ? (
                         <img
                           src={merchant.logoUrl}
@@ -75,24 +86,24 @@ export default function WishlistPage() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
+                        <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
                           No image
                         </div>
                       )}
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-slate-900">
                         {merchant.name}
                       </h3>
 
-                      <p className="mt-2 text-sm text-gray-600">
+                      <p className="mt-2 text-sm text-slate-600">
                         ⭐ {merchant.rating || 0}
                       </p>
 
                       <button
                         onClick={() => handleRemove(merchantId)}
-                        className="mt-3 text-sm text-red-600"
+                        className="mt-3 text-sm text-rose-600"
                       >
                         Xóa khỏi yêu thích
                       </button>
@@ -103,7 +114,7 @@ export default function WishlistPage() {
             })}
 
             {items.length === 0 && (
-              <p className="text-center text-gray-500">
+              <p className="text-center text-slate-500">
                 Bạn chưa lưu quán nào.
               </p>
             )}

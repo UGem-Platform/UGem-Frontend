@@ -56,8 +56,8 @@ export function LoginForm() {
                       h-12 rounded-2xl border-border/70 bg-background/80
                       pl-12 text-base shadow-sm transition-all
                       placeholder:text-muted-foreground/70
-                      focus-visible:border-amber-600
-                      focus-visible:ring-amber-600/20
+                      focus-visible:border-cyan-600
+                      focus-visible:ring-cyan-600/20
                     "
                     {...field}
                   />
@@ -85,8 +85,8 @@ export function LoginForm() {
                       h-12 rounded-2xl border-border/70 bg-background/80
                       pl-12 text-base shadow-sm transition-all
                       placeholder:text-muted-foreground/70
-                      focus-visible:border-amber-600
-                      focus-visible:ring-amber-600/20
+                      focus-visible:border-cyan-600
+                      focus-visible:ring-cyan-600/20
                     "
                     {...field}
                   />
@@ -98,7 +98,7 @@ export function LoginForm() {
         />
 
         {loginMutation.isError && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
             {apiError}
           </div>
         )}
@@ -107,10 +107,10 @@ export function LoginForm() {
           type="submit"
           disabled={loginMutation.isPending}
           className="
-            h-12 w-full rounded-2xl bg-amber-700 text-base font-semibold
-            text-white shadow-lg shadow-amber-900/20 transition-all
-            hover:-translate-y-0.5 hover:bg-amber-800
-            hover:shadow-xl hover:shadow-amber-900/25
+            h-12 w-full rounded-2xl bg-cyan-700 text-base font-semibold
+            text-white shadow-lg shadow-cyan-900/20 transition-all
+            hover:-translate-y-0.5 hover:bg-cyan-800
+            hover:shadow-xl hover:shadow-cyan-900/25
             disabled:translate-y-0 disabled:opacity-70
           "
         >

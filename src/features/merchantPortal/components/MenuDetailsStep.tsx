@@ -8,13 +8,13 @@ import {
 } from "react-hook-form";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import type { OnboardingSchema } from "../schema";
+import type { OnboardingFormValues } from "../schema";
 
 type Props = {
-  control: Control<OnboardingSchema>;
-  register: UseFormRegister<OnboardingSchema>;
-  errors: FieldErrors<OnboardingSchema>;
-  setValue: UseFormSetValue<OnboardingSchema>;
+  control: Control<OnboardingFormValues>;
+  register: UseFormRegister<OnboardingFormValues>;
+  errors: FieldErrors<OnboardingFormValues>;
+  setValue: UseFormSetValue<OnboardingFormValues>;
 };
 
 function isProbablyImageUrl(src: string) {
@@ -115,7 +115,9 @@ export function MenuDetailsStep({
                 <input
                   type="number"
                   placeholder="45000"
-                  {...register(`menu.${index}.price`)}
+                  {...register(`menu.${index}.price`, {
+                    valueAsNumber: true,
+                  })}
                 />
                 {errors.menu?.[index]?.price && (
                   <small>{errors.menu[index]?.price?.message}</small>
