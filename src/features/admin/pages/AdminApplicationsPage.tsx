@@ -2,44 +2,64 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getStaffApplications } from "../services/applicationService";
 import type { Application } from "../types";
+import { RefreshCw } from "lucide-react";
 
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadApplications = async () => {
+    setLoading(true);
+
+    try {
+      const data = await getStaffApplications();
+      setApplications(data ?? []);
+    } catch (error) {
+      console.error(error);
+      alert("Không tải được danh sách hồ sơ.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      const data = await getStaffApplications();
+      setApplications(data ?? []);
+    } catch (error) {
+      console.error(error);
+      alert("Không tải được danh sách hồ sơ.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    let active = true;
+    loadApplications();
 
-    const load = async () => {
-      setLoading(true);
+    // Polling every 5 seconds for new applications
+    const interval = setInterval(loadApplications, 5000);
 
-      try {
-        const data = await getStaffApplications();
-
-        if (active) {
-          setApplications(data ?? []);
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Không tải được danh sách hồ sơ.");
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      active = false;
-    };
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-5 text-2xl font-bold">Duyệt hồ sơ Merchant</h1>
+        <div className="mb-5 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Duyệt hồ sơ Merchant</h1>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700 disabled:opacity-50"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {refreshing ? "Đang tải..." : "Làm mới"}
+          </button>
+        </div>
 
         {loading ? (
           <p>Đang tải...</p>
@@ -57,11 +77,23 @@ export default function AdminApplicationsPage() {
 
               <tbody>
                 {applications.map((app) => (
-                  <tr key={app.id} className="border-t">
+                  <tr key={app.id} className="border-t hover:bg-cyan-50">
                     <td className="p-4">
                       {app.merchantName || app.businessName || "Không tên"}
                     </td>
-                    <td className="p-4">{app.status || "Pending"}</td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
+                          app.status === "Approved"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : app.status === "Rejected"
+                              ? "bg-rose-100 text-rose-800"
+                              : "bg-amber-100 text-amber-800"
+                        }`}
+                      >
+                        {app.status || "Pending"}
+                      </span>
+                    </td>
                     <td className="p-4">
                       {app.createdAt
                         ? new Date(app.createdAt).toLocaleDateString("vi-VN")
@@ -71,7 +103,7 @@ export default function AdminApplicationsPage() {
                       <Link
                         to={`/admin/applications/${app.id}`}
                         state={{ application: app }}
-                        className="text-cyan-700"
+                        className="text-cyan-700 hover:underline"
                       >
                         Xem chi tiết
                       </Link>

@@ -44,3 +44,20 @@ export async function getMerchantOrders() {
   const res = await api.get("/Order");
   return res.data.data;
 }
+
+export async function acceptOrder(orderId: string) {
+  const res = await api.post<ApiResponse<null>>("/Order/accept", null, {
+    params: { orderId },
+  });
+
+  return res.data;
+}
+
+export async function rejectOrder(orderId: string, reason: string) {
+  const res = await api.post<ApiResponse<null>>("/Order/reject", {
+    orderId,
+    reason,
+  });
+
+  return res.data;
+}

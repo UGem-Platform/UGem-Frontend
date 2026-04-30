@@ -34,8 +34,10 @@ export async function getNearbyMerchants(params: {
     );
     return res.data.data.items;
   } catch (error) {
-    console.warn("Lỗi gọi API getNearbyMerchants (Backend có thể đang tắt). Sử dụng dữ liệu giả lập (mock data) để test Map.");
-    
+    console.warn(
+      "Lỗi gọi API getNearbyMerchants (Backend có thể đang tắt). Sử dụng dữ liệu giả lập (mock data) để test Map.",
+    );
+
     // Dữ liệu giả lập xung quanh vị trí user
     return [
       {
@@ -47,7 +49,7 @@ export async function getNearbyMerchants(params: {
         longitude: params.longitude + 0.005,
         distance: 0.8,
         rating: 4.8,
-        status: "Open"
+        status: "Open",
       },
       {
         id: "mock-2",
@@ -58,7 +60,7 @@ export async function getNearbyMerchants(params: {
         longitude: params.longitude + 0.008,
         distance: 1.2,
         rating: 4.2,
-        status: "Open"
+        status: "Open",
       },
       {
         id: "mock-3",
@@ -69,8 +71,8 @@ export async function getNearbyMerchants(params: {
         longitude: params.longitude - 0.004,
         distance: 1.5,
         rating: 4.5,
-        status: "Open"
-      }
+        status: "Open",
+      },
     ] as unknown as Merchant[];
   }
 }
@@ -80,5 +82,43 @@ export async function getMerchantDetail(id: string) {
     `/Merchant/Merchants/${id}`,
   );
 
+  return res.data.data;
+}
+
+/**
+ * Map search endpoint per Swagger: GET /api/Merchant/Map/Merchants
+ * The Swagger describes a request body for map queries; some servers accept
+ * GET with body, so we send a request using axios.request to include `data`.
+ */
+export async function getMapMerchants(payload: unknown) {
+  const res = await api.request<ApiResponse<Merchant[]>>({
+    method: "get",
+    url: "/Merchant/Map/Merchants",
+    // include body as data (backend may expect a MapRequest JSON)
+    data: payload,
+  });
+
+  return res.data.data ?? [];
+}
+
+/**
+ * Try GET /api/Merchant/Category/Merchants - category search
+ */
+export async function getMerchantsByCategory(payload: unknown) {
+  const res = await api.request<ApiResponse<Merchant[]>>({
+    method: "get",
+    url: "/Merchant/Category/Merchants",
+    data: payload,
+  });
+
+  return res.data.data ?? [];
+}
+
+/**
+ * Optional: GET /api/Merchant/me if backend provides it (Swagger did not include
+ * this but FE referenced it in comments). Try to call it if present.
+ */
+export async function getMerchantMe() {
+  const res = await api.get<ApiResponse<MerchantDetail>>(`/Merchant/me`);
   return res.data.data;
 }
