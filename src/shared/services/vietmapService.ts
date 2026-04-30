@@ -56,6 +56,16 @@ export interface RouteResult {
   steps: RouteStep[];
 }
 
+type OsrmStep = {
+  distance: number;
+  duration: number;
+  name?: string;
+  maneuver?: {
+    type?: string;
+    modifier?: string;
+  };
+};
+
 // ─── Geocode: địa chỉ text → tọa độ ─────────────────────────
 
 export async function geocodeAddress(text: string): Promise<GeocodeResult[]> {
@@ -132,7 +142,7 @@ export async function getRoute(
 
   const coordinates: [number, number][] = route.geometry?.coordinates ?? [];
   const steps: RouteStep[] = (route.legs?.[0]?.steps ?? []).map(
-    (step: any) => ({
+    (step: OsrmStep) => ({
       distance: step.distance,
       duration: step.duration,
       instruction:

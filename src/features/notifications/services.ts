@@ -6,7 +6,16 @@ type ApiResponse<T> = {
   data: T;
 };
 
+export type NotificationItem = {
+  id: string;
+  title?: string;
+  message?: string;
+  content?: string;
+  createdAt?: string;
+  type?: "info" | "success" | "warning" | "error";
+};
+
 export async function getNotifications() {
-  const res = await api.get<ApiResponse<any[]>>("/Notification");
+  const res = await api.get<ApiResponse<NotificationItem[]>>("/Notification");
   return res.data.data;
 }

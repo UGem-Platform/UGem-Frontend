@@ -6,13 +6,21 @@ type ApiResponse<T> = {
   data: T;
 };
 
+export type AffiliateLink = {
+  id?: string;
+  name?: string;
+  url?: string;
+  description?: string;
+  status?: string;
+};
+
 export async function createAffiliateLink(payload: unknown) {
   const { data } = await api.post<ApiResponse<null>>("/AffiliateLink", payload);
   return data;
 }
 
 export async function getAffiliateLinks() {
-  const res = await api.get<ApiResponse<unknown[]>>("/AffiliateLink");
+  const res = await api.get<ApiResponse<AffiliateLink[]>>("/AffiliateLink");
   return res.data.data ?? [];
 }
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "lucide-react";
 import { getAffiliateLinks } from "../services";
+import type { AffiliateLink } from "../services";
 
 export default function AffiliateLinkPage() {
-  const [links, setLinks] = useState<any[]>([]);
+  const [links, setLinks] = useState<AffiliateLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,7 +47,7 @@ export default function AffiliateLinkPage() {
 
               <tbody>
                 {links.length > 0 ? (
-                  links.map((link: any, idx: number) => (
+                  links.map((link: AffiliateLink, idx: number) => (
                     <tr key={link.id || idx} className="border-t">
                       <td className="p-4">{link.name || "N/A"}</td>
                       <td className="p-4">

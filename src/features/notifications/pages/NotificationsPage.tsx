@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
 import { getNotifications } from "../services";
+import type { NotificationItem } from "../services";
 import { Bell, RefreshCw } from "lucide-react";
 
-type Notification = {
-  id: string;
-  title?: string;
-  message?: string;
-  content?: string;
-  createdAt?: string;
-  type?: "info" | "success" | "warning" | "error";
-};
-
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -44,12 +36,19 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
-    loadNotifications();
+    const initialLoad = window.setTimeout(() => {
+      void loadNotifications();
+    }, 0);
 
     // Polling every 10 seconds for new notifications
-    const interval = setInterval(loadNotifications, 10000);
+    const interval = window.setInterval(() => {
+      void loadNotifications();
+    }, 10000);
 
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
   }, []);
 
   const getNotificationStyles = (type?: string) => {
