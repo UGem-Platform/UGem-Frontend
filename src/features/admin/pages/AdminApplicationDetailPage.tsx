@@ -1,0 +1,150 @@
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import {
+  acceptApplication,
+  rejectApplication,
+} from "../services/applicationService";
+import type { Application } from "../types";
+
+export default function AdminApplicationDetailPage() {
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const application = location.state?.application as Application | undefined;
+
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleAccept() {
+    if (!id) return;
+
+    setSubmitting(true);
+
+    try {
+      await acceptApplication(id);
+      alert("Đã duyệt hồ sơ.");
+      navigate("/admin/applications");
+    } catch (error) {
+      console.error(error);
+      alert("Duyệt hồ sơ thất bại.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleReject() {
+    if (!id) return;
+
+    if (!reason.trim()) {
+      alert("Vui lòng nhập lý do từ chối.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await rejectApplication(id, reason);
+      alert("Đã từ chối hồ sơ.");
+      navigate("/admin/applications");
+    } catch (error) {
+      console.error(error);
+      alert("Từ chối hồ sơ thất bại.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!application) {
+    return (
+      <div className="p-5">
+        Không có dữ liệu hồ sơ. Hãy quay lại danh sách và mở lại.
+      </div>
+    );
+  }
+
+  const name =
+    application.merchantName || application.businessName || "Không tên";
+
+  return (
+    <div className="min-h-screen bg-gray-50 px-4 py-5">
+      <div className="mx-auto max-w-3xl">
+        <button
+          onClick={() => navigate("/admin/applications")}
+          className="mb-4 text-blue-600"
+        >
+          ← Quay lại
+        </button>
+
+        <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <h1 className="text-2xl font-bold">{name}</h1>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Trạng thái: {application.status || "Pending"}
+          </p>
+
+          {application.address && (
+            <p className="mt-3">
+              <b>Địa chỉ:</b> {application.address}
+            </p>
+          )}
+
+          {application.description && (
+            <p className="mt-3">
+              <b>Mô tả:</b> {application.description}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold">Menu gửi kèm</h2>
+
+          {application.applicationMenus?.map((item) => (
+            <div key={item.id} className="border-b py-3">
+              <p className="font-medium">{item.name}</p>
+              <p className="text-blue-600">
+                {item.price.toLocaleString("vi-VN")}đ
+              </p>
+              {item.description && (
+                <p className="text-sm text-gray-500">{item.description}</p>
+              )}
+            </div>
+          ))}
+
+          {!application.applicationMenus?.length && (
+            <p className="text-gray-500">Không có menu.</p>
+          )}
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold">Xử lý hồ sơ</h2>
+
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Lý do từ chối nếu reject..."
+            className="mb-3 min-h-24 w-full rounded-xl border p-3 outline-none focus:border-blue-500"
+          />
+
+          <div className="flex gap-3">
+            <button
+              disabled={submitting}
+              onClick={handleAccept}
+              className="rounded-xl bg-green-600 px-5 py-3 text-white disabled:opacity-50"
+            >
+              Duyệt
+            </button>
+
+            <button
+              disabled={submitting}
+              onClick={handleReject}
+              className="rounded-xl bg-red-600 px-5 py-3 text-white disabled:opacity-50"
+            >
+              Từ chối
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
