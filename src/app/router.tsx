@@ -1,5 +1,7 @@
 import AdminApplicationDetailPage from "@/features/admin/pages/AdminApplicationDetailPage";
 import AdminApplicationsPage from "@/features/admin/pages/AdminApplicationsPage";
+import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
+import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
 import { LoginPage } from "@/features/auth";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
 import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDetailPage";
@@ -13,7 +15,10 @@ import {
 } from "@/features/merchantPortal";
 import MerchantOrdersPage from "@/features/merchantPortal/pages/MerchantOrdersPage";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
+import ReviewsPage from "@/features/review/pages/ReviewsPage";
 import VietMapDemoPage from "@/shared/pages/VietMapDemoPage";
+import UnauthorizedPage from "@/shared/pages/UnauthorizedPage";
+import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 const routers = createBrowserRouter([
@@ -26,52 +31,128 @@ const routers = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/unauthorized",
+    element: <UnauthorizedPage />,
+  },
+  {
     path: "/customer",
-    element: <CustomerHomePage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Customer"]}>
+        <CustomerHomePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/customer/merchants/:id",
-    element: <MerchantDetailPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Customer"]}>
+        <MerchantDetailPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/customer/wishlist",
-    element: <WishlistPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Customer"]}>
+        <WishlistPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/customer/orders",
-    element: <CustomerOrdersPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Customer"]}>
+        <CustomerOrdersPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/customer/orders/:id",
-    element: <CustomerOrderDetailPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Customer"]}>
+        <CustomerOrderDetailPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/merchant",
-    element: <MerchantPortalPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Merchant"]}>
+        <MerchantPortalPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/merchant/application/create",
-    element: <MerchantOnboardingPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Merchant"]}>
+        <MerchantOnboardingPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/merchant/application/status",
-    element: <MerchantApplicationStatusPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Merchant"]}>
+        <MerchantApplicationStatusPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/merchant/orders",
-    element: <MerchantOrdersPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Merchant"]}>
+        <MerchantOrdersPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/applications",
-    element: <AdminApplicationsPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Staff", "Admin"]}>
+        <AdminApplicationsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/applications/:id",
-    element: <AdminApplicationDetailPage />,
+    element: (
+      <ProtectedRoute allowedRoles={["Staff", "Admin"]}>
+        <AdminApplicationDetailPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/staff",
+    element: (
+      <ProtectedRoute allowedRoles={["Admin"]}>
+        <AdminStaffPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/notifications",
-    element: <NotificationsPage />,
+    element: (
+      <ProtectedRoute>
+        <NotificationsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reviews",
+    element: (
+      <ProtectedRoute>
+        <ReviewsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/affiliate-links",
+    element: (
+      <ProtectedRoute allowedRoles={["Merchant"]}>
+        <AffiliateLinkPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/map-demo",
