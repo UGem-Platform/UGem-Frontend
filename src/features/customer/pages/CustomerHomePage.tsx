@@ -17,7 +17,12 @@ import NearbyMerchantsMap from "../components/NearbyMerchantsMap";
 import { getNearbyMerchants } from "../services/merchantService";
 import type { Merchant } from "../types";
 import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";
-import { metersToKm, secondsToText, HAS_VIETMAP_KEY, HAS_VIETMAP_SERVICE_KEY } from "@/shared/services/vietmapService";
+import {
+  metersToKm,
+  secondsToText,
+  HAS_VIETMAP_KEY,
+  HAS_VIETMAP_SERVICE_KEY,
+} from "@/shared/services/vietmapService";
 
 type Coords = { latitude: number; longitude: number };
 
@@ -94,11 +99,12 @@ export default function CustomerHomePage() {
   );
 
   // ── Route state ──────────────────────────────────────────────
-  const { route, clearRoute, routeResult, loading: routeLoading } =
-    useVietMapRoute();
-  const [routeCoordinates, setRouteCoordinates] = useState<
-    [number, number][] | undefined
-  >();
+  const {
+    route,
+    clearRoute,
+    routeResult,
+    loading: routeLoading,
+  } = useVietMapRoute();
 
   const selectedMerchant = useMemo(
     () => merchants.find((m) => m.id === selectedMerchantId) ?? null,
@@ -153,13 +159,9 @@ export default function CustomerHomePage() {
   // ── Tự động tính route khi chọn quán ─────────────────────────
   useEffect(() => {
     if (!selectedMerchantId || !selectedMerchant) {
-      setRouteCoordinates(undefined);
       clearRoute();
       return;
     }
-
-    // Nếu không có Service Key, API vẫn fallback sang OSRM miễn phí, nên không cần chặn return sớm nữa.
-    // Xóa dòng chặn HAS_VIETMAP_KEY vì bây giờ service đã có 2 fallback (có key -> Vietmap, không key -> OSRM)
 
     const merchantCoords = getMerchantCoords(selectedMerchant);
     if (!merchantCoords) return;
@@ -167,13 +169,9 @@ export default function CustomerHomePage() {
     route(
       { lat: coords.latitude, lng: coords.longitude },
       { lat: merchantCoords.lat, lng: merchantCoords.lng },
-      "motorcycle",
-    ).then((result) => {
-      if (result?.coordinates?.length) {
-        setRouteCoordinates(result.coordinates);
-      }
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      "bike",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMerchantId]);
 
   function handleSearch(e: React.FormEvent) {
@@ -190,7 +188,6 @@ export default function CustomerHomePage() {
 
   function handleClearRoute() {
     setSelectedMerchantId(null);
-    setRouteCoordinates(undefined);
     clearRoute();
   }
 
@@ -345,18 +342,18 @@ export default function CustomerHomePage() {
 
                   {/* Route info card */}
                   {routeResult && (
-                    <div className="mt-2 flex gap-3 rounded-xl bg-blue-50 px-4 py-3 dark:bg-blue-950">
-                      <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-300">
+                    <div className="mt-2 flex gap-3 rounded-xl bg-cyan-50 px-4 py-3 dark:bg-cyan-950/50">
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
                         <Route className="h-4 w-4" />
                         {metersToKm(routeResult.distance)}
                       </div>
-                      <div className="h-4 w-px bg-blue-200 dark:bg-blue-700" />
-                      <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-300">
+                      <div className="h-4 w-px bg-cyan-200 dark:bg-cyan-700" />
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
                         <Clock className="h-4 w-4" />
                         {secondsToText(routeResult.duration)}
                       </div>
                       {!HAS_VIETMAP_KEY && (
-                        <span className="ml-auto text-xs text-orange-500">
+                        <span className="ml-auto text-xs text-amber-600">
                           ⚠️ Cần API key để tính route
                         </span>
                       )}
@@ -365,24 +362,40 @@ export default function CustomerHomePage() {
 
                   {!HAS_VIETMAP_SERVICE_KEY && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      💡 Thêm <code className="font-mono bg-muted px-1 rounded">VITE_VIETMAP_SERVICE_KEY</code> vào <code className="font-mono bg-muted px-1 rounded">.env</code> để tính đường đi bằng VietMap
+                      💡 Thêm{" "}
+                      <code className="font-mono bg-muted px-1 rounded">
+                        VITE_VIETMAP_SERVICE_KEY
+                      </code>{" "}
+                      vào{" "}
+                      <code className="font-mono bg-muted px-1 rounded">
+                        .env
+                      </code>{" "}
+                      để tính đường đi bằng VietMap
                     </p>
                   )}
                   {!HAS_VIETMAP_KEY && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      💡 Thêm <code className="font-mono bg-muted px-1 rounded">VITE_VIETMAP_API_KEY</code> vào <code className="font-mono bg-muted px-1 rounded">.env</code> để hiển thị bản đồ VietMap
+                      💡 Thêm{" "}
+                      <code className="font-mono bg-muted px-1 rounded">
+                        VITE_VIETMAP_API_KEY
+                      </code>{" "}
+                      vào{" "}
+                      <code className="font-mono bg-muted px-1 rounded">
+                        .env
+                      </code>{" "}
+                      để hiển thị bản đồ VietMap
                     </p>
                   )}
                 </CardHeader>
 
                 <CardContent className="p-0">
-                  <div className="h-[420px] w-full lg:h-[calc(100vh-320px)]">
+                  <div className="h-105 w-full lg:h-[calc(100vh-320px)]">
                     <NearbyMerchantsMap
                       center={coords}
                       merchants={merchants}
                       selectedMerchantId={selectedMerchantId}
                       onSelectMerchantId={handleSelectMerchantId}
-                      routeCoordinates={routeCoordinates}
+                      routeCoordinates={routeResult?.coordinates}
                     />
                   </div>
                 </CardContent>

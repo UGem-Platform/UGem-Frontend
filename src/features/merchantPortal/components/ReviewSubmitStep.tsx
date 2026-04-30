@@ -1,12 +1,12 @@
 import type { UseFormWatch } from "react-hook-form";
-import type { OnboardingSchema } from "../schema";
+import type { OnboardingFormValues } from "../schema";
 
 function formatMoney(value?: number) {
   if (typeof value !== "number" || Number.isNaN(value)) return "Chưa nhập";
   return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 
-function getMenuImageSrc(item?: OnboardingSchema["menu"][number]) {
+function getMenuImageSrc(item?: OnboardingFormValues["menu"][number]) {
   if (!item) return "";
   return (item.imageUploadDataUrl || item.imageUrl || "").trim();
 }
@@ -19,7 +19,7 @@ function shouldShowImage(src?: string) {
 export function ReviewSubmitStep({
   watch,
 }: {
-  watch: UseFormWatch<OnboardingSchema>;
+  watch: UseFormWatch<OnboardingFormValues>;
 }) {
   const values = watch();
 

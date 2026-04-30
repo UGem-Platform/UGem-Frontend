@@ -1,9 +1,9 @@
 import type { UseFormRegister, FieldErrors } from "react-hook-form";
-import type { OnboardingSchema } from "../schema";
+import type { OnboardingFormValues } from "../schema";
 
 type Props = {
-  register: UseFormRegister<OnboardingSchema>;
-  errors: FieldErrors<OnboardingSchema>;
+  register: UseFormRegister<OnboardingFormValues>;
+  errors: FieldErrors<OnboardingFormValues>;
 };
 
 export function AddressLocationStep({ register, errors }: Props) {
@@ -27,7 +27,7 @@ export function AddressLocationStep({ register, errors }: Props) {
             type="number"
             step="any"
             placeholder="10.7769"
-            {...register("latitude")}
+            {...register("latitude", { valueAsNumber: true })}
           />
           {errors.latitude && <small>{errors.latitude.message}</small>}
         </label>
@@ -38,7 +38,7 @@ export function AddressLocationStep({ register, errors }: Props) {
             type="number"
             step="any"
             placeholder="106.7009"
-            {...register("longitude")}
+            {...register("longitude", { valueAsNumber: true })}
           />
           {errors.longitude && <small>{errors.longitude.message}</small>}
         </label>

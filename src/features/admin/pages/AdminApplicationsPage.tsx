@@ -7,35 +7,46 @@ export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function load() {
-    setLoading(true);
-
-    try {
-      const data = await getStaffApplications();
-      setApplications(data);
-    } catch (error) {
-      console.error(error);
-      alert("Không tải được danh sách hồ sơ.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    load();
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+
+      try {
+        const data = await getStaffApplications();
+
+        if (active) {
+          setApplications(data ?? []);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Không tải được danh sách hồ sơ.");
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-5">
+    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-5 text-2xl font-bold">Duyệt hồ sơ Merchant</h1>
 
         {loading ? (
           <p>Đang tải...</p>
         ) : (
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-sm backdrop-blur">
             <table className="w-full">
-              <thead className="bg-gray-100 text-left text-sm">
+              <thead className="bg-cyan-50 text-left text-sm">
                 <tr>
                   <th className="p-4">Tên quán</th>
                   <th className="p-4">Trạng thái</th>
@@ -60,7 +71,7 @@ export default function AdminApplicationsPage() {
                       <Link
                         to={`/admin/applications/${app.id}`}
                         state={{ application: app }}
-                        className="text-blue-600"
+                        className="text-cyan-700"
                       >
                         Xem chi tiết
                       </Link>
@@ -70,7 +81,7 @@ export default function AdminApplicationsPage() {
 
                 {applications.length === 0 && (
                   <tr>
-                    <td className="p-4 text-center text-gray-500" colSpan={4}>
+                    <td className="p-4 text-center text-slate-500" colSpan={4}>
                       Chưa có hồ sơ nào.
                     </td>
                   </tr>

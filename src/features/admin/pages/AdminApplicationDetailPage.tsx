@@ -67,19 +67,19 @@ export default function AdminApplicationDetailPage() {
     application.merchantName || application.businessName || "Không tên";
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-5">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <button
           onClick={() => navigate("/admin/applications")}
-          className="mb-4 text-blue-600"
+          className="mb-4 text-cyan-700"
         >
           ← Quay lại
         </button>
 
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
           <h1 className="text-2xl font-bold">{name}</h1>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-slate-500">
             Trạng thái: {application.status || "Pending"}
           </p>
 
@@ -96,41 +96,41 @@ export default function AdminApplicationDetailPage() {
           )}
         </div>
 
-        <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
+        <div className="mt-5 rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
           <h2 className="mb-3 text-lg font-semibold">Menu gửi kèm</h2>
 
           {application.applicationMenus?.map((item) => (
             <div key={item.id} className="border-b py-3">
               <p className="font-medium">{item.name}</p>
-              <p className="text-blue-600">
+              <p className="text-cyan-700">
                 {item.price.toLocaleString("vi-VN")}đ
               </p>
               {item.description && (
-                <p className="text-sm text-gray-500">{item.description}</p>
+                <p className="text-sm text-slate-500">{item.description}</p>
               )}
             </div>
           ))}
 
           {!application.applicationMenus?.length && (
-            <p className="text-gray-500">Không có menu.</p>
+            <p className="text-slate-500">Không có menu.</p>
           )}
         </div>
 
-        <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
+        <div className="mt-5 rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
           <h2 className="mb-3 text-lg font-semibold">Xử lý hồ sơ</h2>
 
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Lý do từ chối nếu reject..."
-            className="mb-3 min-h-24 w-full rounded-xl border p-3 outline-none focus:border-blue-500"
+            className="mb-3 min-h-24 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-cyan-500"
           />
 
           <div className="flex gap-3">
             <button
               disabled={submitting}
               onClick={handleAccept}
-              className="rounded-xl bg-green-600 px-5 py-3 text-white disabled:opacity-50"
+              className="rounded-xl bg-emerald-600 px-5 py-3 text-white disabled:opacity-50"
             >
               Duyệt
             </button>
@@ -138,7 +138,7 @@ export default function AdminApplicationDetailPage() {
             <button
               disabled={submitting}
               onClick={handleReject}
-              className="rounded-xl bg-red-600 px-5 py-3 text-white disabled:opacity-50"
+              className="rounded-xl bg-rose-600 px-5 py-3 text-white disabled:opacity-50"
             >
               Từ chối
             </button>

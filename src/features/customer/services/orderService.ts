@@ -36,12 +36,12 @@ export async function createOrder(payload: {
 }
 
 export async function getCustomerOrders() {
-  const res = await api.get<ApiResponse<any[]>>("/Order/list");
+  const res = await api.get<ApiResponse<[]>>("/Order/list");
   return res.data.data;
 }
 
 export async function getCustomerOrderDetail(orderId: string) {
-  const res = await api.get<ApiResponse<any[]>>("/Order/detail", {
+  const res = await api.get<ApiResponse<[]>>("/Order/detail", {
     params: { orderId },
   });
 

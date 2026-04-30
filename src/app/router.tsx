@@ -6,7 +6,11 @@ import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDeta
 import CustomerOrdersPage from "@/features/customer/pages/CustomerOrdersPage";
 import MerchantDetailPage from "@/features/customer/pages/MerchantDetailPage";
 import WishlistPage from "@/features/customer/pages/WishlistPage";
-import { MerchantPortalPage } from "@/features/merchantPortal";
+import {
+  MerchantApplicationStatusPage,
+  MerchantOnboardingPage,
+  MerchantPortalPage,
+} from "@/features/merchantPortal";
 import MerchantOrdersPage from "@/features/merchantPortal/pages/MerchantOrdersPage";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import VietMapDemoPage from "@/shared/pages/VietMapDemoPage";
@@ -44,6 +48,14 @@ const routers = createBrowserRouter([
   {
     path: "/merchant",
     element: <MerchantPortalPage />,
+  },
+  {
+    path: "/merchant/application/create",
+    element: <MerchantOnboardingPage />,
+  },
+  {
+    path: "/merchant/application/status",
+    element: <MerchantApplicationStatusPage />,
   },
   {
     path: "/merchant/orders",

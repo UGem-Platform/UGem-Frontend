@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
   images: string[];
   intervalMs?: number;
-  onChange?: (index: number) => void;
+  // eslint-disable-next-line no-unused-vars
+  onChange?: (...args: [number]) => void;
 };
 
 export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
@@ -42,7 +43,7 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
 
   return (
     <div
-      className="relative h-full min-h-[48vh] w-full overflow-hidden rounded-2xl bg-stone-950 lg:min-h-screen"
+      className="relative h-full min-h-[48vh] w-full overflow-hidden rounded-2xl bg-slate-950 lg:min-h-screen"
       aria-live="polite"
     >
       {images.map((src, i) => (
@@ -60,8 +61,8 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
       ))}
 
       {/* overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-stone-950/70 via-stone-950/30 to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-stone-950/60 via-transparent to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-cyan-950/65 via-slate-950/35 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/60 via-transparent to-transparent" />
 
       {/* dots */}
       {images.length > 1 && (
@@ -74,7 +75,7 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
                 aria-label={`Go to slide ${i + 1}`}
                 className={`
                   h-2.5 rounded-full transition-all duration-300
-                  ${i === index ? "w-8 bg-amber-400" : "w-2.5 bg-white/60 hover:bg-white"}
+                  ${i === index ? "w-8 bg-cyan-400" : "w-2.5 bg-white/60 hover:bg-white"}
                 `}
               />
             ))}

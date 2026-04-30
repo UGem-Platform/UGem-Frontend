@@ -9,7 +9,11 @@ import { MenuDetailsStep } from "../components/MenuDetailsStep";
 
 import { PartnerBenefitCard } from "../components/PartnerBenefitCard";
 import { ReviewSubmitStep } from "../components/ReviewSubmitStep";
-import { onboardingSchema, type OnboardingSchema } from "../schema";
+import {
+  onboardingSchema,
+  type OnboardingFormValues,
+  type OnboardingSchema,
+} from "../schema";
 import { useCreateApplication } from "../hooks/useCreateApplication";
 import { OnboardingSidebar } from "../../../shared/layouts/Merchants/OnboardingSidebar";
 import { OnboardingTopbar } from "../../../shared/layouts/Merchants/OnboardingTopbar";
@@ -17,7 +21,7 @@ import { OnboardingStepper } from "../../../shared/layouts/Merchants/OnboardingS
 
 const DRAFT_KEY = "ugem_merchant_application_draft";
 
-function getDraftValues(): Partial<OnboardingSchema> {
+function getDraftValues(): Partial<OnboardingFormValues> {
   try {
     return JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
   } catch {
@@ -30,8 +34,8 @@ export function MerchantOnboardingPage() {
   const createMutation = useCreateApplication();
   const [currentStep, setCurrentStep] = useState(1);
 
-  const methods = useForm<OnboardingSchema>({
-    resolver: zodResolver(onboardingSchema) as any,
+  const methods = useForm<OnboardingFormValues, unknown, OnboardingSchema>({
+    resolver: zodResolver(onboardingSchema),
     mode: "onSubmit",
     defaultValues: {
       restaurantName: "",
@@ -69,7 +73,7 @@ export function MerchantOnboardingPage() {
   } = methods;
 
   async function nextStep() {
-    const fieldsByStep: Record<number, (keyof OnboardingSchema)[]> = {
+    const fieldsByStep: Record<number, (keyof OnboardingFormValues)[]> = {
       1: [
         "restaurantName",
         "email",
@@ -145,7 +149,7 @@ Khoảng giá trung bình: ${values.priceRange}
 
           <form
             className="onboarding-content"
-            onSubmit={handleSubmit(onSubmit as any)}
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div className="onboarding-form-area">
               <OnboardingStepper currentStep={currentStep} />

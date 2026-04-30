@@ -97,17 +97,17 @@ export default function MerchantDetailPage() {
   const name = merchant.name || merchant.merchantName || "Unnamed merchant";
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-5">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
           <h1 className="text-2xl font-bold">{name}</h1>
 
           {merchant.address && (
-            <p className="mt-1 text-sm text-gray-500">{merchant.address}</p>
+            <p className="mt-1 text-sm text-slate-500">{merchant.address}</p>
           )}
 
           {merchant.description && (
-            <p className="mt-3 text-gray-700">{merchant.description}</p>
+            <p className="mt-3 text-slate-700">{merchant.description}</p>
           )}
         </div>
 
@@ -117,23 +117,23 @@ export default function MerchantDetailPage() {
           {foods.map((food) => (
             <div
               key={food.id}
-              className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm"
+              className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
             >
               <div>
                 <h3 className="font-semibold">{food.name}</h3>
 
                 {food.description && (
-                  <p className="text-sm text-gray-500">{food.description}</p>
+                  <p className="text-sm text-slate-500">{food.description}</p>
                 )}
 
-                <p className="mt-1 font-medium text-blue-600">
+                <p className="mt-1 font-medium text-cyan-700">
                   {food.price.toLocaleString("vi-VN")}đ
                 </p>
               </div>
 
               <button
                 onClick={() => addToCart(food)}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-white"
+                className="rounded-xl bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700"
               >
                 Thêm
               </button>
@@ -142,24 +142,24 @@ export default function MerchantDetailPage() {
         </div>
 
         {cart.length > 0 && (
-          <div className="sticky bottom-4 mt-6 rounded-2xl bg-white p-4 shadow-lg">
+          <div className="sticky bottom-4 mt-6 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-lg backdrop-blur">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold">{cart.length} món trong giỏ</p>
-                <p className="text-blue-600 font-bold">
+                <p className="font-bold text-cyan-700">
                   {total.toLocaleString("vi-VN")}đ
                 </p>
               </div>
 
               <button
                 onClick={handleCreateOrder}
-                className="rounded-xl bg-blue-600 px-5 py-3 text-white"
+                className="rounded-xl bg-cyan-600 px-5 py-3 text-white hover:bg-cyan-700"
               >
                 Đặt món
               </button>
               <button
                 onClick={handleAddWishlist}
-                className="mt-4 rounded-xl border border-blue-600 px-4 py-2 text-blue-600"
+                className="mt-4 rounded-xl border border-cyan-600 px-4 py-2 text-cyan-700"
               >
                 Thêm vào yêu thích
               </button>

@@ -12,33 +12,33 @@ type StatusInfo = {
 const STATUS_CONFIG = {
   empty: {
     icon: FilePlus2,
-    badge: "border-stone-200 bg-stone-100 text-stone-700",
-    iconBox: "bg-stone-100 text-stone-700",
-    ring: "ring-stone-200/70",
+    badge: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    iconBox: "bg-cyan-100 text-cyan-700",
+    ring: "ring-cyan-200/70",
   },
   pending: {
     icon: Clock3,
-    badge: "border-amber-200 bg-amber-100 text-amber-800",
-    iconBox: "bg-amber-100 text-amber-800",
+    badge: "border-amber-200 bg-amber-50 text-amber-700",
+    iconBox: "bg-amber-100 text-amber-700",
     ring: "ring-amber-200/80",
   },
   approved: {
     icon: CheckCircle2,
-    badge: "border-emerald-200 bg-emerald-100 text-emerald-800",
-    iconBox: "bg-emerald-100 text-emerald-800",
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    iconBox: "bg-emerald-100 text-emerald-700",
     ring: "ring-emerald-200/80",
   },
   rejected: {
     icon: XCircle,
-    badge: "border-red-200 bg-red-100 text-red-700",
-    iconBox: "bg-red-100 text-red-700",
-    ring: "ring-red-200/80",
+    badge: "border-rose-200 bg-rose-50 text-rose-700",
+    iconBox: "bg-rose-100 text-rose-700",
+    ring: "ring-rose-200/80",
   },
   default: {
     icon: Store,
-    badge: "border-stone-200 bg-stone-100 text-stone-700",
-    iconBox: "bg-stone-100 text-stone-700",
-    ring: "ring-stone-200/70",
+    badge: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    iconBox: "bg-cyan-100 text-cyan-700",
+    ring: "ring-cyan-200/70",
   },
 } as const;
 
@@ -100,8 +100,8 @@ export function ApplicationStatusCard({
         ring-1 ${config.ring} backdrop-blur-xl
       `}
     >
-      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-200/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-emerald-200/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-200/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-amber-200/20 blur-3xl" />
 
       <div className="relative flex items-start gap-4">
         <div
@@ -123,11 +123,11 @@ export function ApplicationStatusCard({
             Trạng thái hiện tại
           </span>
 
-          <h2 className="mt-4 text-2xl font-black tracking-tight text-stone-950">
+          <h2 className="mt-4 text-2xl font-black tracking-tight text-slate-950">
             {status.label}
           </h2>
 
-          <p className="mt-2 text-sm leading-6 text-stone-600">
+          <p className="mt-2 text-sm leading-6 text-slate-600">
             {status.description}
           </p>
         </div>
