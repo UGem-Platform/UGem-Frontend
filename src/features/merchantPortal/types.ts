@@ -65,16 +65,44 @@ export type MerchantApplication = {
   description: string;
   type?: string;
   status: ApplicationStatus;
-  email?: string;
-  logoUrl?: string;
   createdAt?: string;
   reviewedAt?: string;
-  updatedAt?: string;
+  updatedAt?: string | null;
+  applicant?: null;
   applicationMenus?: {
+    id: string;
     name: string;
     description: string;
     price: number;
     imageUrl?: string;
     category?: string;
   }[];
+};
+
+export type Food = {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  merchantId?: string;
+  isAvailable?: boolean;
+  categoryIds?: string[];
+};
+
+export type CreateFoodPayload = {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  merchantId: string;
+  isAvailable: boolean;
+  categoryIds: string[];
+};
+
+export type CreateFoodResponse = {
+  id: string;
+  name: string;
+  price: number;
+  message: string;
 };

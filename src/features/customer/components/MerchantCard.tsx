@@ -6,8 +6,8 @@ type Props = {
 };
 
 export default function MerchantCard({ merchant }: Props) {
-  const name = merchant.name || merchant.merchantName || "Unnamed merchant";
-  const image = merchant.logoUrl || merchant.imageUrl;
+  const name = merchant.name || "Unnamed merchant";
+  const image = merchant.logoUrl;
 
   return (
     <Link

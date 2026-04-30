@@ -38,17 +38,15 @@ export default function AdminApplicationsPage() {
   };
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => {
+    queueMicrotask(() => {
       void loadApplications();
-    }, 0);
+    });
 
-    // Polling every 5 seconds for new applications
     const interval = window.setInterval(() => {
       void loadApplications();
     }, 5000);
 
     return () => {
-      window.clearTimeout(initialLoad);
       window.clearInterval(interval);
     };
   }, []);
@@ -86,7 +84,14 @@ export default function AdminApplicationsPage() {
                 {applications.map((app) => (
                   <tr key={app.id} className="border-t hover:bg-cyan-50">
                     <td className="p-4">
-                      {app.merchantName || app.businessName || "Không tên"}
+                      <div>
+                        <p className="font-medium">{app.name || "Không tên"}</p>
+                        {app.applicant && (
+                          <p className="text-sm text-slate-500">
+                            {app.applicant.fullName} - {app.applicant.email}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4">
                       <span

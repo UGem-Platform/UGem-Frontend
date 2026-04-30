@@ -2,7 +2,7 @@ import AdminApplicationDetailPage from "@/features/admin/pages/AdminApplicationD
 import AdminApplicationsPage from "@/features/admin/pages/AdminApplicationsPage";
 import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
-import { LoginPage } from "@/features/auth";
+import { LoginPage, RegisterPage } from "@/features/auth";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
 import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDetailPage";
 import CustomerOrdersPage from "@/features/customer/pages/CustomerOrdersPage";
@@ -10,6 +10,7 @@ import MerchantDetailPage from "@/features/customer/pages/MerchantDetailPage";
 import WishlistPage from "@/features/customer/pages/WishlistPage";
 import {
   MerchantApplicationStatusPage,
+  MerchantFoodsPage,
   MerchantOnboardingPage,
   MerchantPortalPage,
 } from "@/features/merchantPortal";
@@ -29,6 +30,10 @@ const routers = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
   },
   {
     path: "/unauthorized",
@@ -105,6 +110,10 @@ const routers = createBrowserRouter([
         <MerchantOrdersPage />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/merchant/foods",
+    element: <MerchantFoodsPage />,
   },
   {
     path: "/admin/applications",

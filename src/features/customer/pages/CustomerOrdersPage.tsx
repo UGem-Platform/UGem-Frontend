@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { getCustomerOrders } from "../services/orderService";
-
-type CustomerOrderSummary = {
-  id: string;
-  status?: string;
-  finalPrice?: number;
-  totalAmount?: number;
-};
+import type { CustomerOrderSummary } from "../types";
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
@@ -20,7 +13,7 @@ export default function CustomerOrdersPage() {
       setLoading(true);
 
       try {
-        const data = (await getCustomerOrders()) as CustomerOrderSummary[];
+        const data = await getCustomerOrders();
 
         if (active) {
           setOrders(data ?? []);
@@ -43,7 +36,7 @@ export default function CustomerOrdersPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-5 text-2xl font-bold">Đơn hàng của tôi</h1>
 
@@ -52,29 +45,43 @@ export default function CustomerOrdersPage() {
         ) : (
           <div className="space-y-3">
             {orders.map((order) => (
-              <Link
-                key={order.id}
-                to={`/customer/orders/${order.id}`}
+              <div
+                key={`${order.name}-${order.orderedAt}`}
                 className="block rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
               >
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-4">
                   <div>
-                    <p className="font-semibold">Đơn #{order.id}</p>
+                    <p className="font-semibold">{order.name || "Đơn hàng"}</p>
+
                     <p className="text-sm text-slate-500">
-                      Trạng thái: {order.status}
+                      Trạng thái: {order.status || "Không rõ"}
                     </p>
+
+                    {order.deliveryAddress && (
+                      <p className="text-sm text-slate-500">
+                        Địa chỉ: {order.deliveryAddress}
+                      </p>
+                    )}
+
+                    {order.orderedAt && (
+                      <p className="text-sm text-slate-500">
+                        Ngày đặt:{" "}
+                        {new Date(order.orderedAt).toLocaleString("vi-VN")}
+                      </p>
+                    )}
+
+                    {order.notes && (
+                      <p className="text-sm text-slate-500">
+                        Ghi chú: {order.notes}
+                      </p>
+                    )}
                   </div>
 
                   <p className="font-bold text-cyan-700">
-                    {(
-                      order.finalPrice ||
-                      order.totalAmount ||
-                      0
-                    ).toLocaleString("vi-VN")}
-                    đ
+                    {(order.finalPrice || 0).toLocaleString("vi-VN")}đ
                   </p>
                 </div>
-              </Link>
+              </div>
             ))}
 
             {orders.length === 0 && (

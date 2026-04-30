@@ -63,8 +63,7 @@ export default function AdminApplicationDetailPage() {
     );
   }
 
-  const name =
-    application.merchantName || application.businessName || "Không tên";
+  const name = application.name || "Không tên";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
@@ -83,10 +82,18 @@ export default function AdminApplicationDetailPage() {
             Trạng thái: {application.status || "Pending"}
           </p>
 
-          {application.address && (
-            <p className="mt-3">
-              <b>Địa chỉ:</b> {application.address}
-            </p>
+          {application.applicant && (
+            <div className="mt-3 text-sm text-slate-600">
+              <p>
+                <b>Người gửi:</b> {application.applicant.fullName}
+              </p>
+              <p>
+                <b>Email:</b> {application.applicant.email}
+              </p>
+              <p>
+                <b>SĐT:</b> {application.applicant.phoneNumber}
+              </p>
+            </div>
           )}
 
           {application.description && (
@@ -102,11 +109,25 @@ export default function AdminApplicationDetailPage() {
           {application.applicationMenus?.map((item) => (
             <div key={item.id} className="border-b py-3">
               <p className="font-medium">{item.name}</p>
+
               <p className="text-cyan-700">
                 {item.price.toLocaleString("vi-VN")}đ
               </p>
+
+              {item.category && (
+                <p className="text-sm text-slate-500">Loại: {item.category}</p>
+              )}
+
               {item.description && (
                 <p className="text-sm text-slate-500">{item.description}</p>
+              )}
+
+              {item.imageUrl && (
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  className="mt-2 h-24 w-24 rounded-lg object-cover"
+                />
               )}
             </div>
           ))}

@@ -8,29 +8,27 @@ type ApiResponse<T> = {
 };
 
 export async function createApplication(payload: CreateApplicationPayload) {
-  const { data } = await api.post<ApiResponse<null>>("/Application", payload);
+  await api.post("/Application", payload);
+}
 
-  return data;
+export async function createMerchantApplication(
+  payload: CreateApplicationPayload,
+) {
+  return createApplication(payload);
 }
 
 export async function resubmitApplication(
   applicationId: string,
   payload: CreateApplicationPayload,
 ) {
-  const { data } = await api.put<ApiResponse<null>>("/Application/resubmit", {
+  const res = await api.put("/Application/resubmit", {
     applicationId,
     type: "Merchant",
     note: "Gửi lại hồ sơ quán",
     ...payload,
   });
 
-  return data;
-}
-export async function createMerchantApplication(
-  payload: CreateApplicationPayload,
-) {
-  const { data } = await api.post<ApiResponse<null>>("/Application", payload);
-  return data;
+  return res.data;
 }
 
 export async function getMyApplications() {
@@ -40,6 +38,7 @@ export async function getMyApplications() {
 
   return data.data ?? [];
 }
+
 export async function getMerchantOrders() {
   const res = await api.get("/Order");
   return res.data.data;
