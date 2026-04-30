@@ -9,8 +9,8 @@ export type WishlistItem = {
 };
 
 export async function getWishlist() {
-  const res = await api.get<WishlistItem[]>("/Wishlist");
-  return res.data;
+  const res = await api.get("/Wishlist");
+  return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
 }
 
 export async function addWishlist(merchantId: string) {

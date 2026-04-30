@@ -35,6 +35,8 @@ export type Category = {
   id: string;
   name: string;
   parentId?: string | null;
+  slug?: string;
+  description?: string;
 };
 
 export type Application = {
