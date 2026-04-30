@@ -98,8 +98,8 @@ export default function NearbyMerchantsMap({
       zoom={14}
       markers={markers}
       selectedMarkerId={selectedMerchantId}
-      onMarkerClick={(id) => {
-        if (id !== "__user__") onSelectMerchantId?.(id);
+      onMarkerClick={(markerId) => {
+        if (markerId !== "__user__") onSelectMerchantId?.(markerId);
       }}
       routeCoordinates={routeCoordinates}
       routeColor="#3b82f6"

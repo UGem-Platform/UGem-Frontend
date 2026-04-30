@@ -6,8 +6,18 @@ type ApiResponse<T> = {
   data: T;
 };
 
+export type Review = {
+  id?: string;
+  title?: string;
+  name?: string;
+  comment?: string;
+  description?: string;
+  rating?: number;
+  createdAt?: string;
+};
+
 export async function getReviews() {
-  const res = await api.get<ApiResponse<unknown[]>>("/Review");
+  const res = await api.get<ApiResponse<Review[]>>("/Review");
   return res.data.data ?? [];
 }
 

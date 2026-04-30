@@ -33,7 +33,7 @@ export async function getNearbyMerchants(params: {
       },
     );
     return res.data.data.items;
-  } catch (error) {
+  } catch {
     console.warn(
       "Lỗi gọi API getNearbyMerchants (Backend có thể đang tắt). Sử dụng dữ liệu giả lập (mock data) để test Map.",
     );

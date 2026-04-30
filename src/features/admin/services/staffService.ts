@@ -6,8 +6,16 @@ type ApiResponse<T> = {
   data: T;
 };
 
+export type Staff = {
+  id?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+};
+
 export async function getStaffList() {
-  const res = await api.get<ApiResponse<unknown[]>>("/Staff");
+  const res = await api.get<ApiResponse<Staff[]>>("/Staff");
   return res.data.data ?? [];
 }
 

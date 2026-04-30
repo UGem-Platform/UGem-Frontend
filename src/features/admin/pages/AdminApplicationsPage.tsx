@@ -38,12 +38,19 @@ export default function AdminApplicationsPage() {
   };
 
   useEffect(() => {
-    loadApplications();
+    const initialLoad = window.setTimeout(() => {
+      void loadApplications();
+    }, 0);
 
     // Polling every 5 seconds for new applications
-    const interval = setInterval(loadApplications, 5000);
+    const interval = window.setInterval(() => {
+      void loadApplications();
+    }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
   }, []);
 
   return (

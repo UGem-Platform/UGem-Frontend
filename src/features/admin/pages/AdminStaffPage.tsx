@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStaffList } from "../hooks/useStaff";
+import type { Staff } from "../services/staffService";
 
 export default function AdminStaffPage() {
   const { data: staffList = [], isLoading, isError, error } = useStaffList();
@@ -33,7 +33,7 @@ export default function AdminStaffPage() {
 
               <tbody>
                 {staffList.length > 0 ? (
-                  staffList.map((staff: any, idx: number) => (
+                  staffList.map((staff: Staff, idx: number) => (
                     <tr key={staff.id || idx} className="border-t">
                       <td className="p-4">
                         {staff.name || staff.fullName || "N/A"}
