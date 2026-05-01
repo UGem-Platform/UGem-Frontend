@@ -165,7 +165,9 @@ export function MerchantApplicationStatusPage() {
 
                     <p>
                       <Mail size={15} />
-                      {application.applicant?.email || user?.Email || "merchant@gmail.com"}
+                      {application.applicant?.email ||
+                        user?.Email ||
+                        "merchant@gmail.com"}
                     </p>
 
                     <p>
