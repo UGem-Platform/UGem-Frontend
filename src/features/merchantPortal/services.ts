@@ -29,7 +29,7 @@ export async function resubmitApplication(
 export async function getMyApplications() {
   const { data } = await api.get<
     ApiResponse<MerchantApplication[]> | MerchantApplication[]
-  >("/application");
+  >("/merchant/applications");
 
   return Array.isArray(data) ? data : (data.data ?? []);
 }
