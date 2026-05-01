@@ -7,12 +7,15 @@ export type LoginResponse = {
   accessToken: string;
 };
 
+export type RegisterRole = "Customer" | "Merchant";
+
 export type RegisterRequest = {
   email: string;
   password: string;
   phoneNumber: string;
   fullName: string;
   avatarUrl?: string;
+  role: RegisterRole;
 };
 
 export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin" | string;

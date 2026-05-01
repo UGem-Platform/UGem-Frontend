@@ -20,6 +20,7 @@ export async function registerApi(payload: RegisterRequest) {
     phoneNumber: payload.phoneNumber,
     fullName: payload.fullName,
     avatarUrl: payload.avatarUrl,
+    role: payload.role,
   });
 
   return data;

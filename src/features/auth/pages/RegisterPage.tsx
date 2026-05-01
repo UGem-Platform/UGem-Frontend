@@ -64,6 +64,7 @@ export function RegisterPage() {
       phoneNumber: "",
       password: "",
       avatarUrl: "",
+      role: "Customer",
     },
   });
 
@@ -123,10 +124,10 @@ export function RegisterPage() {
 
             <div className="mt-6 space-y-2">
               <h1 className="text-2xl font-bold text-slate-900">
-                Tạo tài khoản Customer
+                Tạo tài khoản
               </h1>
               <p className="text-sm text-slate-600">
-                Đăng ký để khám phá và đặt món tại các quán ăn UGem.
+                Chọn vai trò Customer hoặc Merchant để bắt đầu.
               </p>
             </div>
 
@@ -214,6 +215,27 @@ export function RegisterPage() {
                             className="h-12 rounded-2xl pl-12"
                             {...field}
                           />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-sm font-medium text-red-600" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="relative">
+                          <select
+                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                            {...field}
+                          >
+                            <option value="Customer">Customer</option>
+                            <option value="Merchant">Merchant</option>
+                          </select>
                         </div>
                       </FormControl>
                       <FormMessage className="text-sm font-medium text-red-600" />
