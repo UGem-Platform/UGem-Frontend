@@ -19,7 +19,7 @@ type MerchantListApiPayload =
   | MerchantListResponse
   | ApiResponse<MerchantListResponse>;
 
-function unwrapApiData<T>(payload: T | ApiResponse<T>) {
+function unwrapApiData<T>(payload: T | ApiResponse<T>): T {
   if (
     payload &&
     typeof payload === "object" &&
@@ -29,12 +29,21 @@ function unwrapApiData<T>(payload: T | ApiResponse<T>) {
     return payload.data;
   }
 
-  return payload;
+  return payload as T;
 }
 
 function unwrapMerchantList(payload: MerchantListApiPayload) {
   const data = unwrapApiData(payload);
-  return Array.isArray(data) ? data : (data.items ?? []);
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (typeof data === "object" && data !== null && "items" in data) {
+    return data.items ?? [];
+  }
+
+  return [];
 }
 
 export async function getNearbyMerchants(params: {
@@ -44,7 +53,7 @@ export async function getNearbyMerchants(params: {
 }) {
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/merchant",
+    url: "/Merchant/Map/Merchants",
     params: {
       latitude: params.latitude,
       longitude: params.longitude,
@@ -60,7 +69,7 @@ export async function getNearbyMerchants(params: {
 
 export async function getMerchantDetail(id: string) {
   const res = await api.get<ApiResponse<MerchantDetail> | MerchantDetail>(
-    `/merchant/${id}`,
+    `/Merchant/Merchants/${id}`,
   );
 
   const merchant = unwrapApiData(res.data);
@@ -73,13 +82,12 @@ export async function getMerchantDetail(id: string) {
 }
 
 /**
- * The current backend contract only exposes GET /api/merchant, so map search
- * reuses the same resource with query params.
+ * Use the merchant map endpoint from the backend contract.
  */
 export async function getMapMerchants(payload: unknown) {
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/merchant",
+    url: "/Merchant/Map/Merchants",
     params: payload,
   });
 
@@ -89,7 +97,7 @@ export async function getMapMerchants(payload: unknown) {
 export async function getMerchantsByCategory(payload: unknown) {
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/merchant",
+    url: "/Merchant/Category/Merchants",
     params: payload,
   });
 

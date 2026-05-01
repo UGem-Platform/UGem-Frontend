@@ -9,7 +9,7 @@ type ApiResponse<T> = {
 
 export async function getStaffApplications() {
   const res = await api.get<ApiResponse<Application[]>>(
-    "/application/staff",
+    "/Application/staff/applications",
     {
       params: {
         status: "Pending",
@@ -21,12 +21,12 @@ export async function getStaffApplications() {
 }
 
 export async function acceptApplication(id: string) {
-  const res = await api.post(`/application/staff/${id}/accept`);
+  const res = await api.post(`/Application/${id}/accept`);
   return res.data;
 }
 
 export async function rejectApplication(id: string, reason: string) {
-  const res = await api.post("/application/reject", {
+  const res = await api.post("/Application/reject", {
     applicationId: id,
     note: reason,
   });

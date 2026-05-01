@@ -17,7 +17,7 @@ export async function createOrder(payload: {
   finalPrice: number;
   foods: CreateOrderItem[];
 }) {
-  const res = await api.post<ApiResponse<null>>("/order", {
+  const res = await api.post<ApiResponse<null>>("/Order/customer/orders", {
     name: payload.name,
     deliveryAddress: payload.deliveryAddress,
     notes: payload.notes || "",
@@ -31,8 +31,21 @@ export async function createOrder(payload: {
 export async function getCustomerOrders() {
   const res = await api.get<
     ApiResponse<CustomerOrderSummary[]> | CustomerOrderSummary[]
-  >("/order");
+  >("/Order/list");
   return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+}
+
+function unwrapApiResponse<T>(payload: T | ApiResponse<T>): T {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "success" in payload &&
+    "data" in payload
+  ) {
+    return payload.data;
+  }
+
+  return payload as T;
 }
 
 export async function getCustomerOrderDetail(orderId: string) {
@@ -53,15 +66,20 @@ export async function getCustomerOrderDetail(orderId: string) {
         orderItems?: CustomerOrderDetailItem[];
         details?: CustomerOrderDetailItem[];
       }
-  >(`/order/${orderId}`);
+  >("/Order/detail", {
+    params: {
+      orderId,
+    },
+  });
 
-  const payload =
-    res.data &&
-    typeof res.data === "object" &&
-    "success" in res.data &&
-    "data" in res.data
-      ? res.data.data
-      : res.data;
+  const payload = unwrapApiResponse(res.data) as
+    | CustomerOrderDetailItem[]
+    | {
+        items?: CustomerOrderDetailItem[];
+        foods?: CustomerOrderDetailItem[];
+        orderItems?: CustomerOrderDetailItem[];
+        details?: CustomerOrderDetailItem[];
+      };
 
   if (Array.isArray(payload)) {
     return payload;
@@ -77,15 +95,17 @@ export async function getCustomerOrderDetail(orderId: string) {
 }
 
 export async function confirmReceived(orderId: string) {
-  void orderId;
-  throw new Error(
-    "Backend hiện chưa public endpoint xác nhận nhận hàng trong contract mới.",
-  );
+  const res = await api.put<ApiResponse<null>>("/Order/confirm-received", {
+    orderId,
+  });
+
+  return res.data;
 }
 
 export async function confirmNotReceived(orderId: string) {
-  void orderId;
-  throw new Error(
-    "Backend hiện chưa public endpoint báo chưa nhận hàng trong contract mới.",
-  );
+  const res = await api.put<ApiResponse<null>>("/Order/confirm-not-received", {
+    orderId,
+  });
+
+  return res.data;
 }

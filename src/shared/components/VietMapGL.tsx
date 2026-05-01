@@ -11,7 +11,11 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { VIETMAP_STYLE_URL, HAS_VIETMAP_KEY, VIETMAP_API_KEY } from "@/shared/services/vietmapService";
+import {
+  VIETMAP_STYLE_URL,
+  HAS_VIETMAP_KEY,
+  VIETMAP_API_KEY,
+} from "@/shared/services/vietmapService";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -65,7 +69,7 @@ const MARKER_ICONS: Record<string, string> = {
 
 function createMarkerElement(
   type: MapMarker["type"],
-  color?: string
+  color?: string,
 ): HTMLElement {
   const el = document.createElement("div");
   const bg = color ?? MARKER_COLORS[type ?? "custom"] ?? "#8b5cf6";
@@ -147,7 +151,7 @@ export default function VietMapGL({
   routeCoordinates,
   routeColor = "#3b82f6",
   className = "h-full w-full",
-}: VietMapGLProps) {
+}: Readonly<VietMapGLProps>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerMapRef = useRef<
@@ -221,7 +225,7 @@ export default function VietMapGL({
           maxWidth: "260px",
         }).setHTML(
           m.popupHtml ??
-            `<div style="font-weight:600;font-size:13px;padding:2px 4px">${m.id}</div>`
+            `<div style="font-weight:600;font-size:13px;padding:2px 4px">${m.id}</div>`,
         );
 
         const marker = new maplibregl.Marker({ element: el })
@@ -249,9 +253,12 @@ export default function VietMapGL({
   useEffect(() => {
     markerMapRef.current.forEach(({ marker, popup }, id) => {
       if (id === selectedMarkerId) {
-        popup.addTo(mapRef.current!);
-        const { lng, lat } = marker.getLngLat();
-        mapRef.current?.flyTo({ center: [lng, lat], zoom: 16, duration: 700 });
+        const map = mapRef.current;
+        if (map) {
+          popup.addTo(map);
+          const { lng, lat } = marker.getLngLat();
+          map.flyTo({ center: [lng, lat], zoom: 16, duration: 700 });
+        }
       } else {
         popup.remove();
       }
@@ -261,12 +268,22 @@ export default function VietMapGL({
   // ── 5. Vẽ / xoá route ────────────────────────────────────
   const applyRoute = useCallback(
     (map: maplibregl.Map, coords: [number, number][]) => {
+      const validCoords = coords.filter(
+        (pair): pair is [number, number] =>
+          Array.isArray(pair) &&
+          pair.length === 2 &&
+          typeof pair[0] === "number" &&
+          Number.isFinite(pair[0]) &&
+          typeof pair[1] === "number" &&
+          Number.isFinite(pair[1]),
+      );
+
       // Xoá route cũ
       if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
       if (map.getLayer(ROUTE_LAYER_BG_ID)) map.removeLayer(ROUTE_LAYER_BG_ID);
       if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
 
-      if (coords.length < 2) {
+      if (validCoords.length < 2) {
         routeReadyRef.current = false;
         return;
       }
@@ -276,7 +293,7 @@ export default function VietMapGL({
         data: {
           type: "Feature",
           properties: {},
-          geometry: { type: "LineString", coordinates: coords },
+          geometry: { type: "LineString", coordinates: validCoords },
         },
       });
 
@@ -286,7 +303,11 @@ export default function VietMapGL({
         type: "line",
         source: ROUTE_SOURCE_ID,
         layout: { "line-join": "round", "line-cap": "round" },
-        paint: { "line-color": "#ffffff", "line-width": 9, "line-opacity": 0.6 },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 9,
+          "line-opacity": 0.6,
+        },
       });
 
       // Đường chính
@@ -295,18 +316,22 @@ export default function VietMapGL({
         type: "line",
         source: ROUTE_SOURCE_ID,
         layout: { "line-join": "round", "line-cap": "round" },
-        paint: { "line-color": routeColor, "line-width": 5, "line-opacity": 0.9 },
+        paint: {
+          "line-color": routeColor,
+          "line-width": 5,
+          "line-opacity": 0.9,
+        },
       });
 
       // Fit bounds
-      const bounds = coords.reduce(
-        (b, c) => b.extend(c as [number, number]),
-        new maplibregl.LngLatBounds(coords[0], coords[0])
+      const bounds = validCoords.reduce(
+        (b, c) => b.extend(c),
+        new maplibregl.LngLatBounds(validCoords[0], validCoords[0]),
       );
       map.fitBounds(bounds, { padding: 70, duration: 900 });
       routeReadyRef.current = true;
     },
-    [routeColor]
+    [routeColor],
   );
 
   useEffect(() => {

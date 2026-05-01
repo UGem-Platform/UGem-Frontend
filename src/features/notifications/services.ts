@@ -16,6 +16,6 @@ export type NotificationItem = {
 };
 
 export async function getNotifications() {
-  const res = await api.get<ApiResponse<NotificationItem[]>>("/notification");
+  const res = await api.get<ApiResponse<NotificationItem[]>>("/Notification");
   return res.data.data;
 }

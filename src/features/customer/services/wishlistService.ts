@@ -10,12 +10,12 @@ export type WishlistItem = {
 };
 
 export async function getWishlist() {
-  const res = await api.get<ApiResponse<WishlistItem[]>>("/wishlist");
+  const res = await api.get<ApiResponse<WishlistItem[]>>("/Wishlist");
   return res.data.data ?? [];
 }
 
 export async function addWishlist(merchantId: string) {
-  const res = await api.post<ApiResponse<[]>>("/wishlist", {
+  const res = await api.post<ApiResponse<[]>>("/Wishlist", {
     merchantId,
   });
 
@@ -23,6 +23,6 @@ export async function addWishlist(merchantId: string) {
 }
 
 export async function removeWishlist(merchantId: string) {
-  const res = await api.delete<ApiResponse<null>>(`/wishlist/${merchantId}`);
+  const res = await api.delete<ApiResponse<null>>(`/Wishlist/${merchantId}`);
   return res.data;
 }

@@ -15,19 +15,16 @@ export type AffiliateLink = {
 };
 
 export async function createAffiliateLink(payload: unknown) {
-  const { data } = await api.post<ApiResponse<null>>(
-    "/affiliatelink",
-    payload,
-  );
+  const { data } = await api.post<ApiResponse<null>>("/AffiliateLink", payload);
   return data;
 }
 
 export async function getAffiliateLinks() {
-  const res = await api.get<ApiResponse<AffiliateLink[]>>("/affiliatelink");
+  const res = await api.get<ApiResponse<AffiliateLink[]>>("/AffiliateLink");
   return res.data.data ?? [];
 }
 
 export async function getAffiliateLinkById(id: string) {
-  const res = await api.get<ApiResponse<unknown>>(`/affiliatelink/${id}`);
+  const res = await api.get<ApiResponse<unknown>>(`/AffiliateLink/${id}`);
   return res.data.data;
 }

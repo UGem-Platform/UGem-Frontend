@@ -15,16 +15,16 @@ export type Staff = {
 };
 
 export async function getStaffList() {
-  const res = await api.get<ApiResponse<Staff[]>>("/staff");
+  const res = await api.get<ApiResponse<Staff[]>>("/Staff");
   return res.data.data ?? [];
 }
 
 export async function getStaffById(id: string) {
-  const res = await api.get<ApiResponse<unknown>>(`/staff/${id}`);
+  const res = await api.get<ApiResponse<unknown>>(`/Staff/${id}`);
   return res.data.data;
 }
 
 export async function createStaff(payload: unknown) {
-  const res = await api.post<ApiResponse<null>>("/staff", payload);
+  const res = await api.post<ApiResponse<null>>("/Staff", payload);
   return res.data;
 }

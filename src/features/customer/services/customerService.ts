@@ -3,9 +3,10 @@ import type { ApiResponse } from "@/shared/types";
 import type { CustomerProfile } from "../types";
 
 export async function getCustomerProfile() {
-  const { data } = await api.get<
-    ApiResponse<CustomerProfile | CustomerProfile[]>
-  >("/customer");
+  const { data } =
+    await api.get<ApiResponse<CustomerProfile | CustomerProfile[]>>(
+      "/Customer/profile",
+    );
 
   return Array.isArray(data.data) ? (data.data[0] ?? null) : data.data;
 }
