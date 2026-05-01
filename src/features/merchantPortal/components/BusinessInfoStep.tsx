@@ -83,6 +83,25 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
             )}
           </label>
 
+          <label className="block space-y-2">
+            <span className="text-sm font-bold text-slate-800">
+              Số điện thoại *
+            </span>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <input
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                placeholder="0123456789"
+                {...register("phone")}
+              />
+            </div>
+            {errors.phone && (
+              <small className="block text-sm font-medium text-rose-600">
+                {errors.phone.message}
+              </small>
+            )}
+          </label>
+
           <div className="grid gap-5 md:grid-cols-2">
             <label className="block space-y-2">
               <span className="text-sm font-bold text-slate-800">

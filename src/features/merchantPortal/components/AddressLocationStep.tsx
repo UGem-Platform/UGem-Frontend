@@ -483,6 +483,24 @@ export function AddressLocationStep({
         type="hidden"
         {...register("longitude", { valueAsNumber: true })}
       />
+
+      {(errors.latitude || errors.longitude) && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 10,
+            backgroundColor: "#fee2e2",
+            borderRadius: 8,
+            color: "#b91c1c",
+            fontSize: 12,
+          }}
+        >
+          ⚠️{" "}
+          {errors.latitude?.message ||
+            errors.longitude?.message ||
+            "Vui lòng chọn vị trí trên bản đồ"}
+        </div>
+      )}
     </section>
   );
 }

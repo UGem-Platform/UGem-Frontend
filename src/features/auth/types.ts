@@ -20,6 +20,7 @@ export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin" | string;
 export type JwtPayload = {
   UserId?: string;
   Email?: string;
+  Name?: string;
   Role?: UserRole;
   CustomerId?: string;
   exp?: number;

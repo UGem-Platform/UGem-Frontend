@@ -28,7 +28,7 @@ export async function resubmitApplication(
 
 export async function getMyApplications() {
   const { data } = await api.get<ApiResponse<MerchantApplication[]>>(
-    "/Application/user/applications",
+    "/Application/merchant/applications",
   );
 
   return data.data ?? [];

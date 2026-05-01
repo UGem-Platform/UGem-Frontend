@@ -18,6 +18,7 @@ export type PriceRange = "Tiết kiệm" | "Bình dân" | "Tầm trung";
 export type OnboardingFormValues = {
   restaurantName: string;
   email: string;
+  phone: string;
 
   // Chưa có field riêng ở BE, chỉ giữ UI rồi gộp vào description
   restaurantType: string;

@@ -16,6 +16,7 @@ export type LoginResponse = {
 export type JwtPayload = {
   UserId?: string;
   Email?: string;
+  Name?: string;
   Role?: UserRole;
   CustomerId?: string;
   exp?: number;
