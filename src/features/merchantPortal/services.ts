@@ -3,7 +3,17 @@ import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
 export async function createApplication(payload: CreateApplicationPayload) {
-  await api.post("/Application", payload);
+  try {
+    await api.post("/Application/merchant/applications/create", payload);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("404")) {
+      throw new Error(
+        "Backend chưa deploy endpoint POST /api/Application/merchant/applications/create (đang trả 404). Vui lòng cập nhật API URL hoặc deploy lại backend.",
+      );
+    }
+
+    throw error;
+  }
 }
 
 export async function createMerchantApplication(
