@@ -27,11 +27,24 @@ export async function resubmitApplication(
 }
 
 export async function getMyApplications() {
-  const { data } = await api.get<ApiResponse<MerchantApplication[]>>(
-    "/Application/merchant/applications",
-  );
-
-  return data.data ?? [];
+  try {
+    const { data } = await api.get<ApiResponse<MerchantApplication[]>>(
+      "/Application/merchant/applications",
+    );
+    return data.data ?? [];
+  } catch (error: unknown) {
+    // Fallback nếu endpoint chưa có trên backend
+    if (error instanceof Error && error.message.includes("404")) {
+      console.warn(
+        "[MERCHANT] Endpoint /merchant/applications không tồn tại, fallback sang /user/applications",
+      );
+      const { data } = await api.get<ApiResponse<MerchantApplication[]>>(
+        "/Application/user/applications",
+      );
+      return data.data ?? [];
+    }
+    throw error;
+  }
 }
 
 export async function getMerchantOrders() {
