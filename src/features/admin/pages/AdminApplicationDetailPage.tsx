@@ -6,6 +6,15 @@ import {
 } from "../services/applicationService";
 import type { Application } from "../types";
 
+function formatDate(value?: string | null) {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export default function AdminApplicationDetailPage() {
   const { id } = useParams();
   const location = useLocation();
@@ -64,15 +73,6 @@ export default function AdminApplicationDetailPage() {
   }
 
   const name = application.name || "Không tên";
-
-  function formatDate(value?: string | null) {
-    if (!value) return "-";
-
-    return new Intl.DateTimeFormat("vi-VN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(value));
-  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">

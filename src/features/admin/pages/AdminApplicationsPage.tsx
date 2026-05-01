@@ -48,12 +48,12 @@ export default function AdminApplicationsPage() {
       void loadApplications();
     });
 
-    const interval = window.setInterval(() => {
+    const interval = globalThis.setInterval(() => {
       void loadApplications();
     }, 5000);
 
     return () => {
-      window.clearInterval(interval);
+      globalThis.clearInterval(interval);
     };
   }, []);
 
@@ -87,34 +87,37 @@ export default function AdminApplicationsPage() {
               </thead>
 
               <tbody>
-                {applications.map((app) => (
-                  <tr key={app.id} className="border-t hover:bg-cyan-50">
-                    <td className="p-4">{app.name || "Không tên"}</td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
-                          app.status === "Approved"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : app.status === "Rejected"
-                              ? "bg-rose-100 text-rose-800"
-                              : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {app.status || "Pending"}
-                      </span>
-                    </td>
-                    <td className="p-4">{formatDate(app.createdAt)}</td>
-                    <td className="p-4">
-                      <Link
-                        to={`/admin/applications/${app.id}`}
-                        state={{ application: app }}
-                        className="text-cyan-700 hover:underline"
-                      >
-                        Xem chi tiết
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {applications.map((app) => {
+                  const badgeClass =
+                    app.status === "Approved"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : app.status === "Rejected"
+                        ? "bg-rose-100 text-rose-800"
+                        : "bg-amber-100 text-amber-800";
+
+                  return (
+                    <tr key={app.id} className="border-t hover:bg-cyan-50">
+                      <td className="p-4">{app.name || "Không tên"}</td>
+                      <td className="p-4">
+                        <span
+                          className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${badgeClass}`}
+                        >
+                          {app.status || "Pending"}
+                        </span>
+                      </td>
+                      <td className="p-4">{formatDate(app.createdAt)}</td>
+                      <td className="p-4">
+                        <Link
+                          to={`/admin/applications/${app.id}`}
+                          state={{ application: app }}
+                          className="text-cyan-700 hover:underline"
+                        >
+                          Xem chi tiết
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {applications.length === 0 && (
                   <tr>

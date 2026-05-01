@@ -1,7 +1,6 @@
-import axios from "axios";
 import { api } from "../../lib/axios";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
-import type { CreateApplicationPayload, MerchantApplication } from "./types";
+import type { CreateApplicationPayload } from "./types";
 
 export async function createApplication(payload: CreateApplicationPayload) {
   await api.post("/application", payload);
@@ -28,33 +27,11 @@ export async function resubmitApplication(
 }
 
 export async function getMyApplications() {
-  const endpoints = [
-    { url: "/application", params: { type: "Merchant" } },
-    { url: "/application" },
-    { url: "/application/merchant" },
-    { url: "/merchant/applications" },
-  ];
-
-  for (const endpoint of endpoints) {
-    try {
-      const { data } = await api.get<
-        ApiResponse<MerchantApplication[]> | MerchantApplication[]
-      >(endpoint.url, {
-        params: endpoint.params,
-      });
-
-      const responseData = data ?? [];
-      return Array.isArray(responseData)
-        ? responseData
-        : (responseData.data ?? []);
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        continue;
-      }
-      throw error;
-    }
-  }
-
+  // Current backend contract does not provide a merchant-facing GET application list endpoint.
+  // Once the backend adds a supported route, replace this implementation with a real fetch.
+  console.warn(
+    "Merchant application listing is not available in the current backend contract.",
+  );
   return [];
 }
 
@@ -65,16 +42,13 @@ export async function getMerchantOrders() {
   return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
 }
 
-export async function acceptOrder(orderId: string) {
-  void orderId;
+export async function acceptOrder(_orderId: string) {
   throw new Error(
     "Backend hiện chưa public endpoint chấp nhận đơn hàng trong contract mới.",
   );
 }
 
-export async function rejectOrder(orderId: string, reason: string) {
-  void orderId;
-  void reason;
+export async function rejectOrder(_orderId: string, _reason: string) {
   throw new Error(
     "Backend hiện chưa public endpoint từ chối đơn hàng trong contract mới.",
   );

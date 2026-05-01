@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "./env";
+import { clearAuth, getAccessToken } from "../features/auth/store";
 
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
@@ -9,13 +10,11 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("ugem_access_token");
+  const token = getAccessToken();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log("[AXIOS] Auth header set with token");
-  } else {
-    console.warn("[AXIOS] No auth token found");
+    console.debug("[AXIOS] Auth header set with token");
   }
 
   const method = config.method?.toLowerCase();
@@ -40,16 +39,30 @@ api.interceptors.response.use(
       error.message ||
       "Có lỗi xảy ra.";
 
-    // Debug logging
-    if (status === 403) {
-      console.error("[AXIOS 403] Forbidden", {
+    if (status === 401 || status === 403) {
+      clearAuth();
+      console.error(`[AXIOS ${status}] Unauthorized/Forbidden`, {
         url: error.config?.url,
         message,
         data: error.response?.data,
       });
+
+      if (typeof globalThis !== "undefined" && "location" in globalThis) {
+        globalThis.location.href = "/login";
+      }
+
       return Promise.reject(
         new Error(
-          "Không có quyền. Vui lòng đăng nhập lại hoặc kiểm tra tài khoản.",
+          "Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập. Vui lòng đăng nhập lại.",
+        ),
+      );
+    }
+
+    if (!error.response) {
+      console.error("[AXIOS Network Error]", error.message, error.config?.url);
+      return Promise.reject(
+        new Error(
+          "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.",
         ),
       );
     }

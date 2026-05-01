@@ -86,7 +86,7 @@ function getStatusText(application?: MerchantApplication): StatusInfo {
 export function ApplicationStatusCard({
   application,
 }: {
-  application?: MerchantApplication;
+  readonly application?: MerchantApplication;
 }) {
   const status = getStatusText(application);
   const config = STATUS_CONFIG[status.tone];
