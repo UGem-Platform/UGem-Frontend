@@ -126,8 +126,16 @@ export function MenuDetailsStep({
                 <input
                   type="number"
                   placeholder="45000"
+                  min="1000"
+                  step="1000"
                   {...register(`menu.${index}.price`, {
                     valueAsNumber: true,
+                    validate: (value) => {
+                      if (!value || value < 1000) {
+                        return "Giá phải ≥ 1000đ";
+                      }
+                      return true;
+                    },
                   })}
                 />
                 {errors.menu?.[index]?.price && (

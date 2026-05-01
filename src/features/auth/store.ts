@@ -10,6 +10,15 @@ export function saveAuthToken(accessToken: string) {
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 
+  // Debug log
+  console.log("[AUTH] Saved JWT Payload:", {
+    UserId: user.UserId,
+    Email: user.Email,
+    Name: user.Name,
+    Role: user.Role,
+    CustomerId: user.CustomerId,
+  });
+
   return user;
 }
 

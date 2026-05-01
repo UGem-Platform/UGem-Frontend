@@ -40,6 +40,7 @@ export function MerchantOnboardingPage() {
     defaultValues: {
       restaurantName: "",
       email: "",
+      phone: "",
       restaurantType: "",
       mainDishType: "",
       priceRange: "",
@@ -76,6 +77,7 @@ export function MerchantOnboardingPage() {
       1: [
         "restaurantName",
         "email",
+        "phone",
         "restaurantType",
         "mainDishType",
         "priceRange",
@@ -108,16 +110,28 @@ Khoảng giá trung bình: ${values.priceRange}
   }
 
   async function onSubmit(values: OnboardingSchema) {
+    // Validate that all prices are valid numbers
+    const validMenu = values.menu.map((menuItem) => {
+      const price = Number(menuItem.price);
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new Error("Giá món phải là số dương");
+      }
+      return {
+        ...menuItem,
+        price,
+      };
+    });
+
     createMutation.mutate(
       {
         name: values.restaurantName,
         email: values.email,
         description: buildDescription(values),
-        phone: "0000000000",
+        phone: values.phone,
         logoUrl: values.logoUrl || "",
-        latitude: values.latitude,
-        longitude: values.longitude,
-        menu: values.menu.map((menuItem) => {
+        latitude: Number(values.latitude),
+        longitude: Number(values.longitude),
+        menu: validMenu.map((menuItem) => {
           const { imageUploadDataUrl, ...rest } = menuItem;
 
           return {
