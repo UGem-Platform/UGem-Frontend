@@ -40,19 +40,41 @@ function formatDate(value?: string) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
 }
 
-function StepItem({
-  active,
-  done,
-  title,
-  description,
-  icon,
-}: {
+type StepItemProps = Readonly<{
   active?: boolean;
   done?: boolean;
   title: string;
   description: string;
   icon: React.ReactNode;
-}) {
+}>;
+
+function getReviewIcon(isApproved: boolean) {
+  return isApproved ? <CheckCircle2 size={18} /> : <ShieldCheck size={18} />;
+}
+
+function getResultIcon(isApproved: boolean) {
+  return isApproved ? <CheckCircle2 size={18} /> : <Circle size={18} />;
+}
+
+function getResultDescription(isApproved: boolean, isRejected: boolean) {
+  if (isApproved) {
+    return "Hồ sơ đã được duyệt.";
+  }
+
+  if (isRejected) {
+    return "Hồ sơ bị từ chối. Bạn có thể gửi lại.";
+  }
+
+  return "Thông báo chính thức về hồ sơ.";
+}
+
+function getActiveDescription(isApproved: boolean) {
+  return isApproved
+    ? "Quán đã sẵn sàng hiển thị cho Customer."
+    : "Quán đã được hiển thị cho Customer.";
+}
+
+function StepItem({ active, done, title, description, icon }: StepItemProps) {
   return (
     <div
       className={`status-step ${active ? "active" : ""} ${done ? "done" : ""}`}
@@ -205,44 +227,22 @@ export function MerchantApplicationStatusPage() {
                       done={isApproved}
                       title="Chờ Staff phê duyệt"
                       description="Staff xem xét kết quả thẩm định."
-                      icon={
-                        isApproved ? (
-                          <CheckCircle2 size={18} />
-                        ) : (
-                          <ShieldCheck size={18} />
-                        )
-                      }
+                      icon={getReviewIcon(isApproved)}
                     />
 
                     <StepItem
                       active={isApproved || isRejected}
                       done={isApproved}
                       title="Kết quả xét duyệt"
-                      description={
-                        isApproved
-                          ? "Hồ sơ đã được duyệt."
-                          : isRejected
-                            ? "Hồ sơ bị từ chối. Bạn có thể gửi lại."
-                            : "Thông báo chính thức về hồ sơ."
-                      }
-                      icon={
-                        isApproved ? (
-                          <CheckCircle2 size={18} />
-                        ) : (
-                          <Circle size={18} />
-                        )
-                      }
+                      description={getResultDescription(isApproved, isRejected)}
+                      icon={getResultIcon(isApproved)}
                     />
 
                     <StepItem
                       active={isApproved}
                       done={isApproved}
                       title="Active trên UGem"
-                      description={
-                        isApproved
-                          ? "Quán đã sẵn sàng hiển thị cho Customer."
-                          : "Quán đã được hiển thị cho Customer."
-                      }
+                      description={getActiveDescription(isApproved)}
                       icon={<Home size={18} />}
                     />
                   </div>

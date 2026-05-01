@@ -1,21 +1,18 @@
 import axios from "axios";
 import { api } from "../../lib/axios";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
-import type { CreateApplicationPayload } from "./types";
+import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
 const APPLICATION_POST_PATHS = ["/Application/merchant/applications/create"];
 
 const APPLICATION_RESUBMIT_PATHS = ["/Application/resubmit"];
 
 async function tryPostToApplicationEndpoint(payload: unknown) {
-  let lastError: unknown;
-
   for (const path of APPLICATION_POST_PATHS) {
     try {
       return await api.post(path, payload);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        lastError = error;
         continue;
       }
       throw error;
@@ -28,14 +25,11 @@ async function tryPostToApplicationEndpoint(payload: unknown) {
 }
 
 async function tryPutToResubmitEndpoint(payload: unknown) {
-  let lastError: unknown;
-
   for (const path of APPLICATION_RESUBMIT_PATHS) {
     try {
       return await api.put(path, payload);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        lastError = error;
         continue;
       }
       throw error;
@@ -76,7 +70,7 @@ export async function resubmitApplication(
 }
 
 export async function getMyApplications() {
-  const res = await api.get<ApiResponse<unknown[]>>(
+  const res = await api.get<ApiResponse<MerchantApplication[]>>(
     "/Application/merchant/applications",
   );
   return res.data.data ?? [];

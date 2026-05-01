@@ -8,45 +8,37 @@ import type { Merchant } from "../types";
 
 type LatLng = { latitude: number; longitude: number };
 
-type Props = {
+type Props = Readonly<{
   center: LatLng;
   merchants: Merchant[];
   selectedMerchantId?: string | null;
   onSelectMerchantId?: (id: string) => void;
   /** Toa do route [lng, lat][] de ve duong di */
   routeCoordinates?: [number, number][];
-};
+}>;
+
+type MerchantRecord = Record<string, unknown>;
+
+function getNumberField(record: MerchantRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return null;
+}
 
 function getMerchantCoords(
   merchant: Merchant,
 ): { lat: number; lng: number } | null {
-  const anyMerchant = merchant as unknown as Record<string, unknown>;
+  const record = merchant as MerchantRecord;
 
-  const lat =
-    typeof merchant.latitude === "number"
-      ? merchant.latitude
-      : typeof merchant.lat === "number"
-        ? merchant.lat
-        : typeof anyMerchant.Latitude === "number"
-          ? (anyMerchant.Latitude as number)
-          : typeof anyMerchant.Lat === "number"
-            ? (anyMerchant.Lat as number)
-            : null;
+  const lat = getNumberField(record, ["latitude", "lat", "Latitude", "Lat"]);
+  const lng = getNumberField(record, ["longitude", "lng", "Longitude", "Lng"]);
 
-  const lng =
-    typeof merchant.longitude === "number"
-      ? merchant.longitude
-      : typeof merchant.lng === "number"
-        ? merchant.lng
-        : typeof anyMerchant.Longitude === "number"
-          ? (anyMerchant.Longitude as number)
-          : typeof anyMerchant.Lng === "number"
-            ? (anyMerchant.Lng as number)
-            : null;
-
-  if (typeof lat !== "number" || typeof lng !== "number") return null;
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-
+  if (lat === null || lng === null) return null;
   return { lat, lng };
 }
 

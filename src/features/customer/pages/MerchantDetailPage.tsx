@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getMerchantDetail } from "../services/merchantService";
-import type { Food, MerchantDetail } from "../types";
+import type { MerchantDetail, MerchantMenuItem } from "../types";
 import { addWishlist } from "../services/wishlistService";
 import { createOrder } from "../services/orderService";
 import { useNavigate } from "react-router-dom";
 type CartItem = {
-  food: Food;
+  food: MerchantMenuItem;
   quantity: number;
 };
 
@@ -43,7 +43,7 @@ export default function MerchantDetailPage() {
       alert("Đặt món thất bại.");
     }
   }
-  function addToCart(food: Food) {
+  function addToCart(food: MerchantMenuItem) {
     setCart((prev) => {
       const existed = prev.find((item) => item.food.id === food.id);
 

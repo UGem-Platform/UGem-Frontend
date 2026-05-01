@@ -10,6 +10,18 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
 }
 
+function getApplicationBadgeClass(status?: string) {
+  if (status === "Approved") {
+    return "bg-emerald-100 text-emerald-800";
+  }
+
+  if (status === "Rejected") {
+    return "bg-rose-100 text-rose-800";
+  }
+
+  return "bg-amber-100 text-amber-800";
+}
+
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,12 +100,7 @@ export default function AdminApplicationsPage() {
 
               <tbody>
                 {applications.map((app) => {
-                  const badgeClass =
-                    app.status === "Approved"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : app.status === "Rejected"
-                        ? "bg-rose-100 text-rose-800"
-                        : "bg-amber-100 text-amber-800";
+                  const badgeClass = getApplicationBadgeClass(app.status);
 
                   return (
                     <tr key={app.id} className="border-t hover:bg-cyan-50">

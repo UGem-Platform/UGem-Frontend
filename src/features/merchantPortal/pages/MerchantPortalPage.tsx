@@ -6,14 +6,14 @@ import { MerchantSidebar } from "../../../shared/layouts/Merchants/MerchantSideb
 import { MerchantHeader } from "../../../shared/layouts/Merchants/MerchantHeader";
 import { OnboardingSteps } from "../../../shared/layouts/Merchants/OnboardingSteps";
 
+function handleSendApplication() {
+  globalThis.location.href = "/merchant/application/create";
+}
+
 export function MerchantPortalPage() {
   const { data: applications = [], isLoading } = useMyApplications();
 
   const latestApplication = applications[0];
-
-  function handleSendApplication() {
-    window.location.href = "/merchant/application/create";
-  }
 
   return (
     <main className="merchant-portal-layout">

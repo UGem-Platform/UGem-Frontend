@@ -25,8 +25,6 @@ export type MerchantMenuItem = {
   categoryDetail?: string[];
 };
 
-export type Food = MerchantMenuItem;
-
 export type MerchantDetail = Merchant & {
   foods?: MerchantMenuItem[];
   menu?: MerchantMenuItem[];

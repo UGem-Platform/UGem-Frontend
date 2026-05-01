@@ -48,19 +48,17 @@ export async function createFood(payload: CreateFoodRequest) {
     CreateFoodResponse | ApiResponse<CreateFoodResponse>
   >("/Food", payload);
 
-  return unwrapFoodItem(
-    data as CreateFoodResponse | ApiResponse<CreateFoodResponse>,
-  );
+  return unwrapFoodItem(data);
 }
 
 export async function getFoods() {
   const { data } = await api.get<
     ApiResponse<FoodListPayload> | FoodListPayload
   >("/Food");
-  return unwrapFoodList(data as ApiResponse<FoodListPayload> | FoodListPayload);
+  return unwrapFoodList(data);
 }
 
 export async function getFoodById(id: string) {
   const { data } = await api.get<ApiResponse<Food> | Food>(`/Food/${id}`);
-  return unwrapFoodItem(data as ApiResponse<Food> | Food);
+  return unwrapFoodItem(data);
 }

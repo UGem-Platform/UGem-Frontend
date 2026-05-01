@@ -1,9 +1,4 @@
-export type ApplicationStatus =
-  | "Pending"
-  | "Approved"
-  | "Rejected"
-  | "Draft"
-  | string;
+export type ApplicationStatus = "Pending" | "Approved" | "Rejected" | "Draft";
 
 export type ApplicationMenuItem = {
   name: string;

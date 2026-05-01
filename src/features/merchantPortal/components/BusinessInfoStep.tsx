@@ -7,12 +7,12 @@ import type {
 import { Info, Mail, Store, Tags, Utensils, Wallet } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
 
-type Props = {
+type Props = Readonly<{
   register: UseFormRegister<OnboardingFormValues>;
   errors: FieldErrors<OnboardingFormValues>;
   setValue: UseFormSetValue<OnboardingFormValues>;
   watch: UseFormWatch<OnboardingFormValues>;
-};
+}>;
 
 const priceRanges = ["Tiết kiệm", "Bình dân", "Tầm trung"];
 
