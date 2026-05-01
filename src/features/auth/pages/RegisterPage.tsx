@@ -78,7 +78,6 @@ export function RegisterPage() {
         email: values.email.trim(),
         phoneNumber: values.phoneNumber.trim(),
         password: values.password,
-        avatarUrl: values.avatarUrl?.trim() || "",
         role: values.role,
       });
 
@@ -228,17 +227,56 @@ export function RegisterPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <select
-                            className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
-                            {...field}
-                          >
-                            <option value="Customer">Customer</option>
-                            <option value="Merchant">Merchant</option>
-                          </select>
-                        </div>
-                      </FormControl>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label
+                          className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${
+                            field.value === "Customer"
+                              ? "border-cyan-600 bg-cyan-50"
+                              : "border-slate-200 hover:border-cyan-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            value="Customer"
+                            className="hidden"
+                            checked={field.value === "Customer"}
+                            onChange={() => field.onChange("Customer")}
+                          />
+                          <div className="text-center">
+                            <div className="text-2xl">🛒</div>
+                            <div className="mt-1 text-sm font-semibold text-slate-900">
+                              Khách hàng
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Tìm và đặt món
+                            </div>
+                          </div>
+                        </label>
+                        <label
+                          className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${
+                            field.value === "Merchant"
+                              ? "border-cyan-600 bg-cyan-50"
+                              : "border-slate-200 hover:border-cyan-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            value="Merchant"
+                            className="hidden"
+                            checked={field.value === "Merchant"}
+                            onChange={() => field.onChange("Merchant")}
+                          />
+                          <div className="text-center">
+                            <div className="text-2xl">🏪</div>
+                            <div className="mt-1 text-sm font-semibold text-slate-900">
+                              Shop/Chủ quán
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Đăng ký bán hàng
+                            </div>
+                          </div>
+                        </label>
+                      </div>
                       <FormMessage className="text-sm font-medium text-red-600" />
                     </FormItem>
                   )}

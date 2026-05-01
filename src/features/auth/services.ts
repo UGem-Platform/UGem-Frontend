@@ -19,7 +19,6 @@ export async function registerApi(payload: RegisterRequest) {
     hashedPassword: payload.password,
     phoneNumber: payload.phoneNumber,
     fullName: payload.fullName,
-    avatarUrl: payload.avatarUrl,
     role: payload.role,
   });
 
