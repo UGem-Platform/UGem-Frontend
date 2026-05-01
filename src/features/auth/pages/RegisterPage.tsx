@@ -1,12 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ImageIcon,
-  Loader2,
-  LockKeyhole,
-  Mail,
-  Phone,
-  UserRound,
-} from "lucide-react";
+import { Loader2, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -63,7 +56,6 @@ export function RegisterPage() {
       email: "",
       phoneNumber: "",
       password: "",
-      avatarUrl: "",
       role: "Customer",
     },
   });
@@ -277,27 +269,6 @@ export function RegisterPage() {
                           </div>
                         </label>
                       </div>
-                      <FormMessage className="text-sm font-medium text-red-600" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="avatarUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <ImageIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            placeholder="Avatar URL (không bắt buộc)"
-                            autoComplete="url"
-                            className="h-12 rounded-2xl pl-12"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
                       <FormMessage className="text-sm font-medium text-red-600" />
                     </FormItem>
                   )}
