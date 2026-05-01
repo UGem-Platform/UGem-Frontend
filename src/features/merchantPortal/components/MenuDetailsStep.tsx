@@ -6,9 +6,11 @@ import {
   type UseFormRegister,
   type UseFormSetValue,
 } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
+import { getCategories } from "@/shared/services/categoryService";
+import type { Category } from "@/shared/types";
 
 type Props = {
   control: Control<OnboardingFormValues>;
@@ -39,6 +41,7 @@ export function MenuDetailsStep({
     name: "menu",
   });
 
+  const [categories, setCategories] = useState<Category[]>([]);
   const [uploadedFileNamesById, setUploadedFileNamesById] = useState<
     Record<string, string>
   >({});
@@ -47,6 +50,14 @@ export function MenuDetailsStep({
     control,
     name: "menu",
   });
+
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch((error) => {
+        console.error("Không tải được danh mục:", error);
+      });
+  }, []);
 
   async function handleUpload(index: number, file?: File) {
     if (!file) return;
@@ -126,10 +137,14 @@ export function MenuDetailsStep({
 
               <label>
                 <span>Danh mục</span>
-                <input
-                  placeholder="Bún / Mì"
-                  {...register(`menu.${index}.category`)}
-                />
+                <select {...register(`menu.${index}.category`)}>
+                  <option value="">Chọn danh mục</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
 

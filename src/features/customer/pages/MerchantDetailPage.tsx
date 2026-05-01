@@ -26,7 +26,7 @@ export default function MerchantDetailPage() {
 
     try {
       await createOrder({
-        name: `Order from ${name}`,
+        name: `Order from ${merchant.name || "Unnamed merchant"}`,
         deliveryAddress: merchant.address || "No address",
         notes: "",
         finalPrice: total,
@@ -127,11 +127,13 @@ export default function MerchantDetailPage() {
               key={food.id}
               className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
             >
-              <div>
-                <h3 className="font-semibold">{food.name}</h3>
-
-                {food.description && (
-                  <p className="text-sm text-slate-500">{food.description}</p>
+              <div className="flex gap-3">
+                {food.imageUrl && (
+                  <img
+                    src={food.imageUrl}
+                    alt={food.name}
+                    className="h-20 w-20 rounded-xl object-cover"
+                  />
                 )}
 
                 {food.categoryDetail?.length ? (

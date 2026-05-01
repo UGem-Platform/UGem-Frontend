@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { getCustomerOrders } from "../services/orderService";
 import type { CustomerOrderSummary } from "@/shared/types";
 
@@ -37,7 +36,7 @@ export default function CustomerOrdersPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-5 text-2xl font-bold">Đơn hàng của tôi</h1>
 
@@ -62,6 +61,25 @@ export default function CustomerOrdersPage() {
                     <p className="font-bold text-cyan-700">
                       {order.finalPrice.toLocaleString("vi-VN")}đ
                     </p>
+
+                    {order.deliveryAddress && (
+                      <p className="text-sm text-slate-500">
+                        Địa chỉ: {order.deliveryAddress}
+                      </p>
+                    )}
+
+                    {order.orderedAt && (
+                      <p className="text-sm text-slate-500">
+                        Ngày đặt:{" "}
+                        {new Date(order.orderedAt).toLocaleString("vi-VN")}
+                      </p>
+                    )}
+
+                    {order.notes && (
+                      <p className="text-sm text-slate-500">
+                        Ghi chú: {order.notes}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
