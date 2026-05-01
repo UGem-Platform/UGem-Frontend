@@ -93,7 +93,7 @@ export default function MerchantDetailPage() {
   if (loading) return <div className="p-5">Đang tải...</div>;
   if (!merchant) return <div className="p-5">Không tìm thấy quán.</div>;
 
-  const name = merchant.name || merchant.merchantName || "Unnamed merchant";
+  const name = merchant.name || "Unnamed merchant";
   const menuItems = merchant.menu || merchant.foods || [];
 
   return (

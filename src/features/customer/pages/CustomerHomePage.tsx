@@ -322,7 +322,7 @@ export default function CustomerHomePage() {
                       <CardTitle className="text-xl">Bản đồ</CardTitle>
                       <CardDescription>
                         {selectedMerchant
-                          ? `Đang xem: ${selectedMerchant.name || selectedMerchant.merchantName}`
+                          ? `Đang xem: ${selectedMerchant.name}`
                           : "Click vào quán để xem đường đi"}
                       </CardDescription>
                     </div>
