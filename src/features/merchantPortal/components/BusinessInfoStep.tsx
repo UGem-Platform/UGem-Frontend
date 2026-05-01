@@ -4,7 +4,7 @@ import type {
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
-import { Info, Mail, Store, Tags, Utensils, WalletCards } from "lucide-react";
+import { Info, Mail, Store, Tags, Utensils, Wallet } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
 
 type Props = {
@@ -136,7 +136,7 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
 
           <div className="space-y-3">
             <span className="flex items-center gap-2 text-sm font-bold text-slate-800">
-              <WalletCards className="h-4 w-4 text-cyan-700" />
+              <Wallet className="h-4 w-4 text-cyan-700" />
               Khoảng giá trung bình *
             </span>
 
@@ -172,7 +172,7 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
 
           <label className="block space-y-2">
             <span className="text-sm font-bold text-slate-800">
-              Mô tả ngắn về quán *
+              Mô tả ngắn về quán
             </span>
             <textarea
               className="min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm font-medium leading-6 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"

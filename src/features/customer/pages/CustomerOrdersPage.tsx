@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCustomerOrders } from "../services/orderService";
-
-type CustomerOrderSummary = {
-  id: string;
-  status?: string;
-  finalPrice?: number;
-  totalAmount?: number;
-};
+import type { CustomerOrderSummary } from "@/shared/types";
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
@@ -20,7 +14,7 @@ export default function CustomerOrdersPage() {
       setLoading(true);
 
       try {
-        const data = (await getCustomerOrders()) as CustomerOrderSummary[];
+        const data = await getCustomerOrders();
 
         if (active) {
           setOrders(data ?? []);
@@ -51,31 +45,39 @@ export default function CustomerOrdersPage() {
           <p>Đang tải...</p>
         ) : (
           <div className="space-y-3">
-            {orders.map((order) => (
-              <Link
-                key={order.id}
-                to={`/customer/orders/${order.id}`}
-                className="block rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
-              >
-                <div className="flex justify-between">
-                  <div>
-                    <p className="font-semibold">Đơn #{order.id}</p>
-                    <p className="text-sm text-slate-500">
-                      Trạng thái: {order.status}
+            {orders.map((order) => {
+              const content = (
+                <div className="block rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="font-semibold">{order.name}</p>
+                      <p className="text-sm text-slate-500">
+                        Trạng thái: {order.status}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(order.orderedAt).toLocaleString("vi-VN")}
+                      </p>
+                    </div>
+
+                    <p className="font-bold text-cyan-700">
+                      {order.finalPrice.toLocaleString("vi-VN")}đ
                     </p>
                   </div>
-
-                  <p className="font-bold text-cyan-700">
-                    {(
-                      order.finalPrice ||
-                      order.totalAmount ||
-                      0
-                    ).toLocaleString("vi-VN")}
-                    đ
-                  </p>
                 </div>
-              </Link>
-            ))}
+              );
+
+              return order.orderId ? (
+                <Link
+                  key={order.orderId}
+                  to={`/customer/orders/${order.orderId}`}
+                  className="block"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div key={`${order.name}-${order.orderedAt}`}>{content}</div>
+              );
+            })}
 
             {orders.length === 0 && (
               <p className="text-center text-slate-500">Chưa có đơn hàng.</p>

@@ -70,7 +70,15 @@ export type MerchantApplication = {
   createdAt?: string;
   reviewedAt?: string;
   updatedAt?: string;
+  applicant?: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    avatarUrl: string | null;
+  } | null;
   applicationMenus?: {
+    id?: string;
     name: string;
     description: string;
     price: number;

@@ -63,11 +63,19 @@ export default function AdminApplicationDetailPage() {
     );
   }
 
-  const name =
-    application.merchantName || application.businessName || "Không tên";
+  const name = application.name || "Không tên";
+
+  function formatDate(value?: string | null) {
+    if (!value) return "-";
+
+    return new Intl.DateTimeFormat("vi-VN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
+    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <button
           onClick={() => navigate("/admin/applications")}
@@ -83,10 +91,25 @@ export default function AdminApplicationDetailPage() {
             Trạng thái: {application.status || "Pending"}
           </p>
 
-          {application.address && (
-            <p className="mt-3">
-              <b>Địa chỉ:</b> {application.address}
+          <div className="mt-3 space-y-1 text-sm text-slate-600">
+            <p>
+              <b>Loại:</b> {application.type || "-"}
             </p>
+            <p>
+              <b>Ngày gửi:</b> {formatDate(application.createdAt)}
+            </p>
+            <p>
+              <b>Ngày rà soát:</b> {formatDate(application.reviewedAt)}
+            </p>
+          </div>
+
+          {application.applicant && (
+            <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+              <p className="font-semibold">Thông tin người nộp</p>
+              <p>{application.applicant.fullName}</p>
+              <p>{application.applicant.email}</p>
+              <p>{application.applicant.phoneNumber}</p>
+            </div>
           )}
 
           {application.description && (
@@ -100,11 +123,16 @@ export default function AdminApplicationDetailPage() {
           <h2 className="mb-3 text-lg font-semibold">Menu gửi kèm</h2>
 
           {application.applicationMenus?.map((item) => (
-            <div key={item.id} className="border-b py-3">
+            <div key={item.id} className="border-b py-3 last:border-b-0">
               <p className="font-medium">{item.name}</p>
               <p className="text-cyan-700">
                 {item.price.toLocaleString("vi-VN")}đ
               </p>
+              {item.category && (
+                <p className="text-sm text-slate-500">
+                  Danh mục: {item.category}
+                </p>
+              )}
               {item.description && (
                 <p className="text-sm text-slate-500">{item.description}</p>
               )}

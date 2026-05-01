@@ -6,3 +6,13 @@ export const loginSchema = z.object({
 });
 
 export type LoginSchema = z.infer<typeof loginSchema>;
+
+export const registerSchema = z.object({
+  fullName: z.string().min(1, "Vui lòng nhập họ và tên"),
+  email: z.string().min(1, "Vui lòng nhập email").email("Email không hợp lệ"),
+  phoneNumber: z.string().min(1, "Vui lòng nhập số điện thoại"),
+  password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+  avatarUrl: z.string(),
+});
+
+export type RegisterSchema = z.infer<typeof registerSchema>;

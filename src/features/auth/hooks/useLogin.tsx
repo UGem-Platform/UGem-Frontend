@@ -17,7 +17,7 @@ export function useLogin() {
     mutationFn: (payload: LoginRequest) => loginApi(payload),
 
     onSuccess: (data) => {
-      const token = data.accessToken || data.AccessToken;
+      const token = data.accessToken;
 
       if (!token) {
         throw new Error("Không nhận được token từ server.");

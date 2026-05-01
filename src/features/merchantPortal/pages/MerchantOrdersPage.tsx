@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { getMerchantOrders, acceptOrder, rejectOrder } from "../services";
-
-type MerchantOrderSummary = {
-  id: string;
-  status?: string;
-  finalPrice?: number;
-  totalAmount?: number;
-};
+import type { MerchantOrderSummary } from "@/shared/types";
 
 export default function MerchantOrdersPage() {
   const [orders, setOrders] = useState<MerchantOrderSummary[]>([]);
@@ -21,7 +15,7 @@ export default function MerchantOrdersPage() {
       setLoading(true);
 
       try {
-        const data = (await getMerchantOrders()) as MerchantOrderSummary[];
+        const data = await getMerchantOrders();
 
         if (active) {
           setOrders(data ?? []);
@@ -49,7 +43,9 @@ export default function MerchantOrdersPage() {
       await acceptOrder(orderId);
       alert("Đã chấp nhận đơn hàng.");
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: "Accepted" } : o)),
+        prev.map((o) =>
+          o.orderId === orderId ? { ...o, status: "Accepted" } : o,
+        ),
       );
     } catch (error) {
       console.error(error);
@@ -68,7 +64,9 @@ export default function MerchantOrdersPage() {
       await rejectOrder(orderId, reason);
       alert("Đã từ chối đơn hàng.");
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: "Rejected" } : o)),
+        prev.map((o) =>
+          o.orderId === orderId ? { ...o, status: "Rejected" } : o,
+        ),
       );
     } catch (error) {
       console.error(error);
@@ -89,12 +87,12 @@ export default function MerchantOrdersPage() {
           <div className="space-y-3">
             {orders.map((order) => (
               <div
-                key={order.id}
+                key={order.orderId}
                 className="rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
               >
                 <div className="flex justify-between items-start gap-4">
                   <div className="flex-1">
-                    <p className="font-semibold">Đơn #{order.id}</p>
+                    <p className="font-semibold">Đơn #{order.orderId}</p>
                     <p className="text-sm text-slate-500">
                       Trạng thái: {order.status}
                     </p>
@@ -102,27 +100,22 @@ export default function MerchantOrdersPage() {
 
                   <div className="text-right">
                     <p className="font-bold text-cyan-700 mb-3">
-                      {(
-                        order.finalPrice ||
-                        order.totalAmount ||
-                        0
-                      ).toLocaleString("vi-VN")}
-                      đ
+                      {order.finalPrice.toLocaleString("vi-VN")}đ
                     </p>
 
                     {(order.status === "Pending" || !order.status) && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleAccept(order.id)}
-                          disabled={actioningId === order.id}
+                          onClick={() => handleAccept(order.orderId)}
+                          disabled={actioningId === order.orderId}
                           className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white disabled:opacity-50"
                         >
                           <CheckCircle2 size={16} />
                           Chấp nhận
                         </button>
                         <button
-                          onClick={() => handleReject(order.id)}
-                          disabled={actioningId === order.id}
+                          onClick={() => handleReject(order.orderId)}
+                          disabled={actioningId === order.orderId}
                           className="flex items-center gap-1 rounded-lg bg-rose-600 px-3 py-2 text-sm text-white disabled:opacity-50"
                         >
                           <XCircle size={16} />

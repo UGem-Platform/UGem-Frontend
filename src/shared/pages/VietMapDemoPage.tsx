@@ -3,12 +3,12 @@
  *
  * Bao gồm:
  *  1. Bản đồ VietMap GL
- *  2. Ghim markers (quán ăn + trạm sạc)
+ *  2. Ghim markers từ dữ liệu người dùng nhập
  *  3. Geocode: nhập địa chỉ → lấy tọa độ
  *  4. Route: vẽ đường đi giữa 2 điểm
  */
 import { useState, useCallback } from "react";
-import VietMapGL, { type MapMarker } from "@/shared/components/VietMapGL";
+import VietMapGL from "@/shared/components/VietMapGL";
 import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";
 import {
   metersToKm,
@@ -16,60 +16,11 @@ import {
   type LngLat,
 } from "@/shared/services/vietmapService";
 
-// ─── Dữ liệu mẫu ────────────────────────────────────────────
-
-const SAMPLE_RESTAURANTS: MapMarker[] = [
-  {
-    id: "r1",
-    lat: 10.7769,
-    lng: 106.7009,
-    type: "restaurant",
-    popupHtml: `<div><strong>🍜 Phở Hòa Pasteur</strong><br/><small>260C Pasteur, Q.3</small></div>`,
-  },
-  {
-    id: "r2",
-    lat: 10.7731,
-    lng: 106.6982,
-    type: "restaurant",
-    popupHtml: `<div><strong>🍚 Cơm Tấm Thuận Kiều</strong><br/><small>135 Bùi Thị Xuân, Q.1</small></div>`,
-  },
-  {
-    id: "r3",
-    lat: 10.7795,
-    lng: 106.6954,
-    type: "restaurant",
-    popupHtml: `<div><strong>🧋 Trà Sữa The Alley</strong><br/><small>14 Tôn Thất Thiệp, Q.1</small></div>`,
-  },
-];
-
-const SAMPLE_CHARGING: MapMarker[] = [
-  {
-    id: "c1",
-    lat: 10.7662,
-    lng: 106.688,
-    type: "charging",
-    popupHtml: `<div><strong>⚡ Trạm Sạc VinFast Q.1</strong><br/><small>Gara tầng B2, 72 Lê Thánh Tôn</small><br/><span style="color:#16a34a">● Còn trống 4 cổng</span></div>`,
-  },
-  {
-    id: "c2",
-    lat: 10.7751,
-    lng: 106.7103,
-    type: "charging",
-    popupHtml: `<div><strong>⚡ Trạm Sạc VinFast Q.Bình Thạnh</strong><br/><small>Gara Vincom Đồng Khởi</small><br/><span style="color:#dc2626">● Đang bận (0 cổng)</span></div>`,
-  },
-];
-
-// ─── Component ───────────────────────────────────────────────
-
 type Tab = "markers" | "geocode" | "route";
 
 export default function VietMapDemoPage() {
   const [activeTab, setActiveTab] = useState<Tab>("markers");
 
-  // Map state
-  const [visibleRestaurants, setVisibleRestaurants] = useState(true);
-  const [visibleCharging, setVisibleCharging] = useState(true);
-  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [routeCoords, setRouteCoords] = useState<
     [number, number][] | undefined
   >();
@@ -93,11 +44,7 @@ export default function VietMapDemoPage() {
     clearRoute,
   } = useVietMapRoute();
 
-  // ── Markers tổng hợp ──
-  const allMarkers: MapMarker[] = [
-    ...(visibleRestaurants ? SAMPLE_RESTAURANTS : []),
-    ...(visibleCharging ? SAMPLE_CHARGING : []),
-    // Thêm điểm origin/dest nếu đã geocode
+  const allMarkers = [
     ...(originCoord
       ? [
           {
@@ -193,65 +140,12 @@ export default function VietMapDemoPage() {
             {activeTab === "markers" && (
               <div className="space-y-3">
                 <h2 className="font-semibold text-slate-800">
-                  Hiển thị trên bản đồ
+                  Không có dữ liệu hiển thị sẵn
                 </h2>
-
-                {/* Toggle restaurants */}
-                <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-cyan-50">
-                  <input
-                    type="checkbox"
-                    checked={visibleRestaurants}
-                    onChange={(e) => setVisibleRestaurants(e.target.checked)}
-                    className="w-4 h-4 accent-cyan-500"
-                  />
-                  <span className="text-2xl">🍜</span>
-                  <div>
-                    <div className="font-medium text-sm">Quán ăn</div>
-                    <div className="text-xs text-slate-500">
-                      {SAMPLE_RESTAURANTS.length} địa điểm
-                    </div>
-                  </div>
-                </label>
-
-                {/* Toggle charging */}
-                <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-cyan-50">
-                  <input
-                    type="checkbox"
-                    checked={visibleCharging}
-                    onChange={(e) => setVisibleCharging(e.target.checked)}
-                    className="w-4 h-4 accent-emerald-500"
-                  />
-                  <span className="text-2xl">⚡</span>
-                  <div>
-                    <div className="font-medium text-sm">Trạm sạc xe</div>
-                    <div className="text-xs text-slate-500">
-                      {SAMPLE_CHARGING.length} trạm
-                    </div>
-                  </div>
-                </label>
-
-                {/* Marker list */}
-                <div>
-                  <p className="mb-2 text-xs text-slate-400">
-                    Click để zoom đến địa điểm:
-                  </p>
-                  {allMarkers
-                    .filter((m) => !m.id.startsWith("__"))
-                    .map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => setSelectedMarkerId(m.id)}
-                        className={`w-full text-left p-2 rounded-md text-sm mb-1 transition-colors ${
-                          selectedMarkerId === m.id
-                            ? "bg-cyan-50 text-cyan-700 font-medium"
-                            : "hover:bg-slate-50 text-slate-700"
-                        }`}
-                      >
-                        {m.type === "restaurant" ? "🍜" : "⚡"}{" "}
-                        {m.id.toUpperCase()}
-                      </button>
-                    ))}
-                </div>
+                <p className="text-sm text-slate-600">
+                  Bản đồ chỉ hiển thị các điểm bạn tự geocode hoặc chọn khi tạo
+                  route.
+                </p>
               </div>
             )}
 
@@ -456,10 +350,8 @@ export default function VietMapDemoPage() {
             centerLat={10.7736}
             zoom={13}
             markers={allMarkers}
-            selectedMarkerId={selectedMarkerId}
-            onMarkerClick={(id) => {
-              if (!id.startsWith("__")) setSelectedMarkerId(id);
-            }}
+            selectedMarkerId={undefined}
+            onMarkerClick={() => undefined}
             routeCoordinates={routeCoords}
             routeColor="#3b82f6"
             className="h-full w-full"
@@ -470,15 +362,11 @@ export default function VietMapDemoPage() {
             <p className="mb-2 font-semibold text-slate-700">Chú thích</p>
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 rounded-full border-2 border-white bg-cyan-500 shadow" />
-              <span>Vị trí của bạn</span>
+              <span>Điểm xuất phát</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-4 w-4 rounded-full border-2 border-white bg-amber-500 shadow" />
-              <span>Quán ăn</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-4 w-4 rounded-full border-2 border-white bg-emerald-500 shadow" />
-              <span>Trạm sạc</span>
+              <div className="h-4 w-4 rounded-full border-2 border-white bg-rose-500 shadow" />
+              <span>Điểm đến</span>
             </div>
             {routeCoords && (
               <div className="flex items-center gap-2">

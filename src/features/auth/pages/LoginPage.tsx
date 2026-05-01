@@ -2,6 +2,7 @@ import { LoginForm } from "../components/LoginForm";
 import { Logo } from "./Logo";
 import HeroCarousel from "../components/HeroCarousel";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const HERO_IMAGES = [
   "https://mia.vn/media/uploads/blog-du-lich/pho-ganh-ha-noi-01-1702697225.jpg",
@@ -31,7 +32,6 @@ const CAPTIONS = [
 
 export function LoginPage() {
   const [slide, setSlide] = useState(0);
-
   function handleGoogleLogin() {
     alert("Chưa có Google OAuth backend");
   }
@@ -101,9 +101,12 @@ export function LoginPage() {
               <button className="text-sm text-cyan-700 hover:underline">
                 Quên mật khẩu?
               </button>
-              <button className="block text-sm font-medium text-amber-700 hover:underline">
+              <Link
+                to="/register"
+                className="block text-sm font-medium text-amber-700 hover:underline"
+              >
                 Chưa có tài khoản? Đăng ký
-              </button>
+              </Link>
             </div>
           </div>
 

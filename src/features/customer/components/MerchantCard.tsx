@@ -7,7 +7,8 @@ type Props = {
 
 export default function MerchantCard({ merchant }: Props) {
   const name = merchant.name || merchant.merchantName || "Unnamed merchant";
-  const image = merchant.logoUrl || merchant.imageUrl;
+  const image =
+    merchant.logoUrl || merchant.imageUrl || merchant.menu?.[0]?.imageUrl;
 
   return (
     <Link
@@ -51,6 +52,12 @@ export default function MerchantCard({ merchant }: Props) {
           {merchant.address && (
             <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
               {merchant.address}
+            </p>
+          )}
+
+          {typeof merchant.rating === "number" && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              ⭐ {merchant.rating}
             </p>
           )}
         </div>

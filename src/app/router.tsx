@@ -2,7 +2,7 @@ import AdminApplicationDetailPage from "@/features/admin/pages/AdminApplicationD
 import AdminApplicationsPage from "@/features/admin/pages/AdminApplicationsPage";
 import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
-import { LoginPage } from "@/features/auth";
+import { LoginPage, RegisterPage } from "@/features/auth";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
 import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDetailPage";
 import CustomerOrdersPage from "@/features/customer/pages/CustomerOrdersPage";
@@ -29,6 +29,10 @@ const routers = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
   },
   {
     path: "/unauthorized",

@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import type { ApiResponse } from "@/shared/types";
 
 export type WishlistItem = {
   merchantId?: string;
@@ -9,19 +10,19 @@ export type WishlistItem = {
 };
 
 export async function getWishlist() {
-  const res = await api.get<WishlistItem[]>("/Wishlist");
-  return res.data;
+  const res = await api.get<ApiResponse<WishlistItem[]>>("/Wishlist");
+  return res.data.data ?? [];
 }
 
 export async function addWishlist(merchantId: string) {
-  const res = await api.post("/Wishlist", {
+  const res = await api.post<ApiResponse<[]>>("/Wishlist", {
     merchantId,
   });
 
-  return res.data;
+  return res.data.data ?? [];
 }
 
 export async function removeWishlist(merchantId: string) {
-  const res = await api.delete(`/Wishlist/${merchantId}`);
+  const res = await api.delete<ApiResponse<null>>(`/Wishlist/${merchantId}`);
   return res.data;
 }

@@ -4,6 +4,12 @@ import { getStaffApplications } from "../services/applicationService";
 import type { Application } from "../types";
 import { RefreshCw } from "lucide-react";
 
+function formatDate(value?: string | null) {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
+}
+
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,9 +91,7 @@ export default function AdminApplicationsPage() {
               <tbody>
                 {applications.map((app) => (
                   <tr key={app.id} className="border-t hover:bg-cyan-50">
-                    <td className="p-4">
-                      {app.merchantName || app.businessName || "Không tên"}
-                    </td>
+                    <td className="p-4">{app.name || "Không tên"}</td>
                     <td className="p-4">
                       <span
                         className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
@@ -101,11 +105,7 @@ export default function AdminApplicationsPage() {
                         {app.status || "Pending"}
                       </span>
                     </td>
-                    <td className="p-4">
-                      {app.createdAt
-                        ? new Date(app.createdAt).toLocaleDateString("vi-VN")
-                        : "-"}
-                    </td>
+                    <td className="p-4">{formatDate(app.createdAt)}</td>
                     <td className="p-4">
                       <Link
                         to={`/admin/applications/${app.id}`}
