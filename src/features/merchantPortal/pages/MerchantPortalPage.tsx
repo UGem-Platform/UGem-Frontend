@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { ApplicationStatusCard } from "../components/ApplicationStatusCard";
 import { TipsSection } from "../components/TipsSection";
 import { useMyApplications } from "../hooks/useMyApplications";
@@ -10,10 +10,15 @@ function handleSendApplication() {
   globalThis.location.href = "/merchant/application/create";
 }
 
+function handleViewStatus() {
+  globalThis.location.href = "/merchant/application/status";
+}
+
 export function MerchantPortalPage() {
   const { data: applications = [], isLoading } = useMyApplications();
 
   const latestApplication = applications[0];
+  const isApproved = latestApplication?.status === "Approved";
 
   return (
     <main className="merchant-portal-layout">
@@ -24,18 +29,33 @@ export function MerchantPortalPage() {
 
         <div className="merchant-content">
           <section className="merchant-hero-grid">
-            <article className="merchant-submit-card">
-              <h1>Đăng ký quán ăn của bạn</h1>
-              <p>
-                UGem chỉ hiển thị những quán ăn thật sự underrated sau khi được
-                thẩm định.
-              </p>
+            {isApproved ? (
+              <article className="merchant-submit-card">
+                <h1>Quán của bạn đã được duyệt!</h1>
+                <p>
+                  Quán của bạn hiện đang hiển thị trên UGem. Cảm ơn bạn đã đồng
+                  hành cùng UGem.
+                </p>
 
-              <button type="button" onClick={handleSendApplication}>
-                Gửi hồ sơ quán
-                <ArrowRight size={18} />
-              </button>
-            </article>
+                <button type="button" onClick={handleViewStatus}>
+                  Xem trạng thái hồ sơ
+                  <CheckCircle2 size={18} />
+                </button>
+              </article>
+            ) : (
+              <article className="merchant-submit-card">
+                <h1>Đăng ký quán ăn của bạn</h1>
+                <p>
+                  UGem chỉ hiển thị những quán ăn thật sự underrated sau khi
+                  được thẩm định.
+                </p>
+
+                <button type="button" onClick={handleSendApplication}>
+                  Gửi hồ sơ quán
+                  <ArrowRight size={18} />
+                </button>
+              </article>
+            )}
 
             {isLoading ? (
               <section className="merchant-status-card">

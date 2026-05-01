@@ -258,13 +258,20 @@ export function MerchantApplicationStatusPage() {
                   )}
 
                   {isApproved && (
-                    <button
-                      className="resubmit-button"
-                      type="button"
-                      onClick={() => navigate("/merchant")}
-                    >
-                      Về Merchant Portal
-                    </button>
+                    <>
+                      <p className="approved-note">
+                        Quán của bạn đã được duyệt và hiển thị trên UGem. Nếu
+                        cần thay đổi thông tin, vui lòng liên hệ Support.
+                      </p>
+
+                      <button
+                        className="resubmit-button"
+                        type="button"
+                        onClick={() => navigate("/merchant")}
+                      >
+                        Về Merchant Portal
+                      </button>
+                    </>
                   )}
                 </section>
 

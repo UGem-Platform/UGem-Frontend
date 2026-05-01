@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -15,6 +15,7 @@ import {
   type OnboardingSchema,
 } from "../schema";
 import { useCreateApplication } from "../hooks/useCreateApplication";
+import { useMyApplications } from "../hooks/useMyApplications";
 import { OnboardingSidebar } from "../../../shared/layouts/Merchants/OnboardingSidebar";
 import { OnboardingTopbar } from "../../../shared/layouts/Merchants/OnboardingTopbar";
 import { OnboardingStepper } from "../../../shared/layouts/Merchants/OnboardingStepper";
@@ -33,6 +34,26 @@ export function MerchantOnboardingPage() {
   const navigate = useNavigate();
   const createMutation = useCreateApplication();
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Check if merchant already has an approved application
+  const { data: applications = [], isLoading: isLoadingApps } =
+    useMyApplications();
+
+  useEffect(() => {
+    // If already approved, redirect to status page
+    if (!isLoadingApps && applications.length > 0) {
+      const latestApplication = [...applications].sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
+        return dateB - dateA;
+      })[0];
+
+      if (latestApplication?.status === "Approved") {
+        alert("Quán của bạn đã được duyệt. Không thể gửi hồ sơ mới.");
+        navigate("/merchant/application/status");
+      }
+    }
+  }, [isLoadingApps, applications, navigate]);
 
   const methods = useForm<OnboardingFormValues, unknown, OnboardingSchema>({
     resolver: zodResolver(onboardingSchema),
