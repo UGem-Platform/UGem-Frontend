@@ -67,10 +67,16 @@ export type MerchantApplication = {
   status: ApplicationStatus;
   createdAt?: string;
   reviewedAt?: string;
-  updatedAt?: string | null;
-  applicant?: null;
+  updatedAt?: string;
+  applicant?: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    avatarUrl: string | null;
+  } | null;
   applicationMenus?: {
-    id: string;
+    id?: string;
     name: string;
     description: string;
     price: number;

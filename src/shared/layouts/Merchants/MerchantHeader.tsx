@@ -16,7 +16,7 @@ export function MerchantHeader() {
 
       <div className="merchant-user">
         <div>
-          <strong>Xin chào, Merchant Name</strong>
+          {/* <strong>Xin chào, {user?.Name || "Merchant"}</strong> */}
           <span>{user?.Email || "merchant@gmail.com"}</span>
         </div>
 

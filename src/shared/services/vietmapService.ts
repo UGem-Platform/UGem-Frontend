@@ -68,20 +68,77 @@ type OsrmStep = {
 
 // ─── Geocode: địa chỉ text → tọa độ ─────────────────────────
 
-export async function geocodeAddress(text: string): Promise<GeocodeResult[]> {
+export type GeocodeOptions = {
+  proximity?: { lat: number; lng: number } | null;
+  size?: number;
+};
+
+function haversineDistanceKm(
+  aLat: number,
+  aLng: number,
+  bLat: number,
+  bLng: number,
+) {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const R = 6371; // km
+  const dLat = toRad(bLat - aLat);
+  const dLon = toRad(bLng - aLng);
+  const lat1 = toRad(aLat);
+  const lat2 = toRad(bLat);
+
+  const sinDLat = Math.sin(dLat / 2);
+  const sinDLon = Math.sin(dLon / 2);
+  const a =
+    sinDLat * sinDLat + sinDLon * sinDLon * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export async function geocodeAddress(
+  text: string,
+  opts: GeocodeOptions = {},
+): Promise<GeocodeResult[]> {
   if (!HAS_VIETMAP_SERVICE_KEY)
     throw new Error("Chưa cấu hình VietMap Service key");
 
+  const size = opts.size ?? 10;
   const url = new URL("https://maps.vietmap.vn/api/search/v3");
   url.searchParams.set("apikey", VIETMAP_SERVICE_KEY);
   url.searchParams.set("text", text);
-  url.searchParams.set("size", "5");
+  url.searchParams.set("size", String(size));
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Geocode API error: ${res.status}`);
 
   const json = await res.json();
-  return Array.isArray(json) ? json : (json.data ?? []);
+  const raw: any[] = Array.isArray(json) ? json : (json.data ?? []);
+
+  // Try to normalize to our GeocodeResult shape. If the API already returns
+  // matching fields (lat/lng/display/address) we'll use them as-is.
+  const results: GeocodeResult[] = raw.map((r: any) => ({
+    ref_id: r.id ?? r.ref_id ?? "",
+    name: r.name ?? r.display ?? r.address ?? "",
+    display: r.display ?? r.name ?? r.address ?? "",
+    address: r.address ?? r.display ?? "",
+    lat: Number(r.lat ?? r.latitude ?? r.y ?? 0),
+    lng: Number(r.lng ?? r.longitude ?? r.x ?? 0),
+  }));
+
+  // If proximity provided, sort by distance to improve local relevance
+  if (opts.proximity && results.length > 0) {
+    const { lat: pLat, lng: pLng } = opts.proximity;
+    results.forEach((res) => {
+      // attach temporary distance
+      (res as any).__distKm = haversineDistanceKm(pLat, pLng, res.lat, res.lng);
+    });
+    results.sort(
+      (a, b) => ((a as any).__distKm ?? 0) - ((b as any).__distKm ?? 0),
+    );
+    // remove temp field
+    results.forEach((r) => delete (r as any).__distKm);
+  }
+
+  return results;
 }
 
 // ─── Route: tính đường đi giữa 2 điểm ───────────────────────

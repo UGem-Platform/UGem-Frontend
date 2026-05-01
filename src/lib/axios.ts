@@ -15,6 +15,14 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  const method = config.method?.toLowerCase();
+  const hasBody = config.data !== undefined && config.data !== null;
+
+  if ((method === "get" || method === "head") && !hasBody) {
+    delete config.headers["Content-Type"];
+    delete config.headers["content-type"];
+  }
+
   return config;
 });
 

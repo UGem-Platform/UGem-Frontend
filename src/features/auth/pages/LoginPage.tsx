@@ -32,7 +32,6 @@ const CAPTIONS = [
 
 export function LoginPage() {
   const [slide, setSlide] = useState(0);
-
   function handleGoogleLogin() {
     alert("Chưa có Google OAuth backend");
   }

@@ -13,7 +13,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 
 import MerchantCard from "../components/MerchantCard";
-import NearbyMerchantsMap from "../components/NearbyMerchantsMap";
+import NearbyMerchantsMap from "../components/NearbyMerchantsMap.tsx";
 import { getNearbyMerchants } from "../services/merchantService";
 import type { Merchant } from "../types";
 import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";

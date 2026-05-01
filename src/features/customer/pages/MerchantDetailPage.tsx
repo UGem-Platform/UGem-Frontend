@@ -16,7 +16,6 @@ export default function MerchantDetailPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const foods = merchant?.menu || [];
   const navigate = useNavigate();
   const total = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.food.price * item.quantity, 0);
@@ -94,10 +93,11 @@ export default function MerchantDetailPage() {
   if (loading) return <div className="p-5">Đang tải...</div>;
   if (!merchant) return <div className="p-5">Không tìm thấy quán.</div>;
 
-  const name = merchant.name || "Unnamed merchant";
+  const name = merchant.name || merchant.merchantName || "Unnamed merchant";
+  const menuItems = merchant.menu || merchant.foods || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
+    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <div className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
           <h1 className="text-2xl font-bold">{name}</h1>
@@ -105,6 +105,14 @@ export default function MerchantDetailPage() {
           {merchant.address && (
             <p className="mt-1 text-sm text-slate-500">{merchant.address}</p>
           )}
+
+          <div className="mt-2 flex flex-wrap gap-3 text-sm text-slate-500">
+            {typeof merchant.rating === "number" && (
+              <span>⭐ {merchant.rating}</span>
+            )}
+            {merchant.phone && <span>📞 {merchant.phone}</span>}
+            {merchant.email && <span>✉️ {merchant.email}</span>}
+          </div>
 
           {merchant.description && (
             <p className="mt-3 text-slate-700">{merchant.description}</p>
@@ -114,7 +122,7 @@ export default function MerchantDetailPage() {
         <h2 className="mt-6 mb-3 text-lg font-semibold">Menu</h2>
 
         <div className="space-y-3">
-          {foods.map((food) => (
+          {menuItems.map((food) => (
             <div
               key={food.id}
               className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
@@ -128,23 +136,15 @@ export default function MerchantDetailPage() {
                   />
                 )}
 
-                <div>
-                  <h3 className="font-semibold">{food.name}</h3>
-
-                  {food.description && (
-                    <p className="text-sm text-slate-500">{food.description}</p>
-                  )}
-
-                  {food.categoryDetail?.length ? (
-                    <p className="text-sm text-slate-500">
-                      Loại: {food.categoryDetail.join(", ")}
-                    </p>
-                  ) : null}
-
-                  <p className="mt-1 font-medium text-cyan-700">
-                    {food.price.toLocaleString("vi-VN")}đ
+                {food.categoryDetail?.length ? (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Danh mục: {food.categoryDetail.join(", ")}
                   </p>
-                </div>
+                ) : null}
+
+                <p className="mt-1 font-medium text-cyan-700">
+                  {food.price.toLocaleString("vi-VN")}đ
+                </p>
               </div>
 
               <button

@@ -4,8 +4,15 @@ export type LoginRequest = {
 };
 
 export type LoginResponse = {
-  accessToken?: string;
-  AccessToken?: string;
+  accessToken: string;
+};
+
+export type RegisterRequest = {
+  email: string;
+  password: string;
+  phoneNumber: string;
+  fullName: string;
+  avatarUrl: string;
 };
 
 export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin" | string;

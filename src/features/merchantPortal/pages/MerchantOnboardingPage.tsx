@@ -43,7 +43,6 @@ export function MerchantOnboardingPage() {
       restaurantType: "",
       mainDishType: "",
       priceRange: "",
-      description: "",
       address: "",
       latitude: 0,
       longitude: 0,
@@ -80,7 +79,6 @@ export function MerchantOnboardingPage() {
         "restaurantType",
         "mainDishType",
         "priceRange",
-        "description",
       ],
       2: ["address", "latitude", "longitude"],
       3: ["menu"],
@@ -100,7 +98,6 @@ export function MerchantOnboardingPage() {
 
   function buildDescription(values: OnboardingSchema) {
     return `
-${values.description}
 
 --- Thông tin UI bổ sung ---
 Địa chỉ: ${values.address}
@@ -172,7 +169,13 @@ Khoảng giá trung bình: ${values.priceRange}
               )}
 
               {currentStep === 2 && (
-                <AddressLocationStep register={register} errors={errors} />
+                <AddressLocationStep
+                  register={register}
+                  errors={errors}
+                  setValue={setValue}
+                  watchedLat={watch("latitude")}
+                  watchedLng={watch("longitude")}
+                />
               )}
 
               {currentStep === 3 && (

@@ -1,5 +1,14 @@
 import { api } from "@/lib/axios";
-import type { ApiResponse, CreateOrderItem } from "../types";
+import type {
+  ApiResponse,
+  CustomerOrderDetailItem,
+  CustomerOrderSummary,
+} from "@/shared/types";
+
+export type CreateOrderItem = {
+  foodId: string;
+  quantity: number;
+};
 
 export async function createOrder(payload: {
   name: string;
@@ -20,16 +29,19 @@ export async function createOrder(payload: {
 }
 
 export async function getCustomerOrders() {
-  const res = await api.get<ApiResponse<[]>>("/Order/list");
-  return res.data.data;
+  const res = await api.get<ApiResponse<CustomerOrderSummary[]>>("/Order/list");
+  return res.data.data ?? [];
 }
 
 export async function getCustomerOrderDetail(orderId: string) {
-  const res = await api.get<ApiResponse<[]>>("/Order/detail", {
-    params: { orderId },
-  });
+  const res = await api.get<ApiResponse<CustomerOrderDetailItem[]>>(
+    "/Order/detail",
+    {
+      params: { orderId },
+    },
+  );
 
-  return res.data.data;
+  return res.data.data ?? [];
 }
 
 export async function confirmReceived(orderId: string) {

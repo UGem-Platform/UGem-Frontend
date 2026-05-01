@@ -5,6 +5,8 @@ export type Merchant = {
   email?: string;
   phone?: string;
   address?: string;
+  email?: string;
+  phone?: string;
   logoUrl?: string;
   rating?: number;
   distance?: number;
@@ -12,9 +14,11 @@ export type Merchant = {
   longitude?: number;
   lat?: number;
   lng?: number;
+  status?: string;
+  menu?: MerchantMenuItem[];
 };
 
-export type Food = {
+export type MerchantMenuItem = {
   id: string;
   name: string;
   description?: string;
@@ -23,8 +27,19 @@ export type Food = {
   categoryDetail?: string[];
 };
 
+export type Food = MerchantMenuItem;
+
 export type MerchantDetail = Merchant & {
-  menu?: Food[];
+  foods?: MerchantMenuItem[];
+  menu?: MerchantMenuItem[];
+};
+
+export type CustomerProfile = {
+  userId?: string;
+  email?: string;
+  phoneNumber?: string;
+  fullName?: string;
+  avatarUrl?: string | null;
 };
 
 export type CustomerOrderSummary = {

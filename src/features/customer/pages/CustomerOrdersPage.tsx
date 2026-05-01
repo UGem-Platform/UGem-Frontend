@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCustomerOrders } from "../services/orderService";
-import type { CustomerOrderSummary } from "../types";
+import type { CustomerOrderSummary } from "@/shared/types";
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
@@ -44,17 +44,22 @@ export default function CustomerOrdersPage() {
           <p>Đang tải...</p>
         ) : (
           <div className="space-y-3">
-            {orders.map((order) => (
-              <div
-                key={`${order.name}-${order.orderedAt}`}
-                className="block rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
-              >
-                <div className="flex justify-between gap-4">
-                  <div>
-                    <p className="font-semibold">{order.name || "Đơn hàng"}</p>
+            {orders.map((order) => {
+              const content = (
+                <div className="block rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="font-semibold">{order.name}</p>
+                      <p className="text-sm text-slate-500">
+                        Trạng thái: {order.status}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(order.orderedAt).toLocaleString("vi-VN")}
+                      </p>
+                    </div>
 
-                    <p className="text-sm text-slate-500">
-                      Trạng thái: {order.status || "Không rõ"}
+                    <p className="font-bold text-cyan-700">
+                      {order.finalPrice.toLocaleString("vi-VN")}đ
                     </p>
 
                     {order.deliveryAddress && (
@@ -76,13 +81,21 @@ export default function CustomerOrdersPage() {
                       </p>
                     )}
                   </div>
-
-                  <p className="font-bold text-cyan-700">
-                    {(order.finalPrice || 0).toLocaleString("vi-VN")}đ
-                  </p>
                 </div>
-              </div>
-            ))}
+              );
+
+              return order.orderId ? (
+                <Link
+                  key={order.orderId}
+                  to={`/customer/orders/${order.orderId}`}
+                  className="block"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div key={`${order.name}-${order.orderedAt}`}>{content}</div>
+              );
+            })}
 
             {orders.length === 0 && (
               <p className="text-center text-slate-500">Chưa có đơn hàng.</p>

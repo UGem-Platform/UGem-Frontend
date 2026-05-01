@@ -14,11 +14,7 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
     if (images.length <= 1) return;
 
     timer.current = window.setInterval(() => {
-      setIndex((i) => {
-        const next = (i + 1) % images.length;
-        onChange?.(next);
-        return next;
-      });
+      setIndex((i) => (i + 1) % images.length);
     }, intervalMs);
 
     return () => {
@@ -39,6 +35,10 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
 
     onChange?.(next);
   }
+
+  useEffect(() => {
+    onChange?.(index);
+  }, [index, onChange]);
 
   return (
     <div

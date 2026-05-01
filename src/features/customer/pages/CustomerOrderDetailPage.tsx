@@ -5,14 +5,7 @@ import {
   confirmReceived,
   getCustomerOrderDetail,
 } from "../services/orderService";
-
-type CustomerOrderDetailItem = {
-  foodId: string;
-  orderId?: string;
-  name?: string;
-  unitPrice?: number;
-  quantity?: number;
-};
+import type { CustomerOrderDetailItem } from "@/shared/types";
 
 export default function CustomerOrderDetailPage() {
   const { id } = useParams();
@@ -28,9 +21,7 @@ export default function CustomerOrderDetailPage() {
       setLoading(true);
 
       try {
-        const data = (await getCustomerOrderDetail(
-          id,
-        )) as CustomerOrderDetailItem[];
+        const data = await getCustomerOrderDetail(id);
 
         if (active) {
           setItems(data ?? []);
@@ -58,9 +49,7 @@ export default function CustomerOrderDetailPage() {
     try {
       await confirmReceived(id);
       alert("Đã xác nhận nhận hàng.");
-      const data = (await getCustomerOrderDetail(
-        id,
-      )) as CustomerOrderDetailItem[];
+      const data = await getCustomerOrderDetail(id);
       setItems(data ?? []);
     } catch (error) {
       console.error(error);
@@ -74,9 +63,7 @@ export default function CustomerOrderDetailPage() {
     try {
       await confirmNotReceived(id);
       alert("Đã báo chưa nhận hàng.");
-      const data = (await getCustomerOrderDetail(
-        id,
-      )) as CustomerOrderDetailItem[];
+      const data = await getCustomerOrderDetail(id);
       setItems(data ?? []);
     } catch (error) {
       console.error(error);

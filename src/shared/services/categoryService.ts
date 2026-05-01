@@ -6,7 +6,7 @@ export async function getCategories() {
   return data.data ?? [];
 }
 
-export async function getCategoryChildren(parentId: string) {
+export async function getChildCategories(parentId: string) {
   const { data } = await api.get<ApiResponse<Category[]>>(
     `/Category/${parentId}/children`,
   );

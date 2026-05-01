@@ -1,11 +1,6 @@
 import { api } from "../../lib/axios";
+import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
-
-type ApiResponse<T> = {
-  success: boolean;
-  message: string;
-  data: T;
-};
 
 export async function createApplication(payload: CreateApplicationPayload) {
   await api.post("/Application", payload);
@@ -40,8 +35,8 @@ export async function getMyApplications() {
 }
 
 export async function getMerchantOrders() {
-  const res = await api.get("/Order");
-  return res.data.data;
+  const res = await api.get<ApiResponse<MerchantOrderSummary[]>>("/Order");
+  return res.data.data ?? [];
 }
 
 export async function acceptOrder(orderId: string) {

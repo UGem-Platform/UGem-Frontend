@@ -8,7 +8,7 @@ export const onboardingSchema = z.object({
   mainDishType: z.string().min(1, "Vui lòng chọn loại món chính"),
   priceRange: z.string().min(1, "Vui lòng chọn khoảng giá"),
 
-  description: z.string().min(10, "Mô tả tối thiểu 10 ký tự"),
+  description: z.string().optional(),
 
   address: z.string().min(1, "Vui lòng nhập địa chỉ"),
   latitude: z.number().default(0),

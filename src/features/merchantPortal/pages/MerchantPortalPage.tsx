@@ -1,6 +1,5 @@
 import { ArrowRight } from "lucide-react";
 import { ApplicationStatusCard } from "../components/ApplicationStatusCard";
-import { MerchantMockSections } from "../components/MerchantMockSections";
 import { TipsSection } from "../components/TipsSection";
 import { useMyApplications } from "../hooks/useMyApplications";
 import { MerchantSidebar } from "../../../shared/layouts/Merchants/MerchantSidebar";
@@ -54,8 +53,6 @@ export function MerchantPortalPage() {
           <section className="merchant-banner">
             <p>“Nơi những giá trị ẩm thực đích thực được tôn vinh.”</p>
           </section>
-
-          <MerchantMockSections />
         </div>
       </section>
     </main>
