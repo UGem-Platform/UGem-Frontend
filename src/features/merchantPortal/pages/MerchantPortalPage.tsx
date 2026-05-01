@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ApplicationStatusCard } from "../components/ApplicationStatusCard";
 import { TipsSection } from "../components/TipsSection";
 import { useMyApplications } from "../hooks/useMyApplications";
@@ -20,6 +20,9 @@ export function MerchantPortalPage() {
   const latestApplication = applications[0];
   const isApproved = latestApplication?.status === "Approved";
 
+  // Hide the submit card when approved - show only status info
+  const showSubmitCard = !isApproved;
+
   return (
     <main className="merchant-portal-layout">
       <MerchantSidebar />
@@ -29,20 +32,7 @@ export function MerchantPortalPage() {
 
         <div className="merchant-content">
           <section className="merchant-hero-grid">
-            {isApproved ? (
-              <article className="merchant-submit-card">
-                <h1>Quán của bạn đã được duyệt!</h1>
-                <p>
-                  Quán của bạn hiện đang hiển thị trên UGem. Cảm ơn bạn đã đồng
-                  hành cùng UGem.
-                </p>
-
-                <button type="button" onClick={handleViewStatus}>
-                  Xem trạng thái hồ sơ
-                  <CheckCircle2 size={18} />
-                </button>
-              </article>
-            ) : (
+            {showSubmitCard && (
               <article className="merchant-submit-card">
                 <h1>Đăng ký quán ăn của bạn</h1>
                 <p>
@@ -66,7 +56,7 @@ export function MerchantPortalPage() {
             )}
           </section>
 
-          <OnboardingSteps />
+          {!isApproved && <OnboardingSteps />}
 
           <TipsSection />
 
