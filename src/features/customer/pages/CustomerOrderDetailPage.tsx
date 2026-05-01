@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  confirmNotReceived,
-  confirmReceived,
-  getCustomerOrderDetail,
-} from "../services/orderService";
+import { getCustomerOrderDetail } from "../services/orderService";
 import type { CustomerOrderDetailItem } from "@/shared/types";
 
 export default function CustomerOrderDetailPage() {
@@ -42,34 +38,6 @@ export default function CustomerOrderDetailPage() {
       active = false;
     };
   }, [id]);
-
-  async function handleConfirmReceived() {
-    if (!id) return;
-
-    try {
-      await confirmReceived(id);
-      alert("Đã xác nhận nhận hàng.");
-      const data = await getCustomerOrderDetail(id);
-      setItems(data ?? []);
-    } catch (error) {
-      console.error(error);
-      alert("Xác nhận thất bại.");
-    }
-  }
-
-  async function handleConfirmNotReceived() {
-    if (!id) return;
-
-    try {
-      await confirmNotReceived(id);
-      alert("Đã báo chưa nhận hàng.");
-      const data = await getCustomerOrderDetail(id);
-      setItems(data ?? []);
-    } catch (error) {
-      console.error(error);
-      alert("Gửi báo cáo thất bại.");
-    }
-  }
 
   const total = items.reduce((sum, item) => {
     return sum + Number(item.unitPrice || 0) * Number(item.quantity || 0);
@@ -112,21 +80,11 @@ export default function CustomerOrderDetailPage() {
           )}
         </div>
 
-        <div className="mt-5 flex gap-3">
-          <button
-            onClick={handleConfirmReceived}
-            className="rounded-xl bg-emerald-600 px-5 py-3 text-white hover:bg-emerald-700"
-          >
-            Đã nhận hàng
-          </button>
-
-          <button
-            onClick={handleConfirmNotReceived}
-            className="rounded-xl bg-rose-600 px-5 py-3 text-white hover:bg-rose-700"
-          >
-            Chưa nhận được
-          </button>
-        </div>
+        <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Backend hiện mới public GET /api/order/{id} cho trang này. Các thao
+          tác xác nhận nhận hàng hoặc báo chưa nhận hàng chưa có endpoint riêng
+          trong contract hiện tại.
+        </p>
       </div>
     </div>
   );

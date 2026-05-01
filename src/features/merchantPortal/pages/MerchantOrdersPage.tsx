@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
-import { getMerchantOrders, acceptOrder, rejectOrder } from "../services";
+import { getMerchantOrders } from "../services";
 import type { MerchantOrderSummary } from "@/shared/types";
 
 export default function MerchantOrdersPage() {
   const [orders, setOrders] = useState<MerchantOrderSummary[]>([]);
   const [loading, setLoading] = useState(false);
-  const [actioningId, setActioningId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -37,49 +35,15 @@ export default function MerchantOrdersPage() {
     };
   }, []);
 
-  async function handleAccept(orderId: string) {
-    setActioningId(orderId);
-    try {
-      await acceptOrder(orderId);
-      alert("Đã chấp nhận đơn hàng.");
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.orderId === orderId ? { ...o, status: "Accepted" } : o,
-        ),
-      );
-    } catch (error) {
-      console.error(error);
-      alert("Chấp nhận đơn thất bại.");
-    } finally {
-      setActioningId(null);
-    }
-  }
-
-  async function handleReject(orderId: string) {
-    const reason = prompt("Nhập lý do từ chối:");
-    if (!reason) return;
-
-    setActioningId(orderId);
-    try {
-      await rejectOrder(orderId, reason);
-      alert("Đã từ chối đơn hàng.");
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.orderId === orderId ? { ...o, status: "Rejected" } : o,
-        ),
-      );
-    } catch (error) {
-      console.error(error);
-      alert("Từ chối đơn thất bại.");
-    } finally {
-      setActioningId(null);
-    }
-  }
-
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-5 text-2xl font-bold">Đơn hàng của quán</h1>
+        <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Contract backend hiện tại chỉ public `GET /api/order` cho màn này.
+          Nút chấp nhận hoặc từ chối đơn đã được ẩn vì chưa có endpoint tương
+          ứng trong danh sách API mới.
+        </p>
 
         {loading ? (
           <p>Đang tải...</p>
@@ -99,30 +63,9 @@ export default function MerchantOrdersPage() {
                   </div>
 
                   <div className="text-right">
-                    <p className="font-bold text-cyan-700 mb-3">
+                    <p className="font-bold text-cyan-700">
                       {order.finalPrice.toLocaleString("vi-VN")}đ
                     </p>
-
-                    {(order.status === "Pending" || !order.status) && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleAccept(order.orderId)}
-                          disabled={actioningId === order.orderId}
-                          className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white disabled:opacity-50"
-                        >
-                          <CheckCircle2 size={16} />
-                          Chấp nhận
-                        </button>
-                        <button
-                          onClick={() => handleReject(order.orderId)}
-                          disabled={actioningId === order.orderId}
-                          className="flex items-center gap-1 rounded-lg bg-rose-600 px-3 py-2 text-sm text-white disabled:opacity-50"
-                        >
-                          <XCircle size={16} />
-                          Từ chối
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

@@ -9,19 +9,24 @@ type ApiResponse<T> = {
 
 export async function getStaffApplications() {
   const res = await api.get<ApiResponse<Application[]>>(
-    "/Application/staff/applications",
+    "/application/staff",
+    {
+      params: {
+        status: "Pending",
+      },
+    },
   );
 
-  return res.data.data;
+  return res.data.data ?? [];
 }
 
 export async function acceptApplication(id: string) {
-  const res = await api.post(`/Application/${id}/accept`);
+  const res = await api.post(`/application/staff/${id}/accept`);
   return res.data;
 }
 
 export async function rejectApplication(id: string, reason: string) {
-  const res = await api.post("/Application/reject", {
+  const res = await api.post("/application/reject", {
     applicationId: id,
     note: reason,
   });

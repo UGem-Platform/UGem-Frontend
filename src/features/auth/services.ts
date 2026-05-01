@@ -3,7 +3,7 @@ import type { ApiResponse } from "@/shared/types";
 import type { LoginRequest, LoginResponse, RegisterRequest } from "./types";
 
 export async function loginApi(payload: LoginRequest) {
-  const { data } = await api.get<LoginResponse>("/Identity/login", {
+  const { data } = await api.get<LoginResponse>("/identity/login", {
     params: {
       email: payload.email,
       password: payload.password,
@@ -14,7 +14,7 @@ export async function loginApi(payload: LoginRequest) {
 }
 
 export async function registerApi(payload: RegisterRequest) {
-  const { data } = await api.post<ApiResponse<string>>("/Customer/register", {
+  const { data } = await api.post<ApiResponse<string>>("/customer", {
     email: payload.email,
     hashedPassword: payload.password,
     phoneNumber: payload.phoneNumber,

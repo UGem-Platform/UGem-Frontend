@@ -15,9 +15,26 @@ type PageResult<T> = {
 };
 
 type MerchantListResponse = Merchant[] | PageResult<Merchant>;
+type MerchantListApiPayload =
+  | MerchantListResponse
+  | ApiResponse<MerchantListResponse>;
 
-function unwrapMerchantList(payload: MerchantListResponse) {
-  return Array.isArray(payload) ? payload : (payload.items ?? []);
+function unwrapApiData<T>(payload: T | ApiResponse<T>) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "success" in payload &&
+    "data" in payload
+  ) {
+    return payload.data;
+  }
+
+  return payload;
+}
+
+function unwrapMerchantList(payload: MerchantListApiPayload) {
+  const data = unwrapApiData(payload);
+  return Array.isArray(data) ? data : (data.items ?? []);
 }
 
 export async function getNearbyMerchants(params: {
@@ -25,27 +42,28 @@ export async function getNearbyMerchants(params: {
   longitude: number;
   keyword?: string;
 }) {
-  const res = await api.request<ApiResponse<MerchantListResponse>>({
+  const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/Merchant/Merchants",
+    url: "/merchant",
     params: {
-      Latitude: params.latitude,
-      Longitude: params.longitude,
-      SearchTerm: params.keyword,
-      PageIndex: 1,
-      PageSize: 20,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      keyword: params.keyword,
+      searchTerm: params.keyword,
+      pageIndex: 1,
+      pageSize: 20,
     },
   });
 
-  return unwrapMerchantList(res.data.data);
+  return unwrapMerchantList(res.data);
 }
 
 export async function getMerchantDetail(id: string) {
-  const res = await api.get<ApiResponse<MerchantDetail>>(
-    `/Merchant/Merchants/${id}`,
+  const res = await api.get<ApiResponse<MerchantDetail> | MerchantDetail>(
+    `/merchant/${id}`,
   );
 
-  const merchant = res.data.data;
+  const merchant = unwrapApiData(res.data);
 
   return {
     ...merchant,
@@ -55,38 +73,31 @@ export async function getMerchantDetail(id: string) {
 }
 
 /**
- * Map search endpoint per Swagger: GET /api/Merchant/Map/Merchants
- * The Swagger describes a request body for map queries; some servers accept
- * GET with body, so we send a request using axios.request to include `data`.
+ * The current backend contract only exposes GET /api/merchant, so map search
+ * reuses the same resource with query params.
  */
 export async function getMapMerchants(payload: unknown) {
-  const res = await api.request<ApiResponse<MerchantListResponse>>({
+  const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/Merchant/Map/Merchants",
+    url: "/merchant",
     params: payload,
   });
 
-  return unwrapMerchantList(res.data.data);
+  return unwrapMerchantList(res.data);
 }
 
-/**
- * Try GET /api/Merchant/Category/Merchants - category search
- */
 export async function getMerchantsByCategory(payload: unknown) {
-  const res = await api.request<ApiResponse<MerchantListResponse>>({
+  const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/Merchant/Category/Merchants",
+    url: "/merchant",
     params: payload,
   });
 
-  return unwrapMerchantList(res.data.data);
+  return unwrapMerchantList(res.data);
 }
 
-/**
- * Optional: GET /api/Merchant/me if backend provides it (Swagger did not include
- * this but FE referenced it in comments). Try to call it if present.
- */
 export async function getMerchantMe() {
-  const res = await api.get<ApiResponse<MerchantDetail>>(`/Merchant/me`);
-  return res.data.data;
+  throw new Error(
+    "Backend contract hiện tại chưa public endpoint lấy merchant hiện tại.",
+  );
 }

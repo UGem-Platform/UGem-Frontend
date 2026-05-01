@@ -3,29 +3,23 @@ import type { ApiResponse } from "@/shared/types";
 import type { CustomerProfile } from "../types";
 
 export async function getCustomerProfile() {
-  const { data } =
-    await api.get<ApiResponse<CustomerProfile>>("/Customer/profile");
-  return data.data;
+  const { data } = await api.get<
+    ApiResponse<CustomerProfile | CustomerProfile[]>
+  >("/customer");
+
+  return Array.isArray(data.data) ? (data.data[0] ?? null) : data.data;
 }
 
 export async function confirmOrderReceived(orderId: string) {
-  const { data } = await api.put<ApiResponse<null>>(
-    "/Customer/confirm-received",
-    {
-      orderId,
-    },
+  void orderId;
+  throw new Error(
+    "Backend hiện chưa public endpoint xác nhận nhận hàng trong contract mới.",
   );
-
-  return data;
 }
 
 export async function confirmOrderNotReceived(orderId: string) {
-  const { data } = await api.put<ApiResponse<null>>(
-    "/Customer/confirm-not-received",
-    {
-      orderId,
-    },
+  void orderId;
+  throw new Error(
+    "Backend hiện chưa public endpoint báo chưa nhận hàng trong contract mới.",
   );
-
-  return data;
 }

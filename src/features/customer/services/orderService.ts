@@ -17,7 +17,7 @@ export async function createOrder(payload: {
   finalPrice: number;
   foods: CreateOrderItem[];
 }) {
-  const res = await api.post<ApiResponse<null>>("/Order/customer/orders", {
+  const res = await api.post<ApiResponse<null>>("/order", {
     name: payload.name,
     deliveryAddress: payload.deliveryAddress,
     notes: payload.notes || "",
@@ -29,36 +29,63 @@ export async function createOrder(payload: {
 }
 
 export async function getCustomerOrders() {
-  const res = await api.get<ApiResponse<CustomerOrderSummary[]>>("/Order/list");
-  return res.data.data ?? [];
+  const res = await api.get<
+    ApiResponse<CustomerOrderSummary[]> | CustomerOrderSummary[]
+  >("/order");
+  return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
 }
 
 export async function getCustomerOrderDetail(orderId: string) {
-  const res = await api.get<ApiResponse<CustomerOrderDetailItem[]>>(
-    "/Order/detail",
-    {
-      params: { orderId },
-    },
-  );
+  const res = await api.get<
+    | ApiResponse<
+        | CustomerOrderDetailItem[]
+        | {
+            items?: CustomerOrderDetailItem[];
+            foods?: CustomerOrderDetailItem[];
+            orderItems?: CustomerOrderDetailItem[];
+            details?: CustomerOrderDetailItem[];
+          }
+      >
+    | CustomerOrderDetailItem[]
+    | {
+        items?: CustomerOrderDetailItem[];
+        foods?: CustomerOrderDetailItem[];
+        orderItems?: CustomerOrderDetailItem[];
+        details?: CustomerOrderDetailItem[];
+      }
+  >(`/order/${orderId}`);
 
-  return res.data.data ?? [];
+  const payload =
+    res.data &&
+    typeof res.data === "object" &&
+    "success" in res.data &&
+    "data" in res.data
+      ? res.data.data
+      : res.data;
+
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  return (
+    payload.items ??
+    payload.foods ??
+    payload.orderItems ??
+    payload.details ??
+    []
+  );
 }
 
 export async function confirmReceived(orderId: string) {
-  const res = await api.put<ApiResponse<null>>("/Customer/confirm-received", {
-    orderId,
-  });
-
-  return res.data;
+  void orderId;
+  throw new Error(
+    "Backend hiện chưa public endpoint xác nhận nhận hàng trong contract mới.",
+  );
 }
 
 export async function confirmNotReceived(orderId: string) {
-  const res = await api.put<ApiResponse<null>>(
-    "/Customer/confirm-not-received",
-    {
-      orderId,
-    },
+  void orderId;
+  throw new Error(
+    "Backend hiện chưa public endpoint báo chưa nhận hàng trong contract mới.",
   );
-
-  return res.data;
 }
