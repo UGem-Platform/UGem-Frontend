@@ -79,6 +79,7 @@ export function RegisterPage() {
         phoneNumber: values.phoneNumber.trim(),
         password: values.password,
         avatarUrl: values.avatarUrl?.trim() || "",
+        role: values.role,
       });
 
       if (!res.success) {
