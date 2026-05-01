@@ -14,7 +14,7 @@ export async function loginApi(payload: LoginRequest) {
 }
 
 export async function registerApi(payload: RegisterRequest) {
-  const { data } = await api.post<ApiResponse<string>>("/Customer/register", {
+  const { data } = await api.post<ApiResponse<string>>("/auth/register", {
     email: payload.email,
     hashedPassword: payload.password,
     phoneNumber: payload.phoneNumber,
