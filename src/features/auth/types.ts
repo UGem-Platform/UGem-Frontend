@@ -12,7 +12,7 @@ export type RegisterRequest = {
   password: string;
   phoneNumber: string;
   fullName: string;
-  avatarUrl: string;
+  avatarUrl?: string;
 };
 
 export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin" | string;
@@ -23,14 +23,6 @@ export type JwtPayload = {
   Role?: UserRole;
   CustomerId?: string;
   exp?: number;
-};
-
-export type RegisterRequest = {
-  email: string;
-  password: string;
-  phoneNumber: string;
-  fullName: string;
-  avatarUrl?: string;
 };
 
 export type ApiResponse<T> = {

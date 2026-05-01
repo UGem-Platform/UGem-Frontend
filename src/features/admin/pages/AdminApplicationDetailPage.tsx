@@ -127,7 +127,7 @@ export default function AdminApplicationDetailPage() {
               <p className="font-medium">{item.name}</p>
 
               <p className="text-cyan-700">
-                {item.price.toLocaleString("vi-VN")}đ
+                {(item.price ?? 0).toLocaleString("vi-VN")}đ
               </p>
               {item.category && (
                 <p className="text-sm text-slate-500">

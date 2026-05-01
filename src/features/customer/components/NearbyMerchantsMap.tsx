@@ -62,7 +62,7 @@ export default function NearbyMerchantsMap({
       const coords = getMerchantCoords(merchant);
       if (!coords) return [];
 
-      const name = merchant.name || merchant.merchantName || "Unnamed merchant";
+      const name = merchant.name || "Unnamed merchant";
       const distanceText =
         typeof merchant.distance === "number" &&
         Number.isFinite(merchant.distance)

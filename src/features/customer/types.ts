@@ -5,8 +5,6 @@ export type Merchant = {
   email?: string;
   phone?: string;
   address?: string;
-  email?: string;
-  phone?: string;
   logoUrl?: string;
   rating?: number;
   distance?: number;

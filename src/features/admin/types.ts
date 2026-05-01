@@ -20,5 +20,6 @@ export type Application = {
     description?: string;
     imageUrl?: string;
     category?: string;
+    price?: number;
   }[];
 };

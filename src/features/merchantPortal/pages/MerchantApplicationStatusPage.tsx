@@ -143,7 +143,7 @@ export function MerchantApplicationStatusPage() {
                   <div className="application-cover">
                     <img
                       src={
-                        application.logoUrl ||
+                        application.applicant?.avatarUrl ||
                         "https://images.unsplash.com/photo-1543353071-10c8ba85a904?auto=format&fit=crop&w=900&q=80"
                       }
                       alt=""
@@ -165,7 +165,9 @@ export function MerchantApplicationStatusPage() {
 
                     <p>
                       <Mail size={15} />
-                      {application.email || user?.Email || "merchant@gmail.com"}
+                      {application.applicant?.email ||
+                        user?.Email ||
+                        "merchant@gmail.com"}
                     </p>
 
                     <p>
