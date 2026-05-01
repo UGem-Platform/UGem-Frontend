@@ -24,3 +24,20 @@ export type JwtPayload = {
   CustomerId?: string;
   exp?: number;
 };
+
+export type RegisterRequest = {
+  email: string;
+  password: string;
+  phoneNumber: string;
+  fullName: string;
+  avatarUrl?: string;
+};
+
+export type ApiResponse<T> = {
+  success: boolean;
+  message: string;
+  data: T;
+  errors?: unknown;
+  traceId?: string | null;
+  timestampUtc?: string;
+};

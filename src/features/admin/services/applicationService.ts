@@ -16,12 +16,12 @@ export async function getStaffApplications() {
 }
 
 export async function acceptApplication(id: string) {
-  const res = await api.post<ApiResponse<null>>(`/Application/${id}/accept`);
+  const res = await api.post(`/Application/${id}/accept`);
   return res.data;
 }
 
 export async function rejectApplication(id: string, reason: string) {
-  const res = await api.post<ApiResponse<null>>("/Application/reject", {
+  const res = await api.post("/Application/reject", {
     applicationId: id,
     note: reason,
   });

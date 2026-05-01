@@ -10,6 +10,7 @@ import MerchantDetailPage from "@/features/customer/pages/MerchantDetailPage";
 import WishlistPage from "@/features/customer/pages/WishlistPage";
 import {
   MerchantApplicationStatusPage,
+  MerchantFoodsPage,
   MerchantOnboardingPage,
   MerchantPortalPage,
 } from "@/features/merchantPortal";
@@ -109,6 +110,10 @@ const routers = createBrowserRouter([
         <MerchantOrdersPage />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/merchant/foods",
+    element: <MerchantFoodsPage />,
   },
   {
     path: "/admin/applications",

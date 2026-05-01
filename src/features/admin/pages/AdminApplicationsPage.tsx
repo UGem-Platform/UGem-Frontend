@@ -44,17 +44,15 @@ export default function AdminApplicationsPage() {
   };
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => {
+    queueMicrotask(() => {
       void loadApplications();
-    }, 0);
+    });
 
-    // Polling every 5 seconds for new applications
     const interval = window.setInterval(() => {
       void loadApplications();
     }, 5000);
 
     return () => {
-      window.clearTimeout(initialLoad);
       window.clearInterval(interval);
     };
   }, []);

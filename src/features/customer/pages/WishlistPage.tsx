@@ -61,7 +61,7 @@ export default function WishlistPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-5 text-2xl font-bold">Quán yêu thích</h1>
 

@@ -125,6 +125,7 @@ export default function AdminApplicationDetailPage() {
           {application.applicationMenus?.map((item) => (
             <div key={item.id} className="border-b py-3 last:border-b-0">
               <p className="font-medium">{item.name}</p>
+
               <p className="text-cyan-700">
                 {item.price.toLocaleString("vi-VN")}đ
               </p>
@@ -135,6 +136,14 @@ export default function AdminApplicationDetailPage() {
               )}
               {item.description && (
                 <p className="text-sm text-slate-500">{item.description}</p>
+              )}
+
+              {item.imageUrl && (
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  className="mt-2 h-24 w-24 rounded-lg object-cover"
+                />
               )}
             </div>
           ))}

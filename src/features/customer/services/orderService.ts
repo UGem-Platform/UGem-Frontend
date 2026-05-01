@@ -19,15 +19,9 @@ export async function createOrder(payload: {
 }) {
   const res = await api.post<ApiResponse<null>>("/Order/customer/orders", {
     name: payload.name,
-    discount: 0,
-    finalPrice: payload.finalPrice,
-    reviewerFee: 0,
-    platformFee: 0,
-    status: "Pending",
-    paymentMethod: "COD",
-    orderedAt: new Date().toISOString(),
-    notes: payload.notes || "",
     deliveryAddress: payload.deliveryAddress,
+    notes: payload.notes || "",
+    finalPrice: payload.finalPrice,
     foods: payload.foods,
   });
 
