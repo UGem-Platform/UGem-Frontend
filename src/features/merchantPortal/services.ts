@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api } from "../../lib/axios";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
@@ -27,11 +28,34 @@ export async function resubmitApplication(
 }
 
 export async function getMyApplications() {
-  const { data } = await api.get<
-    ApiResponse<MerchantApplication[]> | MerchantApplication[]
-  >("/merchant/applications");
+  const endpoints = [
+    { url: "/application", params: { type: "Merchant" } },
+    { url: "/application" },
+    { url: "/application/merchant" },
+    { url: "/merchant/applications" },
+  ];
 
-  return Array.isArray(data) ? data : (data.data ?? []);
+  for (const endpoint of endpoints) {
+    try {
+      const { data } = await api.get<
+        ApiResponse<MerchantApplication[]> | MerchantApplication[]
+      >(endpoint.url, {
+        params: endpoint.params,
+      });
+
+      const responseData = data ?? [];
+      return Array.isArray(responseData)
+        ? responseData
+        : (responseData.data ?? []);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  return [];
 }
 
 export async function getMerchantOrders() {
