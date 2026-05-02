@@ -1,11 +1,13 @@
+import { useState } from "react";
 import type {
   FieldErrors,
   UseFormRegister,
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
-import { Info, Mail, Store, Tags, Utensils, Wallet } from "lucide-react";
+import { Info, Mail, Store, Tags, Utensils, Wallet, Clock, ImagePlus } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
+import { uploadImage } from "@/shared/services/mediaService";
 
 type Props = Readonly<{
   register: UseFormRegister<OnboardingFormValues>;
@@ -18,6 +20,59 @@ const priceRanges = ["Tiết kiệm", "Bình dân", "Tầm trung"];
 
 export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
   const priceRange = watch("priceRange");
+  const logoUploadDataUrl = watch("logoUploadDataUrl");
+
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [logoUploadError, setLogoUploadError] = useState("");
+  const [logoFileName, setLogoFileName] = useState("");
+
+  async function handleLogoUpload(file?: File) {
+    if (!file) return;
+
+    setLogoFileName(file.name);
+    setIsUploadingLogo(true);
+    setLogoUploadError("");
+
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Không thể đọc file"));
+        reader.onload = () =>
+          resolve(typeof reader.result === "string" ? reader.result : "");
+        reader.readAsDataURL(file);
+      });
+
+      setValue("logoUploadDataUrl", dataUrl, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      const imageUrl = await uploadImage(file);
+
+      setValue("logoUrl", imageUrl, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    } catch (error) {
+      console.error("Không thể tải ảnh lên:", error);
+      setValue("logoUrl", "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue("logoUploadDataUrl", "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setLogoFileName("Chưa chọn ảnh");
+      setLogoUploadError(
+        error instanceof Error
+          ? error.message
+          : "Tải ảnh thất bại. Vui lòng thử lại.",
+      );
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  }
 
   return (
     <section className="relative overflow-hidden rounded-4xl border border-white/70 bg-white/85 p-6 shadow-2xl shadow-cyan-950/10 backdrop-blur-xl md:p-8">
@@ -45,62 +100,131 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
         </div>
 
         <div className="space-y-6">
-          <label className="block space-y-2">
-            <span className="text-sm font-bold text-slate-800">
-              Tên quán của bạn *
-            </span>
-            <div className="relative">
-              <Store className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
-                placeholder="Ví dụ: Bún Chả Bà Hải - Hẻm 12"
-                {...register("restaurantName")}
-              />
-            </div>
-            {errors.restaurantName && (
-              <small className="block text-sm font-medium text-rose-600">
-                {errors.restaurantName.message}
-              </small>
-            )}
-          </label>
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="block space-y-2">
+              <span className="text-sm font-bold text-slate-800">
+                Tên quán của bạn *
+              </span>
+              <div className="relative">
+                <Store className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                  placeholder="Ví dụ: Bún Chả Bà Hải - Hẻm 12"
+                  {...register("restaurantName")}
+                />
+              </div>
+              {errors.restaurantName && (
+                <small className="block text-sm font-medium text-rose-600">
+                  {errors.restaurantName.message}
+                </small>
+              )}
+            </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-bold text-slate-800">
-              Email liên hệ *
-            </span>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
-                placeholder="merchant@gmail.com"
-                {...register("email")}
-              />
-            </div>
-            {errors.email && (
-              <small className="block text-sm font-medium text-rose-600">
-                {errors.email.message}
-              </small>
-            )}
-          </label>
+            <label className="block space-y-2">
+              <span className="text-sm font-bold text-slate-800">
+                Giờ mở cửa *
+              </span>
+              <div className="relative">
+                <Clock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                  placeholder="08:00 - 22:00"
+                  {...register("openingHours")}
+                />
+              </div>
+              {errors.openingHours && (
+                <small className="block text-sm font-medium text-rose-600">
+                  {errors.openingHours.message}
+                </small>
+              )}
+            </label>
+          </div>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-bold text-slate-800">
-              Số điện thoại *
-            </span>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
-                placeholder="0123456789"
-                {...register("phone")}
-              />
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="block space-y-2">
+              <span className="text-sm font-bold text-slate-800">
+                Email liên hệ *
+              </span>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                  placeholder="merchant@gmail.com"
+                  {...register("email")}
+                />
+              </div>
+              {errors.email && (
+                <small className="block text-sm font-medium text-rose-600">
+                  {errors.email.message}
+                </small>
+              )}
+            </label>
+
+            <label className="block space-y-2">
+              <span className="text-sm font-bold text-slate-800">
+                Số điện thoại *
+              </span>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                  placeholder="0123456789"
+                  {...register("phone")}
+                />
+              </div>
+              {errors.phone && (
+                <small className="block text-sm font-medium text-rose-600">
+                  {errors.phone.message}
+                </small>
+              )}
+            </label>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-sm font-bold text-slate-800">Logo quán</span>
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <div className="relative flex items-center gap-3">
+                  <input
+                    id="logo-image-upload"
+                    className="hidden"
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) =>
+                      handleLogoUpload(event.target.files?.[0])
+                    }
+                  />
+                  <label
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus-within:ring-4 focus-within:ring-cyan-500/15"
+                    htmlFor="logo-image-upload"
+                  >
+                    <ImagePlus className="h-5 w-5 text-slate-400" />
+                    Chọn ảnh logo
+                  </label>
+                  <span className="text-sm text-slate-500">
+                    {isUploadingLogo
+                      ? "Đang tải ảnh..."
+                      : logoFileName || "Chưa chọn ảnh"}
+                  </span>
+                </div>
+                {logoUploadError && (
+                  <small className="mt-1 block text-sm font-medium text-rose-600">
+                    {logoUploadError}
+                  </small>
+                )}
+              </div>
+              
+              {logoUploadDataUrl && logoUploadDataUrl.startsWith("data:image/") && (
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+                  <img
+                    src={logoUploadDataUrl}
+                    alt="Logo quán"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
             </div>
-            {errors.phone && (
-              <small className="block text-sm font-medium text-rose-600">
-                {errors.phone.message}
-              </small>
-            )}
-          </label>
+          </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="block space-y-2">

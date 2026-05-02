@@ -11,6 +11,7 @@ export const onboardingSchema = z.object({
   restaurantType: z.string().min(1, "Vui lòng chọn loại hình quán"),
   mainDishType: z.string().min(1, "Vui lòng chọn loại món chính"),
   priceRange: z.string().min(1, "Vui lòng chọn khoảng giá"),
+  openingHours: z.string().min(1, "Vui lòng nhập giờ mở cửa"),
 
   description: z.string().optional(),
 
@@ -22,6 +23,7 @@ export const onboardingSchema = z.object({
     .number()
     .refine((val) => val !== 0, "Vui lòng chọn vị trí trên bản đồ"),
 
+  logoUploadDataUrl: z.string().optional(),
   logoUrl: z.string().default(""),
 
   menu: z

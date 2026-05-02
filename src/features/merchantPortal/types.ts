@@ -15,18 +15,18 @@ export type OnboardingFormValues = {
   email: string;
   phone: string;
 
-  // Chưa có field riêng ở BE, chỉ giữ UI rồi gộp vào description
   restaurantType: string;
   mainDishType: string;
   priceRange: PriceRange | "";
+  openingHours: string;
 
   description: string;
 
-  // BE có latitude/longitude, nhưng chưa có address string riêng
   address: string;
   latitude: number;
   longitude: number;
 
+  logoUploadDataUrl?: string;
   logoUrl: string;
 
   menu: {
@@ -44,6 +44,8 @@ export type CreateApplicationPayload = {
   email: string;
   phone: string;
   logoUrl: string;
+  openingHours: string;
+  address: string;
   latitude: number;
   longitude: number;
   menu: {
