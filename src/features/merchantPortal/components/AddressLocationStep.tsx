@@ -11,7 +11,10 @@ import {
   type GeocodeResult,
   geocodeAddress as vietmapGeocodeAddress,
   VIETMAP_STYLE_URL,
+  OPENFREE_STYLE_URL,
+  HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
+  VIETMAP_API_KEY,
 } from "@/shared/services/vietmapService";
 
 type Props = Readonly<{
@@ -194,9 +197,12 @@ export function AddressLocationStep({
     const initialCenter: [number, number] =
       validLocationCoords ?? DEFAULT_CENTER;
 
+    const initialStyle = HAS_VIETMAP_KEY
+      ? VIETMAP_STYLE_URL
+      : OPENFREE_STYLE_URL;
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: VIETMAP_STYLE_URL,
+      style: initialStyle,
       center: initialCenter,
       zoom: validLocationCoords ? 15 : 12,
       transformRequest: (url) => {
@@ -212,6 +218,24 @@ export function AddressLocationStep({
     });
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
+    map.on("error", (event) => {
+      const message =
+        typeof event.error === "string"
+          ? event.error
+          : (event.error?.message ?? "");
+
+      if (
+        HAS_VIETMAP_KEY &&
+        initialStyle === VIETMAP_STYLE_URL &&
+        message.includes("Unable to parse the tile")
+      ) {
+        console.warn(
+          "VietMap tile parse failed, switching to OpenFreeMap style",
+          message,
+        );
+        map.setStyle(OPENFREE_STYLE_URL);
+      }
+    });
 
     map.on("click", (e) => {
       const { lng, lat } = e.lngLat;

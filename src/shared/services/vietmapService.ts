@@ -18,9 +18,12 @@ const HAS_VIETMAP_SERVICE_KEY =
  * - Nếu có VietMap API key → dùng VietMap tiles (bản đồ Việt Nam đẹp)
  * - Nếu không có → dùng OpenFreeMap miễn phí (OSM)
  */
+export const OPENFREE_STYLE_URL =
+  "https://tiles.openfreemap.org/styles/positron";
+
 export const VIETMAP_STYLE_URL = HAS_VIETMAP_KEY
   ? `https://maps.vietmap.vn/api/maps/light/styles.json?apikey=${VIETMAP_API_KEY}`
-  : "https://tiles.openfreemap.org/styles/positron";
+  : OPENFREE_STYLE_URL;
 
 export {
   HAS_VIETMAP_KEY,
