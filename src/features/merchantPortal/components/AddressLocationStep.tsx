@@ -11,8 +11,6 @@ import {
   type GeocodeResult,
   geocodeAddress as vietmapGeocodeAddress,
   VIETMAP_STYLE_URL,
-  VIETMAP_API_KEY,
-  HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
 } from "@/shared/services/vietmapService";
 
