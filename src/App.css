@@ -915,7 +915,8 @@
 }
 
 .onboarding-card label span,
-.field-title {
+.field-title,
+.menu-upload-field > span {
   font-weight: 800;
   color: #7a6255;
   font-size: 14px;
@@ -1025,6 +1026,12 @@
   height: auto;
   max-height: none;
   object-fit: contain;
+}
+
+.menu-upload-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .file-upload-row {

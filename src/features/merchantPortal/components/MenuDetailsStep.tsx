@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
 import { getCategories } from "@/shared/services/categoryService";
+import { uploadImage } from "@/shared/services/mediaService";
 import type { Category } from "@/shared/types";
 
 type Props = {
@@ -18,17 +19,6 @@ type Props = {
   errors: FieldErrors<OnboardingFormValues>;
   setValue: UseFormSetValue<OnboardingFormValues>;
 };
-
-function isProbablyImageUrl(src: string) {
-  const trimmed = src.trim();
-  if (!trimmed) return false;
-
-  return (
-    trimmed.startsWith("data:image/") ||
-    /^https?:\/\//i.test(trimmed) ||
-    /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(trimmed)
-  );
-}
 
 export function MenuDetailsStep({
   control,
@@ -43,6 +33,12 @@ export function MenuDetailsStep({
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [uploadedFileNamesById, setUploadedFileNamesById] = useState<
+    Record<string, string>
+  >({});
+  const [uploadingById, setUploadingById] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [uploadErrorsById, setUploadErrorsById] = useState<
     Record<string, string>
   >({});
 
@@ -61,24 +57,59 @@ export function MenuDetailsStep({
 
   async function handleUpload(index: number, file?: File) {
     if (!file) return;
-
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error("Không thể đọc file"));
-      reader.onload = () =>
-        resolve(typeof reader.result === "string" ? reader.result : "");
-      reader.readAsDataURL(file);
-    });
+    const fieldId = fields[index]?.id ?? String(index);
 
     setUploadedFileNamesById((previous) => ({
       ...previous,
-      [fields[index]?.id ?? String(index)]: file.name,
+      [fieldId]: file.name,
     }));
+    setUploadingById((previous) => ({ ...previous, [fieldId]: true }));
+    setUploadErrorsById((previous) => ({ ...previous, [fieldId]: "" }));
 
-    setValue(`menu.${index}.imageUploadDataUrl`, dataUrl, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Không thể đọc file"));
+        reader.onload = () =>
+          resolve(typeof reader.result === "string" ? reader.result : "");
+        reader.readAsDataURL(file);
+      });
+
+      setValue(`menu.${index}.imageUploadDataUrl`, dataUrl, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      const imageUrl = await uploadImage(file);
+
+      setValue(`menu.${index}.imageUrl`, imageUrl, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    } catch (error) {
+      console.error("Không thể tải ảnh lên:", error);
+      setValue(`menu.${index}.imageUrl`, "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue(`menu.${index}.imageUploadDataUrl`, "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setUploadedFileNamesById((previous) => ({
+        ...previous,
+        [fieldId]: "Chưa chọn ảnh",
+      }));
+      setUploadErrorsById((previous) => ({
+        ...previous,
+        [fieldId]:
+          error instanceof Error
+            ? error.message
+            : "Tải ảnh thất bại. Vui lòng thử lại.",
+      }));
+    } finally {
+      setUploadingById((previous) => ({ ...previous, [fieldId]: false }));
+    }
   }
 
   return (
@@ -156,30 +187,7 @@ export function MenuDetailsStep({
               </label>
             </div>
 
-            <label>
-              <span>Ảnh món ăn URL</span>
-              <input
-                placeholder="https://..."
-                {...register(`menu.${index}.imageUrl`)}
-              />
-
-              {(() => {
-                const imageUrl = menuValues?.[index]?.imageUrl;
-                if (!imageUrl || !isProbablyImageUrl(imageUrl)) return null;
-
-                return (
-                  <div className="menu-image-preview">
-                    <img
-                      src={imageUrl}
-                      alt={`Ảnh món #${index + 1} (URL)`}
-                      loading="lazy"
-                    />
-                  </div>
-                );
-              })()}
-            </label>
-
-            <label>
+            <div className="menu-upload-field">
               <span>Tải ảnh từ máy</span>
               <div className="file-upload-row">
                 <input
@@ -198,9 +206,14 @@ export function MenuDetailsStep({
                   Chọn ảnh
                 </label>
                 <span className="file-upload-name">
-                  {uploadedFileNamesById[field.id] || "Chưa chọn ảnh"}
+                  {uploadingById[field.id]
+                    ? "Đang tải ảnh..."
+                    : uploadedFileNamesById[field.id] || "Chưa chọn ảnh"}
                 </span>
               </div>
+              {uploadErrorsById[field.id] && (
+                <small>{uploadErrorsById[field.id]}</small>
+              )}
 
               {(() => {
                 const uploadSrc = menuValues?.[index]?.imageUploadDataUrl;
@@ -218,7 +231,7 @@ export function MenuDetailsStep({
                   </div>
                 );
               })()}
-            </label>
+            </div>
           </article>
         ))}
       </div>

@@ -57,6 +57,7 @@ export async function resubmitApplication(
 ) {
   const res = await tryPutToResubmitEndpoint({
     applicationId,
+    type: "Merchant",
     note: "Gửi lại hồ sơ quán",
     ...payload,
   });

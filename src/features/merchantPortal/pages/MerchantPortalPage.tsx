@@ -14,10 +14,10 @@ export function MerchantPortalPage() {
   const { data: applications = [], isLoading } = useMyApplications();
 
   const latestApplication = applications[0];
-  const isApproved = latestApplication?.status === "Approved";
 
-  // Hide the submit card when approved - show only status info
-  const showSubmitCard = !isApproved;
+  // Show the submit card only for first-time applications or rejected resubmits.
+  const showSubmitCard =
+    !latestApplication || latestApplication.status === "Rejected";
 
   return (
     <main className="merchant-portal-layout">
@@ -52,7 +52,7 @@ export function MerchantPortalPage() {
             )}
           </section>
 
-          {!isApproved && <OnboardingSteps />}
+          {showSubmitCard && <OnboardingSteps />}
 
           <TipsSection />
 

@@ -20,6 +20,11 @@ api.interceptors.request.use((config) => {
   const method = config.method?.toLowerCase();
   const hasBody = config.data !== undefined && config.data !== null;
 
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+    delete config.headers["content-type"];
+  }
+
   if ((method === "get" || method === "head") && !hasBody) {
     delete config.headers["Content-Type"];
     delete config.headers["content-type"];
