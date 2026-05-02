@@ -9,6 +9,7 @@ import {
   Store,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { notify } from "@/shared/lib/notify";
 import { BusinessInfoStep } from "../components/BusinessInfoStep";
 import { AddressLocationStep } from "../components/AddressLocationStep";
 import { MenuDetailsStep } from "../components/MenuDetailsStep";
@@ -33,7 +34,21 @@ const DRAFT_KEY = "ugem_merchant_application_draft";
 
 function getDraftValues(): Partial<OnboardingFormValues> {
   try {
-    return JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+    const rawDraft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+
+    return {
+      ...rawDraft,
+      latitude:
+        typeof rawDraft?.latitude === "number" &&
+        Number.isFinite(rawDraft.latitude)
+          ? rawDraft.latitude
+          : 0,
+      longitude:
+        typeof rawDraft?.longitude === "number" &&
+        Number.isFinite(rawDraft.longitude)
+          ? rawDraft.longitude
+          : 0,
+    };
   } catch {
     return {};
   }
@@ -178,6 +193,11 @@ export function MerchantOnboardingPage() {
       ...getDraftValues(),
     },
   });
+
+  // Show blocked UI when already approved
+  if (showBlockedUI) {
+    return <BlockedStateUI onNavigateToPortal={() => navigate("/merchant")} />;
+  }
 
   const {
     register,

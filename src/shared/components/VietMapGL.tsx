@@ -139,6 +139,23 @@ const ROUTE_SOURCE_ID = "vm-route-source";
 const ROUTE_LAYER_ID = "vm-route-layer";
 const ROUTE_LAYER_BG_ID = "vm-route-layer-bg";
 
+function isValidLngLat(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function normalizeCenter(value: unknown, fallback: number): number {
+  return isValidLngLat(value) ? value : fallback;
+}
+
+function isValidRoutePoint(value: unknown): value is [number, number] {
+  return (
+    Array.isArray(value) &&
+    value.length === 2 &&
+    isValidLngLat(value[0]) &&
+    isValidLngLat(value[1])
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────
 
 export default function VietMapGL({
@@ -166,7 +183,10 @@ export default function VietMapGL({
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: VIETMAP_STYLE_URL,
-      center: [centerLng, centerLat],
+      center: [
+        normalizeCenter(centerLng, 106.660172),
+        normalizeCenter(centerLat, 10.762622),
+      ],
       zoom,
       attributionControl: { compact: true },
       transformRequest: (url) => {
@@ -216,6 +236,8 @@ export default function VietMapGL({
       markerMapRef.current.clear();
 
       for (const m of markers) {
+        if (!isValidLngLat(m.lng) || !isValidLngLat(m.lat)) continue;
+
         const el = createMarkerElement(m.type, m.color);
 
         const popup = new maplibregl.Popup({
@@ -268,15 +290,7 @@ export default function VietMapGL({
   // ── 5. Vẽ / xoá route ────────────────────────────────────
   const applyRoute = useCallback(
     (map: maplibregl.Map, coords: [number, number][]) => {
-      const validCoords = coords.filter(
-        (pair): pair is [number, number] =>
-          Array.isArray(pair) &&
-          pair.length === 2 &&
-          typeof pair[0] === "number" &&
-          Number.isFinite(pair[0]) &&
-          typeof pair[1] === "number" &&
-          Number.isFinite(pair[1]),
-      );
+      const validCoords = coords.filter(isValidRoutePoint);
 
       // Xoá route cũ
       if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);

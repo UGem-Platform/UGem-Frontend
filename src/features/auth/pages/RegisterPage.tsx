@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import HeroCarousel from "../components/HeroCarousel";
 import { Logo } from "./Logo";
 import { Button } from "@/shared/components/ui/button";
+import { notify } from "@/shared/lib/notify";
 import {
   Form,
   FormControl,
@@ -77,7 +78,7 @@ export function RegisterPage() {
         throw new Error(res.message || "Đăng ký thất bại");
       }
 
-      alert("Đăng ký thành công. Vui lòng đăng nhập.");
+      notify.success("Đăng ký thành công. Vui lòng đăng nhập.");
       navigate("/login", { replace: true });
     } catch (error) {
       console.error(error);

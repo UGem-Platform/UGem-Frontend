@@ -5,6 +5,7 @@ import {
   rejectApplication,
 } from "../services/applicationService";
 import type { Application } from "../types";
+import { notify } from "@/shared/lib/notify";
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
@@ -32,11 +33,11 @@ export default function AdminApplicationDetailPage() {
 
     try {
       await acceptApplication(id);
-      alert("Đã duyệt hồ sơ.");
+      notify.success("Đã duyệt hồ sơ.");
       navigate("/admin/applications");
     } catch (error) {
       console.error(error);
-      alert("Duyệt hồ sơ thất bại.");
+      notify.error("Duyệt hồ sơ thất bại.");
     } finally {
       setSubmitting(false);
     }
@@ -46,7 +47,7 @@ export default function AdminApplicationDetailPage() {
     if (!id) return;
 
     if (!reason.trim()) {
-      alert("Vui lòng nhập lý do từ chối.");
+      notify.error("Vui lòng nhập lý do từ chối.");
       return;
     }
 
@@ -54,11 +55,11 @@ export default function AdminApplicationDetailPage() {
 
     try {
       await rejectApplication(id, reason);
-      alert("Đã từ chối hồ sơ.");
+      notify.success("Đã từ chối hồ sơ.");
       navigate("/admin/applications");
     } catch (error) {
       console.error(error);
-      alert("Từ chối hồ sơ thất bại.");
+      notify.error("Từ chối hồ sơ thất bại.");
     } finally {
       setSubmitting(false);
     }

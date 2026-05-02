@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getCustomerOrderDetail } from "../services/orderService";
 import type { CustomerOrderDetailItem } from "@/shared/types";
+import { notify } from "@/shared/lib/notify";
 
 export default function CustomerOrderDetailPage() {
   const { id } = useParams();
@@ -24,7 +25,7 @@ export default function CustomerOrderDetailPage() {
         }
       } catch (error) {
         console.error(error);
-        alert("Không tải được chi tiết đơn.");
+        notify.error("Không tải được chi tiết đơn.");
       } finally {
         if (active) {
           setLoading(false);

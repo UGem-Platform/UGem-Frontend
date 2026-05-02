@@ -94,6 +94,21 @@ function haversineDistanceKm(
   return R * c;
 }
 
+function normalizeCoordinates(value: unknown): [number, number][] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!Array.isArray(item) || item.length !== 2) return null;
+      const lng = Number(item[0]);
+      const lat = Number(item[1]);
+      return Number.isFinite(lng) && Number.isFinite(lat)
+        ? ([lng, lat] as [number, number])
+        : null;
+    })
+    .filter((item): item is [number, number] => item !== null);
+}
+
 export async function geocodeAddress(
   text: string,
   opts: GeocodeOptions = {},
@@ -166,8 +181,9 @@ export async function getRoute(
     const path = json?.paths?.[0];
     if (!path) throw new Error("Không tìm được đường đi");
 
-    const coordinates: [number, number][] =
-      (path.points?.coordinates as [number, number][]) ?? [];
+    const coordinates: [number, number][] = normalizeCoordinates(
+      path.points?.coordinates,
+    );
 
     const steps: RouteStep[] = (path.instructions ?? []).map(
       (ins: { distance: number; time: number; text: string }) => ({
@@ -197,7 +213,9 @@ export async function getRoute(
   const route = json?.routes?.[0];
   if (!route) throw new Error("Không tìm được đường đi");
 
-  const coordinates: [number, number][] = route.geometry?.coordinates ?? [];
+  const coordinates: [number, number][] = normalizeCoordinates(
+    route.geometry?.coordinates,
+  );
   const steps: RouteStep[] = (route.legs?.[0]?.steps ?? []).map(
     (step: OsrmStep) => ({
       distance: step.distance,

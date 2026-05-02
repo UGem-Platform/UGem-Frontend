@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMerchantOrders } from "../services";
 import type { MerchantOrderSummary } from "@/shared/types";
+import { notify } from "@/shared/lib/notify";
 
 export default function MerchantOrdersPage() {
   const [orders, setOrders] = useState<MerchantOrderSummary[]>([]);
@@ -20,7 +21,7 @@ export default function MerchantOrdersPage() {
         }
       } catch (error) {
         console.error(error);
-        alert("Không tải được đơn của merchant.");
+        notify.error("Không tải được đơn của merchant.");
       } finally {
         if (active) {
           setLoading(false);
@@ -40,9 +41,9 @@ export default function MerchantOrdersPage() {
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-5 text-2xl font-bold">Đơn hàng của quán</h1>
         <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Contract backend hiện tại chỉ public `GET /api/order` cho màn này.
-          Nút chấp nhận hoặc từ chối đơn đã được ẩn vì chưa có endpoint tương
-          ứng trong danh sách API mới.
+          Contract backend hiện tại chỉ public `GET /api/order` cho màn này. Nút
+          chấp nhận hoặc từ chối đơn đã được ẩn vì chưa có endpoint tương ứng
+          trong danh sách API mới.
         </p>
 
         {loading ? (
