@@ -183,3 +183,7 @@ const routers = createBrowserRouter([
         element: <NotFoundPage />,
       },
     ],
+  },
+]);
+
+export default routers;
