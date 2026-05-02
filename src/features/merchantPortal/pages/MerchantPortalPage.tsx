@@ -10,10 +10,6 @@ function handleSendApplication() {
   globalThis.location.href = "/merchant/application/create";
 }
 
-function handleViewStatus() {
-  globalThis.location.href = "/merchant/application/status";
-}
-
 export function MerchantPortalPage() {
   const { data: applications = [], isLoading } = useMyApplications();
 
