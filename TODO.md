@@ -1,13 +1,22 @@
-# TODO: Fix UI after merchant application is approved
+# TODOs for UGem-Frontend
 
-## Plan Approval Date: User confirmed
+## Fix SonarLint Issues
 
-## Steps:
+- [x] Fix typescript:S6479 "Do not use Array index in keys" in AdminApplicationsPage.tsx
 
-1. [x] Edit MerchantOnboardingPage.tsx - Add check to redirect if already approved
-2. [x] Edit MerchantPortalPage.tsx - Hide "Gửi hồ sơ quán" button if already approved
-3. [x] Edit MerchantApplicationStatusPage.tsx - Add support contact note when approved
+## Sync Project to OpenAPI Spec
 
-## Status:
+## Current Status
 
-- Completed
+- AdminApplicationsPage: ✅ React Query, no spam
+- TypeScript: ✅ Build clean
+
+## [ ] Step 1: Update API_CONTRACT.md to OpenAPI JSON
+
+## [ ] Step 2: Fix POST /applications (FormData, not JSON)
+
+## [ ] Step 3: Audit all services vs OpenAPI schemas
+
+## [ ] Step 4: Add missing endpoints (QR codes, etc)
+
+## [ ] Step 5: Test all flows
