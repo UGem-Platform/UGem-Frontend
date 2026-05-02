@@ -25,7 +25,21 @@ const DRAFT_KEY = "ugem_merchant_application_draft";
 
 function getDraftValues(): Partial<OnboardingFormValues> {
   try {
-    return JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+    const rawDraft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+
+    return {
+      ...rawDraft,
+      latitude:
+        typeof rawDraft?.latitude === "number" &&
+        Number.isFinite(rawDraft.latitude)
+          ? rawDraft.latitude
+          : 0,
+      longitude:
+        typeof rawDraft?.longitude === "number" &&
+        Number.isFinite(rawDraft.longitude)
+          ? rawDraft.longitude
+          : 0,
+    };
   } catch {
     return {};
   }
@@ -279,8 +293,8 @@ export function MerchantOnboardingPage() {
                   register={register}
                   errors={errors}
                   setValue={setValue}
-                  watchedLat={watch("latitude")}
-                  watchedLng={watch("longitude")}
+                  watchedLat={watch("latitude") ?? 0}
+                  watchedLng={watch("longitude") ?? 0}
                 />
               )}
 

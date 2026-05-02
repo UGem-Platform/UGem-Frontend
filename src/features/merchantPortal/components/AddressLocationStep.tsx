@@ -12,14 +12,14 @@ import {
   geocodeAddress as vietmapGeocodeAddress,
 } from "@/shared/services/vietmapService";
 
-type Props = {
+type Props = Readonly<{
   register: UseFormRegister<OnboardingFormValues>;
   errors: FieldErrors<OnboardingFormValues>;
   setValue: UseFormSetValue<OnboardingFormValues>;
   watchedAddress?: string;
   watchedLat?: number;
   watchedLng?: number;
-};
+}>;
 
 type ReverseGeoResult = {
   display_name?: string;
@@ -166,8 +166,8 @@ export function AddressLocationStep({
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const lat = parseFloat(position.coords.latitude.toFixed(7));
-        const lng = parseFloat(position.coords.longitude.toFixed(7));
+        const lat = Number.parseFloat(position.coords.latitude.toFixed(7));
+        const lng = Number.parseFloat(position.coords.longitude.toFixed(7));
 
         void applyCoordinates(lat, lng);
         setLocating(false);
@@ -188,14 +188,16 @@ export function AddressLocationStep({
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    const initialCenter: [number, number] =
-      watchedLng && watchedLat ? [watchedLng, watchedLat] : DEFAULT_CENTER;
+    const hasValidLocation = isValidCoord(watchedLat, watchedLng);
+    const initialCenter: [number, number] = hasValidLocation
+      ? [watchedLng, watchedLat]
+      : DEFAULT_CENTER;
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: "https://tiles.openfreemap.org/styles/liberty",
       center: initialCenter,
-      zoom: watchedLng && watchedLat ? 15 : 12,
+      zoom: hasValidLocation ? 15 : 12,
     });
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
@@ -203,14 +205,14 @@ export function AddressLocationStep({
     map.on("click", (e) => {
       const { lng, lat } = e.lngLat;
       void applyCoordinates(
-        parseFloat(lat.toFixed(7)),
-        parseFloat(lng.toFixed(7)),
+        Number.parseFloat(lat.toFixed(7)),
+        Number.parseFloat(lng.toFixed(7)),
       );
     });
 
     mapRef.current = map;
 
-    if (watchedLat && watchedLng) {
+    if (hasValidLocation) {
       map.on("load", () => placeMarker(map, [watchedLng, watchedLat]));
     }
 
@@ -224,7 +226,7 @@ export function AddressLocationStep({
   // Sync marker when lat/lng changes externally (e.g. geocoding update)
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !watchedLat || !watchedLng) return;
+    if (!map || !isValidCoord(watchedLat, watchedLng)) return;
     placeMarker(map, [watchedLng, watchedLat]);
     map.flyTo({ center: [watchedLng, watchedLat], zoom: 15, duration: 800 });
   }, [watchedLat, watchedLng, placeMarker]);
@@ -239,12 +241,18 @@ export function AddressLocationStep({
       setGeocodeStatus("idle");
       try {
         const map = mapRef.current;
-        const proximity =
-          map && map.getCenter()
-            ? { lat: map.getCenter().lat, lng: map.getCenter().lng }
-            : isValidCoord(watchedLat, watchedLng)
-              ? { lat: watchedLat, lng: watchedLng }
-              : undefined;
+        const proximity = (() => {
+          if (isValidCoord(watchedLat, watchedLng)) {
+            return { lat: watchedLat, lng: watchedLng };
+          }
+
+          const center = map?.getCenter();
+          if (center) {
+            return { lat: center.lat, lng: center.lng };
+          }
+
+          return undefined;
+        })();
 
         const results = await vietmapGeocodeAddress(query, {
           proximity: proximity ?? null,
