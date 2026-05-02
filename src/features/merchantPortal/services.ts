@@ -2,8 +2,30 @@ import { api } from "../../lib/axios";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
+function mapPayloadToRequest(payload: CreateApplicationPayload) {
+  return {
+    name: payload.name,
+    description: payload.description,
+    email: payload.email,
+    phone: payload.phone,
+    logoUrl: payload.logoUrl || "",
+    openingHours: payload.openingHours,
+    address: payload.address,
+    latitude: payload.latitude,
+    longitude: payload.longitude,
+    menu: payload.menu.map((m) => ({
+      name: m.name,
+      description: m.description,
+      price: m.price,
+      imageUrl: m.imageUrl || "",
+      categoryIds: m.category ? [m.category] : [],
+    })),
+  };
+}
+
 export async function createApplication(payload: CreateApplicationPayload) {
-  const res = await api.post<ApiResponse<null>>("/applications", payload);
+  const requestBody = mapPayloadToRequest(payload);
+  const res = await api.post<ApiResponse<null>>("/applications", requestBody);
   return res.data;
 }
 
@@ -17,9 +39,10 @@ export async function resubmitApplication(
   applicationId: string,
   payload: CreateApplicationPayload,
 ) {
+  const requestBody = mapPayloadToRequest(payload);
   const res = await api.put<ApiResponse<null>>(
     `/applications/${applicationId}`,
-    payload,
+    requestBody,
   );
 
   return res.data;
