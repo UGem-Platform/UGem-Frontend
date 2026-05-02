@@ -1,7 +1,13 @@
 import { useState, useMemo } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, CheckCircle2, Store } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  Store,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BusinessInfoStep } from "../components/BusinessInfoStep";
 import { AddressLocationStep } from "../components/AddressLocationStep";
@@ -14,7 +20,10 @@ import {
   type OnboardingFormValues,
   type OnboardingSchema,
 } from "../schema";
-import { useCreateApplication } from "../hooks/useCreateApplication";
+import {
+  useCreateApplication,
+  useResubmitApplication,
+} from "../hooks/useCreateApplication";
 import { useMyApplications } from "../hooks/useMyApplications";
 import { OnboardingSidebar } from "../../../shared/layouts/Merchants/OnboardingSidebar";
 import { OnboardingTopbar } from "../../../shared/layouts/Merchants/OnboardingTopbar";
@@ -41,12 +50,38 @@ function getLatestApplication(
   })[0];
 }
 
-// BlockedStateUI - shown when merchant is already approved
+function getSubmittableImageUrl(imageUrl?: string) {
+  const trimmed = imageUrl?.trim() ?? "";
+
+  if (!trimmed || trimmed.startsWith("data:image/") || trimmed.length > 500) {
+    return "";
+  }
+
+  return trimmed;
+}
+
+// BlockedStateUI - shown when the latest application cannot be submitted again
 function BlockedStateUI({
   onNavigateToPortal,
+  status,
 }: {
   onNavigateToPortal: () => void;
+  status: "Approved" | "Pending";
 }) {
+  const isPending = status === "Pending";
+  const Icon = isPending ? Clock3 : CheckCircle2;
+  const iconBoxClass = isPending ? "bg-amber-100" : "bg-emerald-100";
+  const iconClass = isPending ? "text-amber-600" : "text-emerald-600";
+  const title = isPending
+    ? "Hồ sơ của bạn đang chờ duyệt"
+    : "Quán của bạn đã được duyệt";
+  const description = isPending
+    ? "Hồ sơ quán của bạn đã được gửi và đang chờ thẩm định. Bạn không cần gửi thêm hồ sơ mới."
+    : "Hồ sơ quán của bạn đã được thẩm định và chấp thuận. Bạn không thể gửi hồ sơ mới.";
+  const buttonLabel = isPending
+    ? "Xem trạng thái hồ sơ"
+    : "Quay về Merchant Portal";
+
   return (
     <main className="merchant-onboarding-layout">
       <OnboardingSidebar />
@@ -65,19 +100,17 @@ function BlockedStateUI({
             </div>
 
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+              <div
+                className={`mb-6 flex h-20 w-20 items-center justify-center rounded-full ${iconBoxClass}`}
+              >
+                <Icon className={`h-10 w-10 ${iconClass}`} />
               </div>
 
               <h2 className="mb-3 text-2xl font-bold text-slate-900">
-                Quán của bạn đã được duyệt
+                {title}
               </h2>
 
-              <p className="mb-8 max-w-md text-slate-600">
-                Hồ sơ quán của bạn đã được thẩm định và chấp thuận. Bạn không
-                thể gửi hồ sơ mới. Vui lòng quay về Merchant Portal để quản lý
-                quán.
-              </p>
+              <p className="mb-8 max-w-md text-slate-600">{description}</p>
 
               <button
                 type="button"
@@ -85,7 +118,7 @@ function BlockedStateUI({
                 className="next-button"
               >
                 <Store size={18} />
-                Quay về Merchant Portal
+                {buttonLabel}
               </button>
             </div>
           </div>
@@ -102,7 +135,7 @@ export function MerchantOnboardingPage() {
   const createMutation = useCreateApplication();
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Check if merchant already has an approved application
+  // Check whether this user should create, resubmit, or only view status.
   const { data: applications = [], isLoading: isLoadingApps } =
     useMyApplications();
 
@@ -110,14 +143,13 @@ export function MerchantOnboardingPage() {
     () => getLatestApplication(applications),
     [applications],
   );
+  const resubmitMutation = useResubmitApplication(latestApplication?.id);
 
   const isApproved = latestApplication?.status === "Approved";
-  const showBlockedUI = !isLoadingApps && isApproved;
-
-  // Show blocked UI when already approved
-  if (showBlockedUI) {
-    return <BlockedStateUI onNavigateToPortal={() => navigate("/merchant")} />;
-  }
+  const isPending = latestApplication?.status === "Pending";
+  const isRejected = latestApplication?.status === "Rejected";
+  const showBlockedUI = !isLoadingApps && (isApproved || isPending);
+  const submitMutation = isRejected ? resubmitMutation : createMutation;
 
   const methods = useForm<OnboardingFormValues, unknown, OnboardingSchema>({
     resolver: zodResolver(onboardingSchema),
@@ -156,6 +188,20 @@ export function MerchantOnboardingPage() {
     handleSubmit,
     formState: { errors },
   } = methods;
+  const watchedLat = useWatch({ control, name: "latitude" });
+  const watchedLng = useWatch({ control, name: "longitude" });
+
+  // Show blocked UI when the current application should not be submitted again.
+  if (showBlockedUI) {
+    return (
+      <BlockedStateUI
+        status={isPending ? "Pending" : "Approved"}
+        onNavigateToPortal={() =>
+          navigate(isPending ? "/merchant/application/status" : "/merchant")
+        }
+      />
+    );
+  }
 
   async function nextStep() {
     const fieldsByStep: Record<number, (keyof OnboardingFormValues)[]> = {
@@ -213,7 +259,7 @@ export function MerchantOnboardingPage() {
       };
     });
 
-    createMutation.mutate(
+    submitMutation.mutate(
       {
         name: values.restaurantName,
         email: values.email,
@@ -222,19 +268,22 @@ export function MerchantOnboardingPage() {
         logoUrl: values.logoUrl || "",
         latitude: Number(values.latitude),
         longitude: Number(values.longitude),
-        menu: validMenu.map((menuItem) => {
-          const { imageUploadDataUrl, ...rest } = menuItem;
-
-          return {
-            ...rest,
-            imageUrl: imageUploadDataUrl?.trim() || rest.imageUrl,
-          };
-        }),
+        menu: validMenu.map((menuItem) => ({
+          name: menuItem.name,
+          description: menuItem.description,
+          price: menuItem.price,
+          category: menuItem.category,
+          imageUrl: getSubmittableImageUrl(menuItem.imageUrl),
+        })),
       },
       {
         onSuccess: () => {
           localStorage.removeItem(DRAFT_KEY);
-          alert("Đã gửi hồ sơ quán thành công.");
+          alert(
+            isRejected
+              ? "Đã gửi lại hồ sơ quán thành công."
+              : "Đã gửi hồ sơ quán thành công.",
+          );
           navigate("/merchant");
         },
       },
@@ -278,8 +327,8 @@ export function MerchantOnboardingPage() {
                   register={register}
                   errors={errors}
                   setValue={setValue}
-                  watchedLat={watch("latitude")}
-                  watchedLng={watch("longitude")}
+                  watchedLat={watchedLat}
+                  watchedLng={watchedLng}
                 />
               )}
 
@@ -294,10 +343,10 @@ export function MerchantOnboardingPage() {
 
               {currentStep === 4 && <ReviewSubmitStep watch={watch} />}
 
-              {createMutation.isError && (
+              {submitMutation.isError && (
                 <p className="form-error">
-                  {createMutation.error instanceof Error
-                    ? createMutation.error.message
+                  {submitMutation.error instanceof Error
+                    ? submitMutation.error.message
                     : "Gửi hồ sơ thất bại"}
                 </p>
               )}
@@ -328,9 +377,13 @@ export function MerchantOnboardingPage() {
                     <button
                       type="submit"
                       className="next-button"
-                      disabled={createMutation.isPending}
+                      disabled={submitMutation.isPending}
                     >
-                      {createMutation.isPending ? "Đang gửi..." : "Gửi hồ sơ"}
+                      {submitMutation.isPending
+                        ? "Đang gửi..."
+                        : isRejected
+                          ? "Gửi lại hồ sơ"
+                          : "Gửi hồ sơ"}
                       <ArrowRight size={18} />
                     </button>
                   )}
