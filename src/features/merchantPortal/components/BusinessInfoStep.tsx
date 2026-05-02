@@ -214,15 +214,20 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
                 )}
               </div>
               
-              {logoUploadDataUrl && logoUploadDataUrl.startsWith("data:image/") && (
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
-                  <img
-                    src={logoUploadDataUrl}
-                    alt="Logo quán"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
+              {(() => {
+                const src = watch("logoUrl") || logoUploadDataUrl;
+                if (!src || (!src.startsWith("data:image/") && !src.startsWith("http"))) return null;
+
+                return (
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+                    <img
+                      src={src}
+                      alt="Logo quán"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
