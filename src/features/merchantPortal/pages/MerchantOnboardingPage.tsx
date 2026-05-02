@@ -59,9 +59,9 @@ function getLatestApplication(
 // BlockedStateUI - shown when merchant is already approved
 function BlockedStateUI({
   onNavigateToPortal,
-}: {
+}: Readonly<{
   onNavigateToPortal: () => void;
-}) {
+}>) {
   return (
     <main className="merchant-onboarding-layout">
       <OnboardingSidebar />
@@ -129,11 +129,6 @@ export function MerchantOnboardingPage() {
   const isApproved = latestApplication?.status === "Approved";
   const showBlockedUI = !isLoadingApps && isApproved;
 
-  // Show blocked UI when already approved
-  if (showBlockedUI) {
-    return <BlockedStateUI onNavigateToPortal={() => navigate("/merchant")} />;
-  }
-
   const methods = useForm<OnboardingFormValues, unknown, OnboardingSchema>({
     resolver: zodResolver(onboardingSchema),
     mode: "onSubmit",
@@ -161,6 +156,11 @@ export function MerchantOnboardingPage() {
       ...getDraftValues(),
     },
   });
+
+  // Show blocked UI when already approved
+  if (showBlockedUI) {
+    return <BlockedStateUI onNavigateToPortal={() => navigate("/merchant")} />;
+  }
 
   const {
     register,
