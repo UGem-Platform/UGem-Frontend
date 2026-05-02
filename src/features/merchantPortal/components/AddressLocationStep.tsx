@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {
   type GeocodeResult,
   geocodeAddress as vietmapGeocodeAddress,
+  VIETMAP_STYLE_URL,
 } from "@/shared/services/vietmapService";
 
 type Props = Readonly<{
@@ -194,7 +195,7 @@ export function AddressLocationStep({
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://tiles.openfreemap.org/styles/liberty",
+      style: VIETMAP_STYLE_URL,
       center: initialCenter,
       zoom: validLocationCoords ? 15 : 12,
     });
