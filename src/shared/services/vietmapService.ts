@@ -19,8 +19,8 @@ const HAS_VIETMAP_SERVICE_KEY =
  * - Nếu không có → dùng OpenFreeMap miễn phí (OSM)
  */
 export const VIETMAP_STYLE_URL = HAS_VIETMAP_KEY
-  ? "https://tiles.openfreemap.org/styles/liberty" // Tạm dùng fallback để test
-  : "https://tiles.openfreemap.org/styles/liberty";
+  ? `https://maps.vietmap.vn/api/maps/light/styles.json?apikey=${VIETMAP_API_KEY}`
+  : "https://tiles.openfreemap.org/styles/positron";
 
 export {
   HAS_VIETMAP_KEY,

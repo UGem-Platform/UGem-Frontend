@@ -338,12 +338,16 @@ export default function VietMapGL({
       });
 
       // Fit bounds
-      const bounds = validCoords.reduce(
-        (b, c) => b.extend(c),
-        new maplibregl.LngLatBounds(validCoords[0], validCoords[0]),
-      );
-      map.fitBounds(bounds, { padding: 70, duration: 900 });
-      routeReadyRef.current = true;
+      try {
+        const bounds = validCoords.reduce(
+          (b, c) => b.extend(c),
+          new maplibregl.LngLatBounds(validCoords[0], validCoords[0]),
+        );
+        map.fitBounds(bounds, { padding: 70, duration: 900 });
+        routeReadyRef.current = true;
+      } catch (e) {
+        console.warn("Could not fit route bounds:", e);
+      }
     },
     [routeColor],
   );
