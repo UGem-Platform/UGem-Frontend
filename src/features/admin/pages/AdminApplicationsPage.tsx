@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { useStaffApplications } from "../hooks/useApplications";
 import { Link } from "react-router-dom";
-import { getStaffApplications } from "../services/applicationService";
 import type { Application } from "../types";
 import { RefreshCw } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import { notify } from "@/shared/lib/notify";
 
 function formatDate(value?: string | null) {
@@ -57,17 +55,12 @@ export default function AdminApplicationsPage() {
             disabled={isRefetching}
             className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700 disabled:opacity-50"
           >
-            {isRefetching ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Đang tải...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4" />
-                Làm mới
-              </>
-            )}
+            <>
+              <RefreshCw
+                className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
+              />
+              {isRefetching ? "Đang tải..." : "Làm mới"}
+            </>
           </button>
         </div>
 
@@ -111,7 +104,7 @@ export default function AdminApplicationsPage() {
               </thead>
 
               <tbody>
-                {(applications as Application[]).map((app) => {
+                {applications.map((app) => {
                   const badgeClass = getApplicationBadgeClass(app.status);
 
                   return (
@@ -138,7 +131,7 @@ export default function AdminApplicationsPage() {
                   );
                 })}
 
-                {(applications as Application[]).length === 0 && (
+                {applications.length === 0 && (
                   <tr>
                     <td className="p-4 text-center text-slate-500" colSpan={4}>
                       Chưa có hồ sơ Pending nào
