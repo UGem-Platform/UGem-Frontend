@@ -22,15 +22,35 @@ export function ReviewSubmitStep({
   watch: UseFormWatch<OnboardingFormValues>;
 }) {
   const values = watch();
+  const logoSrc = (values.logoUploadDataUrl || values.logoUrl || "").trim();
 
   return (
     <section className="onboarding-card">
       <h2>Kiểm tra & gửi</h2>
 
       <div className="review-grid">
-        <article>
-          <span>Tên quán</span>
-          <strong>{values.restaurantName || "Chưa nhập"}</strong>
+        <article className="col-span-full mb-4 flex items-center gap-4">
+          {shouldShowImage(logoSrc) ? (
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+              <img
+                src={logoSrc}
+                alt="Logo quán"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-400 shadow-sm">
+              Trống
+            </div>
+          )}
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">
+              {values.restaurantName || "Tên quán chưa nhập"}
+            </h3>
+            <p className="text-sm text-slate-500">
+              {values.restaurantType || "Loại hình chưa chọn"}
+            </p>
+          </div>
         </article>
 
         <article>
@@ -39,8 +59,13 @@ export function ReviewSubmitStep({
         </article>
 
         <article>
-          <span>Loại hình</span>
-          <strong>{values.restaurantType || "Chưa chọn"}</strong>
+          <span>Số điện thoại</span>
+          <strong>{values.phone || "Chưa nhập"}</strong>
+        </article>
+
+        <article>
+          <span>Giờ mở cửa</span>
+          <strong>{values.openingHours || "Chưa nhập"}</strong>
         </article>
 
         <article>
@@ -53,19 +78,9 @@ export function ReviewSubmitStep({
           <strong>{values.priceRange || "Chưa chọn"}</strong>
         </article>
 
-        <article>
+        <article className="review-grid-wide">
           <span>Địa chỉ</span>
           <strong>{values.address || "Chưa nhập"}</strong>
-        </article>
-
-        <article>
-          <span>Latitude</span>
-          <strong>{String(values.latitude ?? "Chưa nhập")}</strong>
-        </article>
-
-        <article>
-          <span>Longitude</span>
-          <strong>{String(values.longitude ?? "Chưa nhập")}</strong>
         </article>
 
         <article className="review-grid-wide">
@@ -121,8 +136,7 @@ export function ReviewSubmitStep({
       <div className="onboarding-tip">
         <strong>Sau khi gửi</strong>
         <p>
-          Hồ sơ sẽ được gửi đến staff để xét duyệt. Các phần chưa có API riêng
-          sẽ được lưu tạm trong phần mô tả.
+          Hồ sơ sẽ được gửi đến staff để xét duyệt. Quá trình xét duyệt thường diễn ra trong vòng 24h.
         </p>
       </div>
     </section>

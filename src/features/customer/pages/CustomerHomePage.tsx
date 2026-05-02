@@ -21,8 +21,6 @@ import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";
 import {
   metersToKm,
   secondsToText,
-  HAS_VIETMAP_KEY,
-  HAS_VIETMAP_SERVICE_KEY,
 } from "@/shared/services/vietmapService";
 
 type Coords = { latitude: number; longitude: number };
@@ -353,39 +351,7 @@ export default function CustomerHomePage() {
                         <Clock className="h-4 w-4" />
                         {secondsToText(routeResult.duration)}
                       </div>
-                      {!HAS_VIETMAP_KEY && (
-                        <span className="ml-auto text-xs text-amber-600">
-                          ⚠️ Cần API key để tính route
-                        </span>
-                      )}
                     </div>
-                  )}
-
-                  {!HAS_VIETMAP_SERVICE_KEY && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      💡 Thêm{" "}
-                      <code className="font-mono bg-muted px-1 rounded">
-                        VITE_VIETMAP_SERVICE_KEY
-                      </code>{" "}
-                      vào{" "}
-                      <code className="font-mono bg-muted px-1 rounded">
-                        .env
-                      </code>{" "}
-                      để tính đường đi bằng VietMap
-                    </p>
-                  )}
-                  {!HAS_VIETMAP_KEY && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      💡 Thêm{" "}
-                      <code className="font-mono bg-muted px-1 rounded">
-                        VITE_VIETMAP_API_KEY
-                      </code>{" "}
-                      vào{" "}
-                      <code className="font-mono bg-muted px-1 rounded">
-                        .env
-                      </code>{" "}
-                      để hiển thị bản đồ VietMap
-                    </p>
                   )}
                 </CardHeader>
 

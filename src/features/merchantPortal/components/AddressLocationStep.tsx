@@ -476,19 +476,6 @@ export function AddressLocationStep({
           marginTop: 8,
         }}
       />
-      {lastPicked && (
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: 12,
-            color: lastPicked.lat && lastPicked.lng ? "#2563eb" : "#ef4444",
-          }}
-        >
-          <strong>Debug toạ độ:</strong> {lastPicked.lat ?? "-"},{" "}
-          {lastPicked.lng ?? "-"}
-          {(!lastPicked.lat || !lastPicked.lng) && " — Toạ độ không hợp lệ"}
-        </div>
-      )}
       <p style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
         💡 Nhập địa chỉ để tự động định vị, hoặc click trực tiếp trên bản đồ để
         chọn vị trí chính xác
