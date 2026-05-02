@@ -72,7 +72,16 @@ api.interceptors.response.use(
       );
     }
 
-    console.error(`[AXIOS ${status}]`, message);
+    console.error(`[AXIOS ${status}] Request failed:`, {
+      url: error.config?.url,
+      method: error.config?.method,
+      baseURL: error.config?.baseURL,
+      fullUrl: `${error.config?.baseURL || ""}${error.config?.url}`,
+      status,
+      message,
+      response: error.response?.data,
+      headers: error.config?.headers,
+    });
     return Promise.reject(new Error(message));
   },
 );

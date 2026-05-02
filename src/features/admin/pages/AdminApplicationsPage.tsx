@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useStaffApplications } from "../hooks/useApplications";
 import { Link } from "react-router-dom";
 import { getStaffApplications } from "../services/applicationService";
 import type { Application } from "../types";
 import { RefreshCw } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
 import { notify } from "@/shared/lib/notify";
 
 function formatDate(value?: string | null) {
@@ -24,51 +26,26 @@ function getApplicationBadgeClass(status?: string) {
 }
 
 export default function AdminApplicationsPage() {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const {
+    data: applications = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching,
+  } = useStaffApplications();
 
-  const loadApplications = async () => {
-    setLoading(true);
-
-    try {
-      const data = await getStaffApplications();
-      setApplications(data ?? []);
-    } catch (error) {
-      console.error(error);
-      notify.error("Không tải được danh sách hồ sơ.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-
-    try {
-      const data = await getStaffApplications();
-      setApplications(data ?? []);
-    } catch (error) {
-      console.error(error);
-      notify.error("Không tải được danh sách hồ sơ.");
-    } finally {
-      setRefreshing(false);
-    }
+  const handleRefresh = () => {
+    void refetch();
   };
 
   useEffect(() => {
-    queueMicrotask(() => {
-      void loadApplications();
-    });
-
-    const interval = globalThis.setInterval(() => {
-      void loadApplications();
-    }, 5000);
-
-    return () => {
-      globalThis.clearInterval(interval);
-    };
-  }, []);
+    if (isError) {
+      notify.error(
+        "Không tải được danh sách hồ sơ: " + (error as Error)?.message,
+      );
+    }
+  }, [isError, error]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
@@ -77,16 +54,50 @@ export default function AdminApplicationsPage() {
           <h1 className="text-2xl font-bold">Duyệt hồ sơ Merchant</h1>
           <button
             onClick={handleRefresh}
-            disabled={refreshing}
+            disabled={isRefetching}
             className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700 disabled:opacity-50"
           >
-            <RefreshCw className="w-4 h-4" />
-            {refreshing ? "Đang tải..." : "Làm mới"}
+            {isRefetching ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Đang tải...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                Làm mới
+              </>
+            )}
           </button>
         </div>
 
-        {loading ? (
-          <p>Đang tải...</p>
+        {isLoading ? (
+          <div className="space-y-4">
+            <div className="h-8 w-64 animate-pulse rounded bg-slate-200"></div>
+            <div className="grid grid-cols-4 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-32 animate-pulse rounded bg-slate-200"
+                ></div>
+              ))}
+            </div>
+          </div>
+        ) : isError ? (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-6 text-center">
+            <h3 className="mb-2 text-lg font-semibold text-rose-800">
+              Không tải được dữ liệu
+            </h3>
+            <p className="mb-4 text-rose-700">
+              {error?.message || "Lỗi không xác định"}
+            </p>
+            <button
+              onClick={handleRefresh}
+              className="rounded-lg bg-rose-600 px-6 py-2 text-white hover:bg-rose-700"
+            >
+              Thử lại
+            </button>
+          </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-sm backdrop-blur">
             <table className="w-full">
@@ -100,7 +111,7 @@ export default function AdminApplicationsPage() {
               </thead>
 
               <tbody>
-                {applications.map((app) => {
+                {(applications as Application[]).map((app) => {
                   const badgeClass = getApplicationBadgeClass(app.status);
 
                   return (
@@ -127,10 +138,11 @@ export default function AdminApplicationsPage() {
                   );
                 })}
 
-                {applications.length === 0 && (
+                {(applications as Application[]).length === 0 && (
                   <tr>
                     <td className="p-4 text-center text-slate-500" colSpan={4}>
-                      Chưa có hồ sơ nào.
+                      Chưa có hồ sơ Pending nào
+                      {isRefetching && " (đang cập nhật...)"}.
                     </td>
                   </tr>
                 )}
