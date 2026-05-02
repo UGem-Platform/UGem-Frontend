@@ -13,6 +13,7 @@ import {
   VIETMAP_STYLE_URL,
   VIETMAP_API_KEY,
   HAS_VIETMAP_KEY,
+  HAS_VIETMAP_SERVICE_KEY,
 } from "@/shared/services/vietmapService";
 
 type Props = Readonly<{
@@ -249,6 +250,13 @@ export function AddressLocationStep({
       const query = address.trim();
       if (query.length < 3) return;
 
+      if (!HAS_VIETMAP_SERVICE_KEY) {
+        setGeocodeSuggestions([]);
+        setGeocodeStatus("error");
+        setGeocoding(false);
+        return;
+      }
+
       const seq = ++geocodeSeqRef.current;
       setGeocoding(true);
       setGeocodeStatus("idle");
@@ -367,6 +375,21 @@ export function AddressLocationStep({
             >
               ⏳ Đang tìm...
             </span>
+          )}
+          {!HAS_VIETMAP_SERVICE_KEY && (
+            <div
+              style={{
+                position: "absolute",
+                right: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: 12,
+                color: "#f59e0b",
+                textAlign: "right",
+              }}
+            >
+              ⚠ Chưa cấu hình VietMap Service key
+            </div>
           )}
           {geocodeSuggestions.length > 0 && (
             <div
