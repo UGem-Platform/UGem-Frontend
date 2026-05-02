@@ -69,7 +69,7 @@ export default function AdminApplicationsPage() {
             <div className="grid grid-cols-4 gap-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div
-                  key={`skeleton-${i}`}
+                  key={i}
                   className="h-32 animate-pulse rounded bg-slate-200"
                 ></div>
               ))}
