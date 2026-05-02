@@ -42,11 +42,7 @@ async function tryPutToResubmitEndpoint(payload: unknown) {
 }
 
 export async function createApplication(payload: CreateApplicationPayload) {
-  const requestBody = {
-    type: "Merchant",
-    ...payload,
-  };
-  await tryPostToApplicationEndpoint(requestBody);
+  await tryPostToApplicationEndpoint(payload);
 }
 
 export async function createMerchantApplication(
@@ -61,7 +57,6 @@ export async function resubmitApplication(
 ) {
   const res = await tryPutToResubmitEndpoint({
     applicationId,
-    type: "Merchant",
     note: "Gửi lại hồ sơ quán",
     ...payload,
   });

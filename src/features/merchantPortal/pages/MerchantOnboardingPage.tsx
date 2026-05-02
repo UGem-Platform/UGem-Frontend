@@ -184,14 +184,20 @@ export function MerchantOnboardingPage() {
   }
 
   function buildDescription(values: OnboardingSchema) {
-    return `
+    const descriptionLines = [
+      values.description?.trim() || "",
+      "",
+      "--- Thông tin UI bổ sung ---",
+      `Địa chỉ: ${values.address}`,
+      `Loại hình quán: ${values.restaurantType}`,
+      `Loại món chính: ${values.mainDishType}`,
+      `Khoảng giá trung bình: ${values.priceRange}`,
+    ];
 
---- Thông tin UI bổ sung ---
-Địa chỉ: ${values.address}
-Loại hình quán: ${values.restaurantType}
-Loại món chính: ${values.mainDishType}
-Khoảng giá trung bình: ${values.priceRange}
-`.trim();
+    return descriptionLines
+      .filter((line) => line !== undefined && line !== "")
+      .join("\n")
+      .trim();
   }
 
   async function onSubmit(values: OnboardingSchema) {
