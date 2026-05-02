@@ -17,8 +17,8 @@ type Props = Readonly<{
   errors: FieldErrors<OnboardingFormValues>;
   setValue: UseFormSetValue<OnboardingFormValues>;
   watchedAddress?: string;
-  watchedLat?: number;
-  watchedLng?: number;
+  watchedLat?: number | null;
+  watchedLng?: number | null;
 }>;
 
 type ReverseGeoResult = {
@@ -31,8 +31,8 @@ export function AddressLocationStep({
   register,
   errors,
   setValue,
-  watchedLat = 0,
-  watchedLng = 0,
+  watchedLat,
+  watchedLng,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -67,22 +67,26 @@ export function AddressLocationStep({
     return marker;
   }, []);
 
-  const isValidCoord = useCallback(
-    (lat?: number | null, lng?: number | null) => {
-      return (
-        typeof lat === "number" &&
-        typeof lng === "number" &&
-        Number.isFinite(lat) &&
-        Number.isFinite(lng)
-      );
+  const isValidNumber = useCallback(
+    (value: number | null | undefined): value is number => {
+      return typeof value === "number" && Number.isFinite(value);
     },
     [],
+  );
+
+  const getValidLocationCoords = useCallback(
+    (lat?: number | null, lng?: number | null): [number, number] | null => {
+      if (!isValidNumber(lat) || !isValidNumber(lng)) return null;
+      if (lat === 0 && lng === 0) return null;
+      return [lng, lat];
+    },
+    [isValidNumber],
   );
 
   const placeMarker = useCallback(
     (map: maplibregl.Map, coords: [number, number]) => {
       const [lng, lat] = coords;
-      if (!isValidCoord(lat, lng)) {
+      if (!isValidNumber(lat) || !isValidNumber(lng)) {
         console.warn("placeMarker: invalid coords", coords);
         return;
       }
@@ -98,7 +102,7 @@ export function AddressLocationStep({
           .addTo(map);
       }
     },
-    [createMarkerElement, isValidCoord],
+    [createMarkerElement],
   );
 
   const syncMapToCoords = useCallback(
@@ -114,7 +118,7 @@ export function AddressLocationStep({
 
   const commitCoordinates = useCallback(
     (lat: number, lng: number) => {
-      if (!isValidCoord(lat, lng)) {
+      if (!isValidNumber(lat) || !isValidNumber(lng)) {
         console.warn("commitCoordinates: invalid", { lat, lng });
         setGeocodeStatus("error");
         return;
@@ -125,7 +129,7 @@ export function AddressLocationStep({
       syncMapToCoords(lat, lng);
       setGeocodeStatus("ok");
     },
-    [setValue, syncMapToCoords, isValidCoord],
+    [setValue, syncMapToCoords],
   );
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
@@ -188,16 +192,15 @@ export function AddressLocationStep({
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    const hasValidLocation = isValidCoord(watchedLat, watchedLng);
-    const initialCenter: [number, number] = hasValidLocation
-      ? [watchedLng, watchedLat]
-      : DEFAULT_CENTER;
+    const validLocationCoords = getValidLocationCoords(watchedLat, watchedLng);
+    const initialCenter: [number, number] =
+      validLocationCoords ?? DEFAULT_CENTER;
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: "https://tiles.openfreemap.org/styles/liberty",
       center: initialCenter,
-      zoom: hasValidLocation ? 15 : 12,
+      zoom: validLocationCoords ? 15 : 12,
     });
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
@@ -212,8 +215,8 @@ export function AddressLocationStep({
 
     mapRef.current = map;
 
-    if (hasValidLocation) {
-      map.on("load", () => placeMarker(map, [watchedLng, watchedLat]));
+    if (validLocationCoords) {
+      map.on("load", () => placeMarker(map, validLocationCoords));
     }
 
     return () => {
@@ -226,10 +229,11 @@ export function AddressLocationStep({
   // Sync marker when lat/lng changes externally (e.g. geocoding update)
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !isValidCoord(watchedLat, watchedLng)) return;
-    placeMarker(map, [watchedLng, watchedLat]);
-    map.flyTo({ center: [watchedLng, watchedLat], zoom: 15, duration: 800 });
-  }, [watchedLat, watchedLng, placeMarker]);
+    const validLocationCoords = getValidLocationCoords(watchedLat, watchedLng);
+    if (!map || !validLocationCoords) return;
+    placeMarker(map, validLocationCoords);
+    map.flyTo({ center: validLocationCoords, zoom: 15, duration: 800 });
+  }, [watchedLat, watchedLng, placeMarker, getValidLocationCoords]);
 
   const geocodeAddress = useCallback(
     async (address: string) => {
@@ -241,9 +245,13 @@ export function AddressLocationStep({
       setGeocodeStatus("idle");
       try {
         const map = mapRef.current;
+        const validLocationCoords = getValidLocationCoords(
+          watchedLat,
+          watchedLng,
+        );
         const proximity = (() => {
-          if (isValidCoord(watchedLat, watchedLng)) {
-            return { lat: watchedLat, lng: watchedLng };
+          if (validLocationCoords) {
+            return { lat: validLocationCoords[1], lng: validLocationCoords[0] };
           }
 
           const center = map?.getCenter();
@@ -277,7 +285,7 @@ export function AddressLocationStep({
         }
       }
     },
-    [isValidCoord, watchedLat, watchedLng],
+    [getValidLocationCoords, watchedLat, watchedLng],
   );
 
   const handlePickSuggestion = useCallback(
@@ -301,7 +309,7 @@ export function AddressLocationStep({
 
       setLastPicked({ lat, lng });
 
-      if (!isValidCoord(lat, lng)) {
+      if (!isValidNumber(lat) || !isValidNumber(lng)) {
         console.warn("handlePickSuggestion: invalid coords", {
           lat,
           lng,
@@ -313,7 +321,7 @@ export function AddressLocationStep({
 
       commitCoordinates(lat, lng);
     },
-    [commitCoordinates, setValue, isValidCoord],
+    [commitCoordinates, setValue],
   );
 
   function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {

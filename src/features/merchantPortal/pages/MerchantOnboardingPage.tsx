@@ -293,8 +293,8 @@ export function MerchantOnboardingPage() {
                   register={register}
                   errors={errors}
                   setValue={setValue}
-                  watchedLat={watch("latitude") ?? 0}
-                  watchedLng={watch("longitude") ?? 0}
+                  watchedLat={watch("latitude")}
+                  watchedLng={watch("longitude")}
                 />
               )}
 
