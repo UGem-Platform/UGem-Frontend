@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useStaffApplications } from "../hooks/useApplications";
 import { Link } from "react-router-dom";
-import type { Application } from "../types";
 import { RefreshCw } from "lucide-react";
 import { notify } from "@/shared/lib/notify";
 
