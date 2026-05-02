@@ -1,48 +1,10 @@
-import axios from "axios";
 import { api } from "../../lib/axios";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
-const APPLICATION_POST_PATHS = ["/Application/merchant/applications/create"];
-
-const APPLICATION_RESUBMIT_PATHS = ["/Application/resubmit"];
-
-async function tryPostToApplicationEndpoint(payload: unknown) {
-  for (const path of APPLICATION_POST_PATHS) {
-    try {
-      return await api.post(path, payload);
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        continue;
-      }
-      throw error;
-    }
-  }
-
-  throw new Error(
-    "Không tìm thấy endpoint gửi hồ sơ merchant trên backend. Vui lòng kiểm tra cấu hình backend hoặc liên hệ admin.",
-  );
-}
-
-async function tryPutToResubmitEndpoint(payload: unknown) {
-  for (const path of APPLICATION_RESUBMIT_PATHS) {
-    try {
-      return await api.put(path, payload);
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        continue;
-      }
-      throw error;
-    }
-  }
-
-  throw new Error(
-    "Không tìm thấy endpoint gửi lại hồ sơ merchant trên backend. Vui lòng kiểm tra cấu hình backend hoặc liên hệ admin.",
-  );
-}
-
 export async function createApplication(payload: CreateApplicationPayload) {
-  await tryPostToApplicationEndpoint(payload);
+  const res = await api.post<ApiResponse<null>>("/applications", payload);
+  return res.data;
 }
 
 export async function createMerchantApplication(
@@ -55,38 +17,38 @@ export async function resubmitApplication(
   applicationId: string,
   payload: CreateApplicationPayload,
 ) {
-  const res = await tryPutToResubmitEndpoint({
-    applicationId,
-    type: "Merchant",
-    note: "Gửi lại hồ sơ quán",
-    ...payload,
-  });
+  const res = await api.put<ApiResponse<null>>(
+    `/applications/${applicationId}`,
+    payload,
+  );
 
   return res.data;
 }
 
 export async function getMyApplications() {
-  const res = await api.get<ApiResponse<MerchantApplication[]>>(
-    "/Application/merchant/applications",
-  );
+  const res =
+    await api.get<ApiResponse<MerchantApplication[]>>("/applications/mine");
   return res.data.data ?? [];
 }
 
 export async function getMerchantOrders() {
   const res = await api.get<
     ApiResponse<MerchantOrderSummary[]> | MerchantOrderSummary[]
-  >("/Order/list");
+  >("/orders");
   return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
 }
 
 export async function acceptOrder(orderId: string) {
-  const res = await api.post(`/Order/${orderId}/accept`);
+  const res = await api.patch(`/orders/${orderId}/status`, {
+    status: "Accepted",
+  });
   return res.data;
 }
 
 export async function rejectOrder(orderId: string, reason: string) {
-  const res = await api.post(`/Order/${orderId}/reject`, {
-    note: reason,
+  const res = await api.patch(`/orders/${orderId}/status`, {
+    status: "Rejected",
+    reason,
   });
   return res.data;
 }

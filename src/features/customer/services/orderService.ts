@@ -17,11 +17,11 @@ export async function createOrder(payload: {
   finalPrice: number;
   foods: CreateOrderItem[];
 }) {
-  const res = await api.post<ApiResponse<null>>("/Order/customer/orders", {
+  const res = await api.post<ApiResponse<null>>("/orders", {
     name: payload.name,
+    paymentMethod: "Cash",
     deliveryAddress: payload.deliveryAddress,
     notes: payload.notes || "",
-    finalPrice: payload.finalPrice,
     foods: payload.foods,
   });
 
@@ -31,7 +31,7 @@ export async function createOrder(payload: {
 export async function getCustomerOrders() {
   const res = await api.get<
     ApiResponse<CustomerOrderSummary[]> | CustomerOrderSummary[]
-  >("/Order/list");
+  >("/orders/mine");
   return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
 }
 
@@ -66,11 +66,7 @@ export async function getCustomerOrderDetail(orderId: string) {
         orderItems?: CustomerOrderDetailItem[];
         details?: CustomerOrderDetailItem[];
       }
-  >("/Order/detail", {
-    params: {
-      orderId,
-    },
-  });
+  >(`/orders/${orderId}`);
 
   const payload = unwrapApiResponse(res.data) as
     | CustomerOrderDetailItem[]
@@ -95,16 +91,16 @@ export async function getCustomerOrderDetail(orderId: string) {
 }
 
 export async function confirmReceived(orderId: string) {
-  const res = await api.put<ApiResponse<null>>("/Order/confirm-received", {
-    orderId,
+  const res = await api.patch<ApiResponse<null>>(`/orders/${orderId}/status`, {
+    status: "Completed",
   });
 
   return res.data;
 }
 
 export async function confirmNotReceived(orderId: string) {
-  const res = await api.put<ApiResponse<null>>("/Order/confirm-not-received", {
-    orderId,
+  const res = await api.patch<ApiResponse<null>>(`/orders/${orderId}/status`, {
+    status: "NotReceived",
   });
 
   return res.data;

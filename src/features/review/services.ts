@@ -17,16 +17,16 @@ export type Review = {
 };
 
 export async function getReviews() {
-  const res = await api.get<ApiResponse<Review[]>>("/Review");
+  const res = await api.get<ApiResponse<Review[]>>("/reviews");
   return res.data.data ?? [];
 }
 
 export async function getReviewById(id: string) {
-  const res = await api.get<ApiResponse<unknown>>(`/Review/${id}`);
+  const res = await api.get<ApiResponse<unknown>>(`/reviews/${id}`);
   return res.data.data;
 }
 
 export async function createReview(payload: unknown) {
-  const res = await api.post<ApiResponse<null>>("/Review", payload);
+  const res = await api.post<ApiResponse<null>>("/reviews", payload);
   return res.data;
 }

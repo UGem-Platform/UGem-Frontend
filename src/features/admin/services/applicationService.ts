@@ -8,26 +8,25 @@ type ApiResponse<T> = {
 };
 
 export async function getStaffApplications() {
-  const res = await api.get<ApiResponse<Application[]>>(
-    "/Application/staff/applications",
-    {
-      params: {
-        status: "Pending",
-      },
+  const res = await api.get<ApiResponse<Application[]>>("/applications", {
+    params: {
+      status: "Pending",
     },
-  );
+  });
 
   return res.data.data ?? [];
 }
 
 export async function acceptApplication(id: string) {
-  const res = await api.post(`/Application/${id}/accept`);
+  const res = await api.patch<ApiResponse<null>>(`/applications/${id}/status`, {
+    status: "Accepted",
+  });
   return res.data;
 }
 
 export async function rejectApplication(id: string, reason: string) {
-  const res = await api.post("/Application/reject", {
-    applicationId: id,
+  const res = await api.patch<ApiResponse<null>>(`/applications/${id}/status`, {
+    status: "Rejected",
     note: reason,
   });
 

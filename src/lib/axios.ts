@@ -3,7 +3,7 @@ import { API_BASE_URL } from "./env";
 import { clearAuth, getAccessToken } from "../features/auth/store";
 
 export const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: `${API_BASE_URL}/api/v1`,
   headers: {
     "Content-Type": "application/json",
   },

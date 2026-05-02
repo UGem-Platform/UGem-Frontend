@@ -3,24 +3,22 @@ import type { ApiResponse } from "@/shared/types";
 import type { LoginRequest, LoginResponse, RegisterRequest } from "./types";
 
 export async function loginApi(payload: LoginRequest) {
-  const { data } = await api.get<LoginResponse>("/Identity/login", {
-    params: {
-      email: payload.email,
-      password: payload.password,
-    },
+  const { data } = await api.post<ApiResponse<LoginResponse>>("/auth/login", {
+    email: payload.email,
+    password: payload.password,
   });
 
-  return data;
+  return data.data;
 }
 
 export async function registerApi(payload: RegisterRequest) {
-  const { data } = await api.post<ApiResponse<string>>("/Customer/register", {
+  const { data } = await api.post<ApiResponse<string>>("/auth/register", {
     email: payload.email,
-    hashedPassword: payload.password,
+    password: payload.password,
     phoneNumber: payload.phoneNumber,
     fullName: payload.fullName,
     role: payload.role,
   });
 
-  return data;
+  return data.data;
 }

@@ -5,7 +5,7 @@ import type { CustomerProfile } from "../types";
 export async function getCustomerProfile() {
   const { data } =
     await api.get<ApiResponse<CustomerProfile | CustomerProfile[]>>(
-      "/Customer/profile",
+      "/customers/profile",
     );
 
   return Array.isArray(data.data) ? (data.data[0] ?? null) : data.data;

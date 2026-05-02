@@ -46,7 +46,7 @@ function unwrapFoodItem(payload: Food | ApiResponse<Food>) {
 export async function createFood(payload: CreateFoodRequest) {
   const { data } = await api.post<
     CreateFoodResponse | ApiResponse<CreateFoodResponse>
-  >("/Food", payload);
+  >("/foods", payload);
 
   return unwrapFoodItem(data);
 }
@@ -54,11 +54,11 @@ export async function createFood(payload: CreateFoodRequest) {
 export async function getFoods() {
   const { data } = await api.get<
     ApiResponse<FoodListPayload> | FoodListPayload
-  >("/Food");
+  >("/foods");
   return unwrapFoodList(data);
 }
 
 export async function getFoodById(id: string) {
-  const { data } = await api.get<ApiResponse<Food> | Food>(`/Food/${id}`);
+  const { data } = await api.get<ApiResponse<Food> | Food>(`/foods/${id}`);
   return unwrapFoodItem(data);
 }

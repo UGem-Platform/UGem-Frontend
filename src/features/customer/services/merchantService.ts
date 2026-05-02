@@ -53,11 +53,8 @@ export async function getNearbyMerchants(params: {
 }) {
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/Merchant/Map/Merchants",
+    url: "/merchants",
     params: {
-      latitude: params.latitude,
-      longitude: params.longitude,
-      keyword: params.keyword,
       searchTerm: params.keyword,
       pageIndex: 1,
       pageSize: 20,
@@ -69,7 +66,7 @@ export async function getNearbyMerchants(params: {
 
 export async function getMerchantDetail(id: string) {
   const res = await api.get<ApiResponse<MerchantDetail> | MerchantDetail>(
-    `/Merchant/Merchants/${id}`,
+    `/merchants/${id}`,
   );
 
   const merchant = unwrapApiData(res.data);
@@ -87,7 +84,7 @@ export async function getMerchantDetail(id: string) {
 export async function getMapMerchants(payload: unknown) {
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/Merchant/Map/Merchants",
+    url: "/merchants/map",
     params: payload,
   });
 
@@ -97,7 +94,7 @@ export async function getMapMerchants(payload: unknown) {
 export async function getMerchantsByCategory(payload: unknown) {
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/Merchant/Category/Merchants",
+    url: "/merchants/by-category",
     params: payload,
   });
 
