@@ -227,6 +227,7 @@ export function RegisterPage() {
                               ? "border-cyan-600 bg-cyan-50"
                               : "border-slate-200 hover:border-cyan-300"
                           }`}
+                          aria-label="Khách hàng"
                         >
                           <input
                             type="radio"
@@ -251,6 +252,7 @@ export function RegisterPage() {
                               ? "border-cyan-600 bg-cyan-50"
                               : "border-slate-200 hover:border-cyan-300"
                           }`}
+                          aria-label="Shop/Chủ quán"
                         >
                           <input
                             type="radio"

@@ -20,5 +20,5 @@ export async function registerApi(payload: RegisterRequest) {
     role: payload.role,
   });
 
-  return data.data;
+  return data;
 }
