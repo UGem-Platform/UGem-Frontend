@@ -46,10 +46,6 @@ export function AddressLocationStep({
   const [geocodeStatus, setGeocodeStatus] = useState<"idle" | "ok" | "error">(
     "idle",
   );
-  const [lastPicked, setLastPicked] = useState<{
-    lat?: number;
-    lng?: number;
-  } | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const geocodeSeqRef = useRef(0);
 
@@ -306,8 +302,6 @@ export function AddressLocationStep({
           shouldValidate: true,
         },
       );
-
-      setLastPicked({ lat, lng });
 
       if (!isValidNumber(lat) || !isValidNumber(lng)) {
         console.warn("handlePickSuggestion: invalid coords", {
