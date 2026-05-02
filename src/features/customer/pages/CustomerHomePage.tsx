@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Map as MapIcon, Navigation, X, Clock, Route } from "lucide-react";
+import { notify } from "@/shared/lib/notify";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
@@ -133,7 +134,7 @@ export default function CustomerHomePage() {
         );
       } catch (error) {
         console.error(error);
-        alert("Không tải được danh sách quán.");
+        notify.error("Không tải được danh sách quán.");
       } finally {
         setLoading(false);
       }

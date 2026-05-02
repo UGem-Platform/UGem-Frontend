@@ -4,6 +4,7 @@ import {
   removeWishlist,
   type WishlistItem,
 } from "../services/wishlistService";
+import { notify } from "@/shared/lib/notify";
 
 export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -11,7 +12,7 @@ export default function WishlistPage() {
 
   async function handleRemove(merchantId?: string) {
     if (!merchantId) {
-      alert(
+      notify.error(
         "Không tìm thấy merchantId để xóa. BE cần trả merchantId trong wishlist.",
       );
       return;
@@ -27,7 +28,7 @@ export default function WishlistPage() {
       );
     } catch (error) {
       console.error(error);
-      alert("Xóa wishlist thất bại.");
+      notify.error("Xóa wishlist thất bại.");
     }
   }
 
@@ -45,7 +46,7 @@ export default function WishlistPage() {
         }
       } catch (error) {
         console.error(error);
-        alert("Không tải được wishlist.");
+        notify.error("Không tải được wishlist.");
       } finally {
         if (active) {
           setLoading(false);

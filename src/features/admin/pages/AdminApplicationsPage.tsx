@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getStaffApplications } from "../services/applicationService";
 import type { Application } from "../types";
 import { RefreshCw } from "lucide-react";
+import { notify } from "@/shared/lib/notify";
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
@@ -35,7 +36,7 @@ export default function AdminApplicationsPage() {
       setApplications(data ?? []);
     } catch (error) {
       console.error(error);
-      alert("Không tải được danh sách hồ sơ.");
+      notify.error("Không tải được danh sách hồ sơ.");
     } finally {
       setLoading(false);
     }
@@ -49,7 +50,7 @@ export default function AdminApplicationsPage() {
       setApplications(data ?? []);
     } catch (error) {
       console.error(error);
-      alert("Không tải được danh sách hồ sơ.");
+      notify.error("Không tải được danh sách hồ sơ.");
     } finally {
       setRefreshing(false);
     }

@@ -25,6 +25,12 @@ function getNumberField(record: MerchantRecord, keys: string[]) {
     if (typeof value === "number" && Number.isFinite(value)) {
       return value;
     }
+    if (typeof value === "string") {
+      const parsed = Number(value.trim());
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
   }
 
   return null;

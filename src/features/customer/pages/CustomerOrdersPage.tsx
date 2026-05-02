@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCustomerOrders } from "../services/orderService";
 import type { CustomerOrderSummary } from "@/shared/types";
+import { notify } from "@/shared/lib/notify";
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
@@ -21,7 +22,7 @@ export default function CustomerOrdersPage() {
         }
       } catch (error) {
         console.error(error);
-        alert("Không tải được đơn hàng.");
+        notify.error("Không tải được đơn hàng.");
       } finally {
         if (active) {
           setLoading(false);

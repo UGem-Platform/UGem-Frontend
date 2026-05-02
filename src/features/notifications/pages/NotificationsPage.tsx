@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getNotifications } from "../services";
 import type { NotificationItem } from "../services";
 import { Bell, RefreshCw } from "lucide-react";
+import { notify } from "@/shared/lib/notify";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -16,7 +17,7 @@ export default function NotificationsPage() {
       setNotifications(data ?? []);
     } catch (error) {
       console.error(error);
-      alert("Không tải được thông báo.");
+      notify.error("Không tải được thông báo.");
     } finally {
       setLoading(false);
     }

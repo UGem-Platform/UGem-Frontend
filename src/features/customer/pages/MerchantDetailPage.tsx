@@ -5,6 +5,7 @@ import type { MerchantDetail, MerchantMenuItem } from "../types";
 import { addWishlist } from "../services/wishlistService";
 import { createOrder } from "../services/orderService";
 import { useNavigate } from "react-router-dom";
+import { notify } from "@/shared/lib/notify";
 type CartItem = {
   food: MerchantMenuItem;
   quantity: number;
@@ -36,11 +37,11 @@ export default function MerchantDetailPage() {
         })),
       });
 
-      alert("Đặt món thành công.");
+      notify.success("Đặt món thành công.");
       navigate("/customer/orders");
     } catch (error) {
       console.error(error);
-      alert("Đặt món thất bại.");
+      notify.error("Đặt món thất bại.");
     }
   }
   function addToCart(food: MerchantMenuItem) {
@@ -63,10 +64,10 @@ export default function MerchantDetailPage() {
 
     try {
       await addWishlist(merchant.id);
-      alert("Đã thêm vào yêu thích.");
+      notify.success("Đã thêm vào yêu thích.");
     } catch (error) {
       console.error(error);
-      alert("Thêm wishlist thất bại.");
+      notify.error("Thêm wishlist thất bại.");
     }
   }
 
@@ -81,7 +82,7 @@ export default function MerchantDetailPage() {
         setMerchant(data);
       } catch (error) {
         console.error(error);
-        alert("Không tải được chi tiết quán.");
+        notify.error("Không tải được chi tiết quán.");
       } finally {
         setLoading(false);
       }

@@ -3,6 +3,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, CheckCircle2, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { notify } from "@/shared/lib/notify";
 import { BusinessInfoStep } from "../components/BusinessInfoStep";
 import { AddressLocationStep } from "../components/AddressLocationStep";
 import { MenuDetailsStep } from "../components/MenuDetailsStep";
@@ -234,7 +235,7 @@ export function MerchantOnboardingPage() {
       {
         onSuccess: () => {
           localStorage.removeItem(DRAFT_KEY);
-          alert("Đã gửi hồ sơ quán thành công.");
+          notify.success("Đã gửi hồ sơ quán thành công.");
           navigate("/merchant");
         },
       },

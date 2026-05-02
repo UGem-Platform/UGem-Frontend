@@ -4,6 +4,7 @@ import { createFood, getFoods } from "../services/foodService";
 import type { Food } from "../types";
 import { getCategories } from "@/shared/services/categoryService";
 import type { Category } from "@/shared/types";
+import { notify } from "@/shared/lib/notify";
 
 export function MerchantFoodsPage() {
   const [foods, setFoods] = useState<Food[]>([]);
@@ -33,7 +34,7 @@ export function MerchantFoodsPage() {
       setCategories(categoryData);
     } catch (error) {
       console.error(error);
-      alert("Không tải được dữ liệu món ăn.");
+      notify.error("Không tải được dữ liệu món ăn.");
     } finally {
       setLoading(false);
     }
@@ -49,12 +50,12 @@ export function MerchantFoodsPage() {
     event.preventDefault();
 
     if (!form.name.trim()) {
-      alert("Vui lòng nhập tên món.");
+      notify.error("Vui lòng nhập tên món.");
       return;
     }
 
     if (!form.merchantId.trim()) {
-      alert("Vui lòng nhập merchantId.");
+      notify.error("Vui lòng nhập merchantId.");
       return;
     }
 
@@ -71,7 +72,7 @@ export function MerchantFoodsPage() {
         categoryIds: form.categoryIds,
       });
 
-      alert("Tạo món thành công.");
+      notify.success("Tạo món thành công.");
 
       setForm({
         name: "",
@@ -85,7 +86,7 @@ export function MerchantFoodsPage() {
       await loadData();
     } catch (error) {
       console.error(error);
-      alert("Tạo món thất bại.");
+      notify.error("Tạo món thất bại.");
     } finally {
       setCreating(false);
     }
