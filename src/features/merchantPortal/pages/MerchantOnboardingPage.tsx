@@ -9,7 +9,6 @@ import {
   Store,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { notify } from "@/shared/lib/notify";
 import { BusinessInfoStep } from "../components/BusinessInfoStep";
 import { AddressLocationStep } from "../components/AddressLocationStep";
 import { MenuDetailsStep } from "../components/MenuDetailsStep";
@@ -193,11 +192,6 @@ export function MerchantOnboardingPage() {
       ...getDraftValues(),
     },
   });
-
-  // Show blocked UI when already approved
-  if (showBlockedUI) {
-    return <BlockedStateUI onNavigateToPortal={() => navigate("/merchant")} />;
-  }
 
   const {
     register,
