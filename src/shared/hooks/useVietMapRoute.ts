@@ -1,32 +1,22 @@
-/**
- * useVietMapRoute – hook quản lý geocode + tính route
- *
- * Cách dùng:
- *   const { geocode, route, routeResult, loading, error } = useVietMapRoute();
- *
- *   // Geocode địa chỉ text → tọa độ
- *   const results = await geocode("123 Nguyễn Huệ, TP.HCM");
- *
- *   // Tính route giữa 2 điểm
- *   await route({ lng: 106.675, lat: 10.759 }, { lng: 106.668, lat: 10.803 });
- *   // → routeResult.coordinates để truyền vào VietMapGL
- */
-import { useState, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   geocodeAddress,
+  getOsrmRoute,
   getRoute,
   type GeocodeResult,
-  type RouteResult,
   type LngLat,
+  type RouteResult,
 } from "@/shared/services/vietmapService";
+
+type RouteVehicle = "car" | "bike" | "foot" | "motorcycle";
 
 export function useVietMapRoute() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [routeResult, setRouteResult] = useState<RouteResult | null>(null);
   const [geocodeResults, setGeocodeResults] = useState<GeocodeResult[]>([]);
+  const routeSeqRef = useRef(0);
 
-  // ── Geocode ──
   const geocode = useCallback(async (text: string) => {
     if (!text.trim()) return [];
     setLoading(true);
@@ -44,33 +34,60 @@ export function useVietMapRoute() {
     }
   }, []);
 
-  // ── Route ──
   const route = useCallback(
     async (
       origin: LngLat,
       destination: LngLat,
-      vehicle: "car" | "bike" | "foot" = "car"
+      vehicle: RouteVehicle = "car",
     ) => {
+      const seq = ++routeSeqRef.current;
       setLoading(true);
       setError(null);
       try {
-        const result = await getRoute(origin, destination, vehicle);
-        setRouteResult(result);
-        return result;
+        const vehiclesToTry = Array.from(
+          new Set<RouteVehicle>([vehicle, "bike", "car", "foot"]),
+        );
+
+        for (const candidateVehicle of vehiclesToTry) {
+          try {
+            const result = await getRoute(
+              origin,
+              destination,
+              candidateVehicle,
+            );
+            if (seq === routeSeqRef.current) {
+              setRouteResult(result);
+            }
+            return result;
+          } catch (error) {
+            console.warn("VietMap route failed:", candidateVehicle, error);
+          }
+        }
+
+        const osrmResult = await getOsrmRoute(origin, destination);
+        if (seq === routeSeqRef.current) {
+          setRouteResult(osrmResult);
+        }
+        return osrmResult;
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Tính route thất bại";
-        setError(msg);
+        if (seq === routeSeqRef.current) {
+          setError(msg);
+        }
         return null;
       } finally {
-        setLoading(false);
+        if (seq === routeSeqRef.current) {
+          setLoading(false);
+        }
       }
     },
-    []
+    [],
   );
 
-  // ── Clear ──
   const clearRoute = useCallback(() => {
+    routeSeqRef.current += 1;
     setRouteResult(null);
+    setLoading(false);
   }, []);
 
   return {

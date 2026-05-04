@@ -10,13 +10,23 @@ import {
 
 const Form = FormProvider;
 
+const FormFieldContext = React.createContext<{
+  name?: FieldPath<FieldValues>;
+}>({});
+
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
-  return <Controller {...props} />;
+  return (
+    <FormFieldContext.Provider
+      value={{ name: props.name as FieldPath<FieldValues> }}
+    >
+      <Controller {...props} />
+    </FormFieldContext.Provider>
+  );
 };
 
 function FormItem({
@@ -34,11 +44,15 @@ function FormMessage({
   className = "",
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
+  const fieldContext = React.useContext(FormFieldContext);
   const {
-    formState: { errors },
+    formState,
+    getFieldState,
   } = useFormContext();
 
-  const error = Object.values(errors)[0];
+  const error = fieldContext.name
+    ? getFieldState(fieldContext.name, formState).error
+    : null;
   const message = typeof error?.message === "string" ? error.message : null;
 
   if (!message) return null;

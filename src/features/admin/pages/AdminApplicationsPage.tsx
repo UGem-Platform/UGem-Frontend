@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useStaffApplications } from "../hooks/useApplications";
 import { Link } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
+import { UserAccountMenu } from "@/shared/components";
 import { notify } from "@/shared/lib/notify";
 
 function formatDate(value?: string | null) {
@@ -47,9 +48,10 @@ export default function AdminApplicationsPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">Duyệt hồ sơ Merchant</h1>
-          <button
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
             onClick={handleRefresh}
             disabled={isRefetching}
             className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700 disabled:opacity-50"
@@ -60,7 +62,9 @@ export default function AdminApplicationsPage() {
               />
               {isRefetching ? "Đang tải..." : "Làm mới"}
             </>
-          </button>
+            </button>
+            <UserAccountMenu fallbackName="Staff" />
+          </div>
         </div>
 
         {isLoading ? (

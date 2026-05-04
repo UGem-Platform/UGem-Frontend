@@ -2,6 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import type { Application } from "../types";
 import { getStaffApplications } from "../services/applicationService";
 
+type ApiError = {
+  response?: {
+    status?: number;
+  };
+};
+
 export function useStaffApplications() {
   return useQuery<Application[]>({
     queryKey: ["admin", "applications", "pending"],
@@ -14,7 +20,7 @@ export function useStaffApplications() {
       return 5000; // 5s
     },
     retry: (failureCount, error) => {
-      const apiError = error as any;
+      const apiError = error as ApiError;
       if (apiError?.response?.status === 404) return false; // Don't retry 404
       return failureCount < 3;
     },

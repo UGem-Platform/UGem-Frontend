@@ -179,7 +179,7 @@ export function MenuDetailsStep({
                 <select {...register(`menu.${index}.category`)}>
                   <option value="">Chọn danh mục</option>
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
+                    <option key={category.id} value={category.name}>
                       {category.name}
                     </option>
                   ))}
@@ -213,6 +213,9 @@ export function MenuDetailsStep({
               </div>
               {uploadErrorsById[field.id] && (
                 <small>{uploadErrorsById[field.id]}</small>
+              )}
+              {errors.menu?.[index]?.imageUrl && (
+                <small>{errors.menu[index]?.imageUrl?.message}</small>
               )}
 
               {(() => {

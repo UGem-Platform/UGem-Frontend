@@ -1,6 +1,5 @@
 /**
- * VietMapGL – React wrapper sử dụng MapLibre GL JS
- * với VietMap style tiles
+ * VietMapGL – React wrapper sử dụng VietMap GL JS
  *
  * Tính năng:
  *  1. Hiển thị bản đồ VietMap
@@ -8,9 +7,10 @@
  *  3. Popup khi click marker
  *  4. Vẽ route / đường đi từ tọa độ
  */
-import { useEffect, useRef, useCallback } from "react";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { Navigation } from "lucide-react";
+import * as vietmapgl from "@vietmap/vietmap-gl-js/dist/vietmap-gl";
+import "@vietmap/vietmap-gl-js/dist/vietmap-gl.css";
 import {
   VIETMAP_STYLE_URL,
   HAS_VIETMAP_KEY,
@@ -48,6 +48,9 @@ export interface VietMapGLProps {
   routeCoordinates?: [number, number][];
   /** Màu đường route */
   routeColor?: string;
+  fitToMarkers?: boolean;
+  onLocateClick?: () => void;
+  locateLoading?: boolean;
   /** Class CSS cho container */
   className?: string;
 }
@@ -143,6 +146,14 @@ function isValidLngLat(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function isLngInRange(value: number) {
+  return value >= -180 && value <= 180;
+}
+
+function isLatInRange(value: number) {
+  return value >= -90 && value <= 90;
+}
+
 function normalizeCenter(value: unknown, fallback: number): number {
   return isValidLngLat(value) ? value : fallback;
 }
@@ -152,7 +163,9 @@ function isValidRoutePoint(value: unknown): value is [number, number] {
     Array.isArray(value) &&
     value.length === 2 &&
     isValidLngLat(value[0]) &&
-    isValidLngLat(value[1])
+    isValidLngLat(value[1]) &&
+    isLngInRange(value[0]) &&
+    isLatInRange(value[1])
   );
 }
 
@@ -167,20 +180,25 @@ export default function VietMapGL({
   onMarkerClick,
   routeCoordinates,
   routeColor = "#3b82f6",
+  fitToMarkers = false,
+  onLocateClick,
+  locateLoading = false,
   className = "h-full w-full",
 }: Readonly<VietMapGLProps>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapRef = useRef<vietmapgl.Map | null>(null);
   const markerMapRef = useRef<
-    Map<string, { marker: maplibregl.Marker; popup: maplibregl.Popup }>
+    Map<string, { marker: vietmapgl.Marker; popup: vietmapgl.Popup }>
   >(new Map());
   const routeReadyRef = useRef(false);
+  const routeFitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [routeOverlayPath, setRouteOverlayPath] = useState<string | null>(null);
 
   // ── 1. Khởi tạo map một lần ──────────────────────────────
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current || mapRef.current || !HAS_VIETMAP_KEY) return;
 
-    const map = new maplibregl.Map({
+    const map = new vietmapgl.Map({
       container: containerRef.current,
       style: VIETMAP_STYLE_URL,
       center: [
@@ -202,7 +220,7 @@ export default function VietMapGL({
       },
     });
 
-    map.addControl(new maplibregl.NavigationControl({}), "top-right");
+    map.addControl(new vietmapgl.NavigationControl({}), "top-right");
 
     mapRef.current = map;
     const markersById = markerMapRef.current;
@@ -210,6 +228,10 @@ export default function VietMapGL({
     return () => {
       markersById.forEach(({ marker }) => marker.remove());
       markersById.clear();
+      if (routeFitTimerRef.current) {
+        clearTimeout(routeFitTimerRef.current);
+        routeFitTimerRef.current = null;
+      }
       map.remove();
       mapRef.current = null;
       routeReadyRef.current = false;
@@ -234,13 +256,15 @@ export default function VietMapGL({
       // Xoá markers cũ
       markerMapRef.current.forEach(({ marker }) => marker.remove());
       markerMapRef.current.clear();
+      const visibleCoords: [number, number][] = [];
 
       for (const m of markers) {
         if (!isValidLngLat(m.lng) || !isValidLngLat(m.lat)) continue;
+        visibleCoords.push([m.lng, m.lat]);
 
         const el = createMarkerElement(m.type, m.color);
 
-        const popup = new maplibregl.Popup({
+        const popup = new vietmapgl.Popup({
           offset: m.type === "user" ? 14 : 32,
           closeButton: true,
           closeOnClick: false,
@@ -250,7 +274,7 @@ export default function VietMapGL({
             `<div style="font-weight:600;font-size:13px;padding:2px 4px">${m.id}</div>`,
         );
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new vietmapgl.Marker({ element: el })
           .setLngLat([m.lng, m.lat])
           .setPopup(popup)
           .addTo(map);
@@ -261,6 +285,35 @@ export default function VietMapGL({
 
         markerMapRef.current.set(m.id, { marker, popup });
       }
+
+      if (
+        fitToMarkers &&
+        visibleCoords.length > 0 &&
+        (!routeCoordinates || routeCoordinates.length < 2)
+      ) {
+        if (visibleCoords.length === 1) {
+          map.easeTo({
+            center: visibleCoords[0],
+            zoom: Math.max(map.getZoom(), 14),
+            duration: 700,
+          });
+          return;
+        }
+
+        try {
+          const bounds = visibleCoords.reduce(
+            (b, c) => b.extend(c),
+            new vietmapgl.LngLatBounds(visibleCoords[0], visibleCoords[0]),
+          );
+          map.fitBounds(bounds, {
+            padding: { top: 72, right: 64, bottom: 72, left: 64 },
+            maxZoom: 15,
+            duration: 800,
+          });
+        } catch (error) {
+          console.warn("Could not fit marker bounds:", error);
+        }
+      }
     };
 
     if (map.loaded()) {
@@ -268,28 +321,31 @@ export default function VietMapGL({
     } else {
       map.once("load", renderMarkers);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [markers]);
+  }, [fitToMarkers, markers, onMarkerClick, routeCoordinates]);
 
   // ── 4. Mở popup & fly to marker được chọn ────────────────
   useEffect(() => {
+    const hasRoute = (routeCoordinates?.length ?? 0) >= 2;
+
     markerMapRef.current.forEach(({ marker, popup }, id) => {
       if (id === selectedMarkerId) {
         const map = mapRef.current;
         if (map) {
           popup.addTo(map);
-          const { lng, lat } = marker.getLngLat();
-          map.flyTo({ center: [lng, lat], zoom: 16, duration: 700 });
+          if (!hasRoute) {
+            const { lng, lat } = marker.getLngLat();
+            map.flyTo({ center: [lng, lat], zoom: 16, duration: 700 });
+          }
         }
       } else {
         popup.remove();
       }
     });
-  }, [selectedMarkerId]);
+  }, [routeCoordinates, selectedMarkerId]);
 
   // ── 5. Vẽ / xoá route ────────────────────────────────────
   const applyRoute = useCallback(
-    (map: maplibregl.Map, coords: [number, number][]) => {
+    (map: vietmapgl.Map, coords: [number, number][]) => {
       const validCoords = coords.filter(isValidRoutePoint);
 
       // Xoá route cũ
@@ -319,8 +375,8 @@ export default function VietMapGL({
         layout: { "line-join": "round", "line-cap": "round" },
         paint: {
           "line-color": "#ffffff",
-          "line-width": 9,
-          "line-opacity": 0.6,
+          "line-width": 13,
+          "line-opacity": 0.85,
         },
       });
 
@@ -332,8 +388,8 @@ export default function VietMapGL({
         layout: { "line-join": "round", "line-cap": "round" },
         paint: {
           "line-color": routeColor,
-          "line-width": 5,
-          "line-opacity": 0.9,
+          "line-width": 7,
+          "line-opacity": 1,
         },
       });
 
@@ -341,9 +397,24 @@ export default function VietMapGL({
       try {
         const bounds = validCoords.reduce(
           (b, c) => b.extend(c),
-          new maplibregl.LngLatBounds(validCoords[0], validCoords[0]),
+          new vietmapgl.LngLatBounds(validCoords[0], validCoords[0]),
         );
-        map.fitBounds(bounds, { padding: 70, duration: 900 });
+        map.stop();
+        map.fitBounds(bounds, {
+          padding: { top: 120, right: 90, bottom: 120, left: 90 },
+          maxZoom: 15,
+          duration: 900,
+        });
+        if (routeFitTimerRef.current) {
+          clearTimeout(routeFitTimerRef.current);
+        }
+        routeFitTimerRef.current = setTimeout(() => {
+          map.fitBounds(bounds, {
+            padding: { top: 120, right: 90, bottom: 120, left: 90 },
+            maxZoom: 15,
+            duration: 0,
+          });
+        }, 950);
         routeReadyRef.current = true;
       } catch (e) {
         console.warn("Could not fit route bounds:", e);
@@ -365,5 +436,93 @@ export default function VietMapGL({
     }
   }, [routeCoordinates, applyRoute]);
 
-  return <div ref={containerRef} className={className} />;
+  const updateRouteOverlay = useCallback(() => {
+    const map = mapRef.current;
+    const validCoords = (routeCoordinates ?? []).filter(isValidRoutePoint);
+
+    if (!map || validCoords.length < 2) {
+      setRouteOverlayPath(null);
+      return;
+    }
+
+    const path = validCoords
+      .map((coord, index) => {
+        const point = map.project(coord);
+        return `${index === 0 ? "M" : "L"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+      })
+      .join(" ");
+
+    setRouteOverlayPath(path || null);
+  }, [routeCoordinates]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    updateRouteOverlay();
+    map.on("move", updateRouteOverlay);
+    map.on("resize", updateRouteOverlay);
+
+    return () => {
+      map.off("move", updateRouteOverlay);
+      map.off("resize", updateRouteOverlay);
+    };
+  }, [routeCoordinates, updateRouteOverlay]);
+
+  const handleLocateClick = useCallback(() => {
+    mapRef.current?.easeTo({
+      center: [centerLng, centerLat],
+      zoom: Math.max(mapRef.current?.getZoom() ?? zoom, 16),
+      duration: 600,
+    });
+    onLocateClick?.();
+  }, [centerLat, centerLng, onLocateClick, zoom]);
+
+  return (
+    <div ref={containerRef} className={`${className} relative`}>
+      {routeOverlayPath && (
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
+        >
+          <path
+            d={routeOverlayPath}
+            fill="none"
+            stroke="#ffffff"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.95"
+            strokeWidth="13"
+          />
+          <path
+            d={routeOverlayPath}
+            fill="none"
+            stroke={routeColor}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="7"
+          />
+        </svg>
+      )}
+      {onLocateClick && (
+        <button
+          type="button"
+          aria-label="Lấy vị trí hiện tại"
+          title="Lấy vị trí hiện tại"
+          onClick={handleLocateClick}
+          disabled={locateLoading}
+          className="absolute bottom-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-lg transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
+        >
+          <Navigation
+            className={`h-5 w-5 ${locateLoading ? "animate-pulse" : ""}`}
+          />
+        </button>
+      )}
+      {!HAS_VIETMAP_KEY && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-50 px-4 text-center text-sm font-semibold text-slate-500">
+          Chưa cấu hình VietMap API key
+        </div>
+      )}
+    </div>
+  );
 }
