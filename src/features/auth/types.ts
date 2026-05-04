@@ -9,6 +9,19 @@ export type LoginResponse = {
 
 export type RegisterRole = "Customer" | "Merchant";
 
+export type LoginRoleOption = RegisterRole | "Staff";
+
+export type GoogleLoginRequest = {
+  idToken: string;
+  role?: RegisterRole;
+};
+
+export type GoogleLoginResponse = LoginResponse & {
+  fullName?: string;
+  role?: string;
+  avatarUrl?: string | null;
+};
+
 export type RegisterRequest = {
   email: string;
   password: string;

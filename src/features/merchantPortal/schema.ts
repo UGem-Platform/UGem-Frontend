@@ -24,7 +24,7 @@ export const onboardingSchema = z.object({
     .refine((val) => val !== 0, "Vui lòng chọn vị trí trên bản đồ"),
 
   logoUploadDataUrl: z.string().optional(),
-  logoUrl: z.string().default(""),
+  logoUrl: z.string().min(1, "Vui lòng tải logo quán").default(""),
 
   menu: z
     .array(
@@ -35,7 +35,7 @@ export const onboardingSchema = z.object({
           .number()
           .positive("Giá phải lớn hơn 0")
           .min(1000, "Giá tối thiểu 1000đ"),
-        imageUrl: z.string().optional(),
+        imageUrl: z.string().min(1, "Vui lòng tải ảnh món"),
         imageUploadDataUrl: z.string().optional(),
         category: z.string().optional(),
       }),

@@ -24,14 +24,10 @@ import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import RouteErrorPage from "@/app/RouteErrorPage";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 
-function RootLayout() {
-  return <Outlet />;
-}
-
 const routers = createBrowserRouter([
   {
     path: "/",
-    element: <RootLayout />,
+    element: <Outlet />,
     errorElement: <RouteErrorPage />,
     children: [
       {

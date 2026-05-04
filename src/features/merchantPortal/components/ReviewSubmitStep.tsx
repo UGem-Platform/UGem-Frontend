@@ -40,7 +40,7 @@ export function ReviewSubmitStep({
             </div>
           ) : (
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-400 shadow-sm">
-              Trống
+              Chưa có logo
             </div>
           )}
           <div>

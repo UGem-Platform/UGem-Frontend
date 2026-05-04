@@ -1,6 +1,6 @@
 /**
  * NearbyMerchantsMap - ban do quan an gan ban
- * Su dung MapLibre GL + VietMap tiles/OSM fallback
+ * Su dung VietMap GL JS
  */
 import { useMemo } from "react";
 import VietMapGL, { type MapMarker } from "@/shared/components/VietMapGL";
@@ -15,9 +15,29 @@ type Props = Readonly<{
   onSelectMerchantId?: (id: string) => void;
   /** Toa do route [lng, lat][] de ve duong di */
   routeCoordinates?: [number, number][];
+  onLocateCustomer?: () => void;
+  locateLoading?: boolean;
 }>;
 
 type MerchantRecord = Record<string, unknown>;
+
+const USER_MARKER_ID = "__user-location";
+
+function formatDistance(distanceKm: number) {
+  if (distanceKm < 0.001) return "Ngay gần bạn";
+  if (distanceKm < 1) return `${Math.max(1, Math.round(distanceKm * 1000))} m`;
+  if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
+  return `${Math.round(distanceKm)} km`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 function getNumberField(record: MerchantRecord, keys: string[]) {
   for (const key of keys) {
@@ -54,37 +74,53 @@ export default function NearbyMerchantsMap({
   selectedMerchantId,
   onSelectMerchantId,
   routeCoordinates,
+  onLocateCustomer,
+  locateLoading,
 }: Props) {
   const markers = useMemo<MapMarker[]>(() => {
-    return merchants.flatMap((merchant) => {
+    const userMarker: MapMarker = {
+      id: USER_MARKER_ID,
+      lat: center.latitude,
+      lng: center.longitude,
+      type: "user",
+      popupHtml:
+        '<div style="font-weight:700;font-size:13px;padding:2px 4px">Vị trí của bạn</div>',
+    };
+
+    const merchantMarkers = merchants.flatMap((merchant) => {
       const coords = getMerchantCoords(merchant);
       if (!coords) return [];
 
-      const name = merchant.name || "Unnamed merchant";
+      const name = escapeHtml(merchant.name || "Unnamed merchant");
       const distanceText =
         typeof merchant.distance === "number" &&
         Number.isFinite(merchant.distance)
-          ? `<div style="color:#6b7280;font-size:12px;margin-top:2px">📏 ${merchant.distance.toFixed(1)} km</div>`
+          ? `<div style="color:#6b7280;font-size:12px;margin-top:2px">${formatDistance(merchant.distance)}</div>`
           : "";
+      const addressText = merchant.address
+        ? `<div style="font-size:12px;color:#374151;margin-top:3px">${escapeHtml(merchant.address)}</div>`
+        : "";
 
       return [
         {
           id: merchant.id,
           lat: coords.lat,
           lng: coords.lng,
-          type: "restaurant",
+          type: "restaurant" as const,
           popupHtml: `
             <div style="min-width:150px;padding:2px 0">
               <div style="font-weight:700;font-size:14px">${name}</div>
               ${distanceText}
-              ${merchant.address ? `<div style="font-size:12px;color:#374151;margin-top:3px">🏠 ${merchant.address}</div>` : ""}
-              <div style="margin-top:6px;font-size:11px;color:#3b82f6;font-weight:600">Click de xem duong di →</div>
+              ${addressText}
+              <div style="margin-top:6px;font-size:11px;color:#0891b2;font-weight:700">Bấm để xem đường đi</div>
             </div>
           `,
         },
       ];
     });
-  }, [merchants]);
+
+    return [userMarker, ...merchantMarkers];
+  }, [center.latitude, center.longitude, merchants]);
 
   return (
     <VietMapGL
@@ -94,10 +130,15 @@ export default function NearbyMerchantsMap({
       markers={markers}
       selectedMarkerId={selectedMerchantId}
       onMarkerClick={(markerId) => {
-        onSelectMerchantId?.(markerId);
+        if (markerId !== USER_MARKER_ID) {
+          onSelectMerchantId?.(markerId);
+        }
       }}
       routeCoordinates={routeCoordinates}
-      routeColor="#3b82f6"
+      routeColor="#e11d48"
+      fitToMarkers
+      onLocateClick={onLocateCustomer}
+      locateLoading={locateLoading}
       className="h-full w-full"
     />
   );

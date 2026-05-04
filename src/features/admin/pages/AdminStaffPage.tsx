@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { UserAccountMenu } from "@/shared/components";
 import { useStaffList } from "../hooks/useStaff";
 import type { Staff } from "../services/staffService";
 
@@ -8,7 +9,10 @@ export default function AdminStaffPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-5 text-2xl font-bold">Quản lý nhân viên</h1>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold">Quản lý nhân viên</h1>
+          <UserAccountMenu fallbackName="Staff" />
+        </div>
 
         {isLoading ? (
           <p>Đang tải...</p>

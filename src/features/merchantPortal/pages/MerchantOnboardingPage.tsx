@@ -28,6 +28,7 @@ import { useMyApplications } from "../hooks/useMyApplications";
 import { OnboardingSidebar } from "../../../shared/layouts/Merchants/OnboardingSidebar";
 import { OnboardingTopbar } from "../../../shared/layouts/Merchants/OnboardingTopbar";
 import { OnboardingStepper } from "../../../shared/layouts/Merchants/OnboardingStepper";
+import { notify } from "@/shared/lib/notify";
 
 const DRAFT_KEY = "ugem_merchant_application_draft";
 
@@ -203,6 +204,7 @@ export function MerchantOnboardingPage() {
     handleSubmit,
     formState: { errors },
   } = methods;
+  const watchedAddress = useWatch({ control, name: "address" });
   const watchedLat = useWatch({ control, name: "latitude" });
   const watchedLng = useWatch({ control, name: "longitude" });
 
@@ -228,6 +230,7 @@ export function MerchantOnboardingPage() {
         "mainDishType",
         "priceRange",
         "openingHours",
+        "logoUrl",
       ],
       2: ["address", "latitude", "longitude"],
       3: ["menu"],
@@ -274,6 +277,13 @@ export function MerchantOnboardingPage() {
       };
     });
 
+    const toastId = notify.loading(
+      isRejected ? "Đang gửi lại hồ sơ..." : "Đang gửi hồ sơ...",
+      {
+        description: "UGem đang chuyển hồ sơ của bạn đến staff xét duyệt.",
+      },
+    );
+
     submitMutation.mutate(
       {
         name: values.restaurantName,
@@ -296,15 +306,35 @@ export function MerchantOnboardingPage() {
       {
         onSuccess: () => {
           localStorage.removeItem(DRAFT_KEY);
-          alert(
+          notify.success(
             isRejected
-              ? "Đã gửi lại hồ sơ quán thành công."
-              : "Đã gửi hồ sơ quán thành công.",
+              ? "Đã gửi lại hồ sơ quán thành công"
+              : "Đã gửi hồ sơ quán thành công",
+            {
+              id: toastId,
+              description: "Bạn có thể theo dõi trạng thái xét duyệt trong Merchant Portal.",
+            },
           );
           navigate("/merchant");
         },
+        onError: (error) => {
+          notify.error(
+            isRejected ? "Gửi lại hồ sơ thất bại" : "Gửi hồ sơ thất bại",
+            {
+              id: toastId,
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Có lỗi xảy ra, vui lòng thử lại.",
+            },
+          );
+        },
       },
     );
+  }
+
+  function handleSubmitClick() {
+    void handleSubmit(onSubmit)();
   }
 
   return (
@@ -317,7 +347,7 @@ export function MerchantOnboardingPage() {
 
           <form
             className="onboarding-content"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={(event) => event.preventDefault()}
           >
             <div className="onboarding-form-area">
               <OnboardingStepper currentStep={currentStep} />
@@ -344,6 +374,7 @@ export function MerchantOnboardingPage() {
                   register={register}
                   errors={errors}
                   setValue={setValue}
+                  watchedAddress={watchedAddress}
                   watchedLat={watchedLat}
                   watchedLng={watchedLng}
                 />
@@ -392,9 +423,10 @@ export function MerchantOnboardingPage() {
                     </button>
                   ) : (
                     <button
-                      type="submit"
+                      type="button"
                       className="next-button"
                       disabled={submitMutation.isPending}
+                      onClick={handleSubmitClick}
                     >
                       {submitMutation.isPending
                         ? "Đang gửi..."

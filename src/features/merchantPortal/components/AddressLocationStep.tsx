@@ -5,13 +5,13 @@ import type {
   UseFormSetValue,
 } from "react-hook-form";
 import type { OnboardingFormValues } from "../schema";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import * as vietmapgl from "@vietmap/vietmap-gl-js/dist/vietmap-gl";
+import "@vietmap/vietmap-gl-js/dist/vietmap-gl.css";
 import {
   type GeocodeResult,
   geocodeAddress as vietmapGeocodeAddress,
+  reverseGeocode as vietmapReverseGeocode,
   VIETMAP_STYLE_URL,
-  OPENFREE_STYLE_URL,
   HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
   VIETMAP_API_KEY,
@@ -26,25 +26,35 @@ type Props = Readonly<{
   watchedLng?: number | null;
 }>;
 
-type ReverseGeoResult = {
-  display_name?: string;
-};
-
 const DEFAULT_CENTER: [number, number] = [106.660172, 10.762622]; // lng, lat
+const VIETNAM_BOUNDS = {
+  minLat: 8,
+  maxLat: 24,
+  minLng: 102,
+  maxLng: 110,
+};
+const GOOD_LOCATION_ACCURACY_METERS = 60;
+const MAX_ACCEPTED_LOCATION_ACCURACY_METERS = 150;
+const LOCATION_SAMPLE_TIMEOUT_MS = 12_000;
 
 export function AddressLocationStep({
   register,
   errors,
   setValue,
+  watchedAddress,
   watchedLat,
   watchedLng,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const mapRef = useRef<vietmapgl.Map | null>(null);
+  const markerRef = useRef<vietmapgl.Marker | null>(null);
+  const locateWatchRef = useRef<number | null>(null);
+  const locateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [geocoding, setGeocoding] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationError, setLocationError] = useState("");
   const [geocodeSuggestions, setGeocodeSuggestions] = useState<GeocodeResult[]>(
     [],
   );
@@ -75,17 +85,30 @@ export function AddressLocationStep({
     [],
   );
 
-  const getValidLocationCoords = useCallback(
-    (lat?: number | null, lng?: number | null): [number, number] | null => {
-      if (!isValidNumber(lat) || !isValidNumber(lng)) return null;
-      if (lat === 0 && lng === 0) return null;
-      return [lng, lat];
+  const isValidVietnamCoords = useCallback(
+    (lat: number | null | undefined, lng: number | null | undefined) => {
+      return (
+        isValidNumber(lat) &&
+        isValidNumber(lng) &&
+        lat >= VIETNAM_BOUNDS.minLat &&
+        lat <= VIETNAM_BOUNDS.maxLat &&
+        lng >= VIETNAM_BOUNDS.minLng &&
+        lng <= VIETNAM_BOUNDS.maxLng
+      );
     },
     [isValidNumber],
   );
 
+  const getValidLocationCoords = useCallback(
+    (lat?: number | null, lng?: number | null): [number, number] | null => {
+      if (!isValidVietnamCoords(lat, lng)) return null;
+      return [Number(lng), Number(lat)];
+    },
+    [isValidVietnamCoords],
+  );
+
   const placeMarker = useCallback(
-    (map: maplibregl.Map, coords: [number, number]) => {
+    (map: vietmapgl.Map, coords: [number, number]) => {
       const [lng, lat] = coords;
       if (!isValidNumber(lat) || !isValidNumber(lng)) {
         console.warn("placeMarker: invalid coords", coords);
@@ -95,7 +118,7 @@ export function AddressLocationStep({
       if (markerRef.current) {
         markerRef.current.setLngLat(coords);
       } else {
-        markerRef.current = new maplibregl.Marker({
+        markerRef.current = new vietmapgl.Marker({
           element: createMarkerElement(),
           anchor: "bottom",
         })
@@ -103,7 +126,7 @@ export function AddressLocationStep({
           .addTo(map);
       }
     },
-    [createMarkerElement],
+    [createMarkerElement, isValidNumber],
   );
 
   const syncMapToCoords = useCallback(
@@ -119,9 +142,10 @@ export function AddressLocationStep({
 
   const commitCoordinates = useCallback(
     (lat: number, lng: number) => {
-      if (!isValidNumber(lat) || !isValidNumber(lng)) {
+      if (!isValidVietnamCoords(lat, lng)) {
         console.warn("commitCoordinates: invalid", { lat, lng });
         setGeocodeStatus("error");
+        setLocationError("Toạ độ không hợp lệ. Hãy chọn vị trí nằm trong Việt Nam.");
         return;
       }
 
@@ -129,27 +153,42 @@ export function AddressLocationStep({
       setValue("longitude", lng, { shouldDirty: true, shouldValidate: true });
       syncMapToCoords(lat, lng);
       setGeocodeStatus("ok");
+      setLocationError("");
     },
-    [setValue, syncMapToCoords],
+    [isValidVietnamCoords, setValue, syncMapToCoords],
   );
+
+  const clearLocationWatch = useCallback(() => {
+    if (locateWatchRef.current !== null) {
+      navigator.geolocation.clearWatch(locateWatchRef.current);
+      locateWatchRef.current = null;
+    }
+
+    if (locateTimeoutRef.current) {
+      clearTimeout(locateTimeoutRef.current);
+      locateTimeoutRef.current = null;
+    }
+  }, []);
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     try {
-      const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2`;
-      const res = await fetch(url, {
-        headers: { "Accept-Language": "vi" },
-      });
-      const result: ReverseGeoResult = await res.json();
-
-      return result.display_name?.trim() || "";
+      return await vietmapReverseGeocode(lat, lng);
     } catch {
       return "";
     }
   }, []);
 
   const applyCoordinates = useCallback(
-    async (lat: number, lng: number) => {
+    async (
+      lat: number,
+      lng: number,
+      options?: { replaceAddress?: boolean },
+    ) => {
       commitCoordinates(lat, lng);
+
+      if (!options?.replaceAddress && watchedAddress?.trim()) {
+        return;
+      }
 
       const resolvedAddress = await reverseGeocode(lat, lng);
       if (resolvedAddress) {
@@ -159,50 +198,115 @@ export function AddressLocationStep({
         });
       }
     },
-    [commitCoordinates, reverseGeocode, setValue],
+    [commitCoordinates, reverseGeocode, setValue, watchedAddress],
   );
 
   const handleUseCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
+      setLocationError("Trình duyệt không hỗ trợ lấy vị trí hiện tại.");
       setGeocodeStatus("error");
       return;
     }
 
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = Number.parseFloat(position.coords.latitude.toFixed(7));
-        const lng = Number.parseFloat(position.coords.longitude.toFixed(7));
+    clearLocationWatch();
+    let bestPosition: GeolocationPosition | null = null;
+    let finished = false;
 
-        void applyCoordinates(lat, lng);
-        setLocating(false);
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      clearLocationWatch();
+      setLocating(false);
+
+      if (!bestPosition) {
+        setLocationError("Không lấy được vị trí hiện tại. Kiểm tra quyền truy cập vị trí của trình duyệt.");
+        setGeocodeStatus("error");
+        return;
+      }
+
+      const accuracy = bestPosition.coords.accuracy;
+      setLocationAccuracy(Math.round(accuracy));
+
+      if (accuracy > MAX_ACCEPTED_LOCATION_ACCURACY_METERS) {
+        setLocationError(
+          `Vị trí hiện tại chưa đủ chính xác (~${Math.round(
+            accuracy,
+          )}m). Hãy bật GPS/Location Services, tắt VPN hoặc thử trên điện thoại.`,
+        );
+        setGeocodeStatus("error");
+        return;
+      }
+
+      const lat = Number.parseFloat(bestPosition.coords.latitude.toFixed(7));
+      const lng = Number.parseFloat(bestPosition.coords.longitude.toFixed(7));
+
+      setLocationError("");
+      void applyCoordinates(lat, lng, { replaceAddress: true });
+    };
+
+    setLocating(true);
+    setLocationAccuracy(null);
+    setLocationError("");
+    setGeocodeStatus("idle");
+
+    locateWatchRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        if (
+          !bestPosition ||
+          position.coords.accuracy < bestPosition.coords.accuracy
+        ) {
+          bestPosition = position;
+          setLocationAccuracy(Math.round(position.coords.accuracy));
+        }
+
+        if (position.coords.accuracy <= GOOD_LOCATION_ACCURACY_METERS) {
+          finish();
+        }
       },
-      () => {
+      (error) => {
+        const hasCandidate = bestPosition !== null;
+        if (hasCandidate) {
+          finish();
+          return;
+        }
+
+        clearLocationWatch();
         setGeocodeStatus("error");
         setLocating(false);
+        setLocationError(
+          error.code === error.PERMISSION_DENIED
+            ? "Bạn cần cho phép trình duyệt truy cập vị trí hiện tại."
+            : "Không lấy được vị trí hiện tại. Hãy bật GPS/Location Services rồi thử lại.",
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 8000,
-        maximumAge: 60_000,
+        timeout: LOCATION_SAMPLE_TIMEOUT_MS,
+        maximumAge: 0,
       },
     );
-  }, [applyCoordinates]);
+
+    locateTimeoutRef.current = setTimeout(
+      finish,
+      LOCATION_SAMPLE_TIMEOUT_MS,
+    );
+  }, [applyCoordinates, clearLocationWatch]);
+
+  useEffect(() => {
+    return clearLocationWatch;
+  }, [clearLocationWatch]);
 
   // Init map
   useEffect(() => {
-    if (!mapContainer.current || mapRef.current) return;
+    if (!mapContainer.current || mapRef.current || !HAS_VIETMAP_KEY) return;
 
     const validLocationCoords = getValidLocationCoords(watchedLat, watchedLng);
     const initialCenter: [number, number] =
       validLocationCoords ?? DEFAULT_CENTER;
 
-    const initialStyle = HAS_VIETMAP_KEY
-      ? VIETMAP_STYLE_URL
-      : OPENFREE_STYLE_URL;
-    const map = new maplibregl.Map({
+    const map = new vietmapgl.Map({
       container: mapContainer.current,
-      style: initialStyle,
+      style: VIETMAP_STYLE_URL,
       center: initialCenter,
       zoom: validLocationCoords ? 15 : 12,
       transformRequest: (url) => {
@@ -217,25 +321,7 @@ export function AddressLocationStep({
       },
     });
 
-    map.addControl(new maplibregl.NavigationControl(), "top-right");
-    map.on("error", (event) => {
-      const message =
-        typeof event.error === "string"
-          ? event.error
-          : (event.error?.message ?? "");
-
-      if (
-        HAS_VIETMAP_KEY &&
-        initialStyle === VIETMAP_STYLE_URL &&
-        message.includes("Unable to parse the tile")
-      ) {
-        console.warn(
-          "VietMap tile parse failed, switching to OpenFreeMap style",
-          message,
-        );
-        map.setStyle(OPENFREE_STYLE_URL);
-      }
-    });
+    map.addControl(new vietmapgl.NavigationControl(), "top-right");
 
     map.on("click", (e) => {
       const { lng, lat } = e.lngLat;
@@ -329,11 +415,10 @@ export function AddressLocationStep({
 
   const handlePickSuggestion = useCallback(
     (suggestion: GeocodeResult) => {
+      setLocationError("");
+      setLocationAccuracy(null);
       const lat = Number(Number(suggestion.lat).toFixed(7));
       const lng = Number(Number(suggestion.lng).toFixed(7));
-
-      // Debug: log raw suggestion and normalized coords
-      console.log("geocode:pick", { suggestion, lat, lng });
 
       setGeocodeSuggestions([]);
       setGeocoding(false);
@@ -346,19 +431,20 @@ export function AddressLocationStep({
         },
       );
 
-      if (!isValidNumber(lat) || !isValidNumber(lng)) {
+      if (!isValidVietnamCoords(lat, lng)) {
         console.warn("handlePickSuggestion: invalid coords", {
           lat,
           lng,
           suggestion,
         });
         setGeocodeStatus("error");
+        setLocationError("Không lấy được toạ độ hợp lệ từ địa chỉ này.");
         return;
       }
 
       commitCoordinates(lat, lng);
     },
-    [commitCoordinates, setValue],
+    [commitCoordinates, isValidVietnamCoords, setValue],
   );
 
   function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -368,6 +454,8 @@ export function AddressLocationStep({
     const val = e.target.value;
     setGeocodeSuggestions([]);
     setGeocodeStatus("idle");
+    setLocationError("");
+    setLocationAccuracy(null);
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => geocodeAddress(val), 900);
   }
@@ -516,10 +604,29 @@ export function AddressLocationStep({
         )}
       </div>
 
+      {(locating || locationAccuracy !== null || locationError) && (
+        <div style={{ marginTop: 8 }}>
+          {locating && (
+            <small style={{ color: "#2563eb" }}>
+              Đang lấy vị trí chính xác nhất từ trình duyệt...
+            </small>
+          )}
+          {locationAccuracy !== null && !locationError && (
+            <small style={{ color: "#2563eb" }}>
+              Độ chính xác hiện tại: khoảng {locationAccuracy}m
+            </small>
+          )}
+          {locationError && (
+            <small style={{ color: "#ef4444" }}>{locationError}</small>
+          )}
+        </div>
+      )}
+
       {/* Map */}
       <div
         ref={mapContainer}
         style={{
+          position: "relative",
           width: "100%",
           height: 320,
           borderRadius: 12,
@@ -527,7 +634,27 @@ export function AddressLocationStep({
           border: "1px solid #e5e7eb",
           marginTop: 8,
         }}
-      />
+      >
+        {!HAS_VIETMAP_KEY && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 16,
+              background: "#f8fafc",
+              color: "#64748b",
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: "center",
+            }}
+          >
+            Chưa cấu hình VietMap API key
+          </div>
+        )}
+      </div>
       <p style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
         💡 Nhập địa chỉ để tự động định vị, hoặc click trực tiếp trên bản đồ để
         chọn vị trí chính xác

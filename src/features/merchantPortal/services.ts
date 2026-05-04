@@ -2,8 +2,44 @@ import { api } from "../../lib/axios";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
-function mapPayloadToRequest(payload: CreateApplicationPayload) {
+const APPLICATION_TYPE = "Merchant";
+
+function appendString(formData: FormData, key: string, value?: string | null) {
+  formData.append(key, value?.trim() ?? "");
+}
+
+function appendNumber(formData: FormData, key: string, value: number) {
+  formData.append(key, Number.isFinite(value) ? String(value) : "0");
+}
+
+function mapPayloadToFormData(payload: CreateApplicationPayload) {
+  const formData = new FormData();
+
+  appendString(formData, "Name", payload.name);
+  appendString(formData, "Description", payload.description);
+  appendString(formData, "Email", payload.email);
+  appendString(formData, "Phone", payload.phone);
+  appendString(formData, "LogoUrl", payload.logoUrl);
+  appendString(formData, "OpeningHours", payload.openingHours);
+  appendString(formData, "Address", payload.address);
+  appendNumber(formData, "Latitude", payload.latitude);
+  appendNumber(formData, "Longitude", payload.longitude);
+
+  payload.menu.forEach((menuItem, index) => {
+    const prefix = `Menu[${index}]`;
+    appendString(formData, `${prefix}.Name`, menuItem.name);
+    appendString(formData, `${prefix}.Description`, menuItem.description);
+    appendNumber(formData, `${prefix}.Price`, menuItem.price);
+    appendString(formData, `${prefix}.ImageUrl`, menuItem.imageUrl);
+    appendString(formData, `${prefix}.Category`, menuItem.category);
+  });
+
+  return formData;
+}
+
+function mapPayloadToJsonRequest(payload: CreateApplicationPayload) {
   return {
+    type: APPLICATION_TYPE,
     name: payload.name,
     description: payload.description,
     email: payload.email,
@@ -18,13 +54,13 @@ function mapPayloadToRequest(payload: CreateApplicationPayload) {
       description: m.description,
       price: m.price,
       imageUrl: m.imageUrl || "",
-      categoryIds: m.category ? [m.category] : [],
+      category: m.category || "",
     })),
   };
 }
 
 export async function createApplication(payload: CreateApplicationPayload) {
-  const requestBody = mapPayloadToRequest(payload);
+  const requestBody = mapPayloadToFormData(payload);
   const res = await api.post<ApiResponse<null>>("/applications", requestBody);
   return res.data;
 }
@@ -39,7 +75,7 @@ export async function resubmitApplication(
   applicationId: string,
   payload: CreateApplicationPayload,
 ) {
-  const requestBody = mapPayloadToRequest(payload);
+  const requestBody = mapPayloadToJsonRequest(payload);
   const res = await api.put<ApiResponse<null>>(
     `/applications/${applicationId}`,
     requestBody,

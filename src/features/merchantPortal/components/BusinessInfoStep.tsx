@@ -181,7 +181,7 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
           </div>
 
           <div className="space-y-2">
-            <span className="text-sm font-bold text-slate-800">Logo quán</span>
+            <span className="text-sm font-bold text-slate-800">Logo quán *</span>
             <div className="flex items-start gap-4">
               <div className="flex-1">
                 <div className="relative flex items-center gap-3">
@@ -210,6 +210,11 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
                 {logoUploadError && (
                   <small className="mt-1 block text-sm font-medium text-rose-600">
                     {logoUploadError}
+                  </small>
+                )}
+                {errors.logoUrl && (
+                  <small className="mt-1 block text-sm font-medium text-rose-600">
+                    {errors.logoUrl.message}
                   </small>
                 )}
               </div>

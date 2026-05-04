@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Store } from "lucide-react";
 import {
   getWishlist,
   removeWishlist,
@@ -87,8 +88,8 @@ export default function WishlistPage() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
-                          No image
+                        <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-cyan-100 via-sky-50 to-amber-100 text-cyan-800">
+                          <Store className="h-6 w-6" />
                         </div>
                       )}
                     </div>
