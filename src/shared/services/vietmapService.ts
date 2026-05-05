@@ -15,8 +15,15 @@ const HAS_VIETMAP_SERVICE_KEY =
   Boolean(VIETMAP_SERVICE_KEY) &&
   VIETMAP_SERVICE_KEY !== "YOUR_VIETMAP_API_KEY_HERE";
 
-/** Style URL VietMap Light map (SDK v6+). */
-export const VIETMAP_STYLE_URL = `https://maps.vietmap.vn/maps/styles/lm/style.json?apikey=${VIETMAP_API_KEY}`;
+const VIETMAP_STYLE_BASE = `https://maps.vietmap.vn/maps/styles`;
+
+/** Return a style URL for a given style name (e.g. 'lm', 'tm', 'tm2'). */
+export function getVietmapStyleUrl(styleName = "tm") {
+  return `${VIETMAP_STYLE_BASE}/${styleName}/style.json?apikey=${VIETMAP_API_KEY}`;
+}
+
+// Default style URL (legacy export)
+export const VIETMAP_STYLE_URL = getVietmapStyleUrl();
 
 export {
   HAS_VIETMAP_KEY,
@@ -26,6 +33,29 @@ export {
   VIETMAP_SERVICE_KEY,
 };
 
+// Debug: print masked runtime env info in development to help troubleshooting
+if ((import.meta as any).env && (import.meta as any).env.DEV) {
+  try {
+    const mask = (s: string) => (s ? `${s.slice(0, 6)}…` : "(empty)");
+    // eslint-disable-next-line no-console
+    console.debug("[vietmapService] VIETMAP_API_KEY:", mask(VIETMAP_API_KEY));
+    // eslint-disable-next-line no-console
+    console.debug("[vietmapService] VIETMAP_TILE_KEY:", mask(VIETMAP_TILE_KEY));
+    // eslint-disable-next-line no-console
+    console.debug(
+      "[vietmapService] VIETMAP_SERVICE_KEY:",
+      mask(VIETMAP_SERVICE_KEY),
+    );
+    // eslint-disable-next-line no-console
+    console.debug(
+      "[vietmapService] HAS_VIETMAP_KEY, HAS_VIETMAP_SERVICE_KEY:",
+      HAS_VIETMAP_KEY,
+      HAS_VIETMAP_SERVICE_KEY,
+    );
+  } catch (e) {
+    /* ignore */
+  }
+}
 // ─── Types ────────────────────────────────────────────────────
 
 export type LngLat = { lng: number; lat: number };
@@ -94,7 +124,10 @@ export async function geocodeAddress(
   url.searchParams.set("text", text);
   url.searchParams.set("size", String(size));
   if (opts.proximity) {
-    url.searchParams.set("focus", `${opts.proximity.lat},${opts.proximity.lng}`);
+    url.searchParams.set(
+      "focus",
+      `${opts.proximity.lat},${opts.proximity.lng}`,
+    );
   }
 
   const res = await fetch(url.toString());
@@ -131,9 +164,7 @@ export async function geocodeAddress(
           getText(r.name) ||
           getText(r.address),
         address:
-          getText(place?.address) ||
-          getText(r.address) ||
-          getText(r.display),
+          getText(place?.address) || getText(r.address) || getText(r.display),
         lat: hasDirectCoords ? directLat : Number(place?.lat ?? Number.NaN),
         lng: hasDirectCoords ? directLng : Number(place?.lng ?? Number.NaN),
       };
@@ -328,10 +359,13 @@ function formatOsrmInstruction(step: OsrmStep) {
   if (type === "arrive") return "Đến nơi";
   if (type === "depart") return road ? `Bắt đầu đi theo ${road}` : "Bắt đầu";
   if (type === "turn") {
-    if (modifier.includes("left")) return road ? `Rẽ trái vào ${road}` : "Rẽ trái";
-    if (modifier.includes("right")) return road ? `Rẽ phải vào ${road}` : "Rẽ phải";
+    if (modifier.includes("left"))
+      return road ? `Rẽ trái vào ${road}` : "Rẽ trái";
+    if (modifier.includes("right"))
+      return road ? `Rẽ phải vào ${road}` : "Rẽ phải";
   }
-  if (type === "roundabout") return road ? `Vào vòng xoay theo ${road}` : "Vào vòng xoay";
+  if (type === "roundabout")
+    return road ? `Vào vòng xoay theo ${road}` : "Vào vòng xoay";
   if (type === "merge") return road ? `Nhập làn vào ${road}` : "Nhập làn";
 
   return road ? `Đi tiếp theo ${road}` : "Đi tiếp";
@@ -368,7 +402,9 @@ export async function getOsrmRoute(
     .map((item) => Object.values(item).map(Number))
     .filter(
       (item): item is [number, number] =>
-        item.length >= 2 && Number.isFinite(item[0]) && Number.isFinite(item[1]),
+        item.length >= 2 &&
+        Number.isFinite(item[0]) &&
+        Number.isFinite(item[1]),
     )
     .map(([lng, lat]) => [lng, lat] as [number, number]);
 
