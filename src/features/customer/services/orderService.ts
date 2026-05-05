@@ -28,7 +28,6 @@ export async function createOrder(payload: {
   return res.data;
 }
 
-// Ở đây, chúng ta cần xử lý cả hai trường hợp: khi API trả về một mảng trực tiếp và khi API trả về một đối tượng có cấu trúc { success: boolean, data: T }.
 export async function getCustomerOrders() {
   const res = await api.get<
     ApiResponse<CustomerOrderSummary[]> | CustomerOrderSummary[]
