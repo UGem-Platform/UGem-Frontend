@@ -2,7 +2,7 @@
  * NearbyMerchantsMap - ban do quan an gan ban
  * Su dung VietMap GL JS
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import VietMapGL, { type MapMarker } from "@/shared/components/VietMapGL";
 import type { Merchant } from "../types";
 

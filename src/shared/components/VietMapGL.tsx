@@ -53,6 +53,7 @@ export interface VietMapGLProps {
   fitToMarkers?: boolean;
   onLocateClick?: () => void;
   locateLoading?: boolean;
+  editableUserMarker?: boolean;
   onUserMarkerDrag?: (lng: number, lat: number) => void;
   /** Class CSS cho container */
   className?: string;
