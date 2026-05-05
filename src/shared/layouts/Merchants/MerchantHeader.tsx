@@ -1,4 +1,5 @@
 import { clearAuth, getCurrentUser } from "../../../features/auth";
+import { notify } from "../../lib/notify";
 
 export function MerchantHeader() {
   const user = getCurrentUser();
@@ -6,8 +7,10 @@ export function MerchantHeader() {
   const email = user?.Email || "merchant@gmail.com";
 
   function handleLogout() {
-    clearAuth();
-    window.location.href = "/login";
+    notify.confirmLogout(() => {
+      clearAuth();
+      window.location.href = "/login";
+    });
   }
 
   return (
