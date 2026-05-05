@@ -19,6 +19,7 @@ type MerchantListApiPayload =
   | MerchantListResponse
   | ApiResponse<MerchantListResponse>;
 type MerchantRecord = Record<string, unknown>;
+const MAX_NEARBY_DISTANCE_KM = 15;
 
 function unwrapApiData<T>(payload: T | ApiResponse<T>): T {
   if (
@@ -47,7 +48,10 @@ function unwrapMerchantList(payload: MerchantListApiPayload) {
   return [];
 }
 
-function extractDescriptionField(description: string | undefined, label: string) {
+function extractDescriptionField(
+  description: string | undefined,
+  label: string,
+) {
   if (!description) return "";
   const prefix = `${label}:`;
   return (
@@ -119,12 +123,7 @@ function attachClientDistance(
 
   return {
     ...merchant,
-    distance: calculateDistanceKm(
-      latitude,
-      longitude,
-      coords.lat,
-      coords.lng,
-    ),
+    distance: calculateDistanceKm(latitude, longitude, coords.lat, coords.lng),
   };
 }
 
@@ -136,7 +135,9 @@ function merchantMatchesKeyword(merchant: Merchant, keyword: string) {
     merchant.name,
     merchant.description,
     merchant.address,
-    merchant.menu?.map((item) => `${item.name} ${item.description ?? ""}`).join(" "),
+    merchant.menu
+      ?.map((item) => `${item.name} ${item.description ?? ""}`)
+      .join(" "),
   ]
     .filter(Boolean)
     .join(" ")
@@ -208,15 +209,18 @@ export async function getNearbyMerchants(params: {
   );
 
   return ids
-    .map((id) =>
-      mergeMerchantData(
-        summaryById.get(id)!,
-        detailById.get(id),
-      ),
+    .map((id) => mergeMerchantData(summaryById.get(id)!, detailById.get(id)))
+    .filter((merchant) =>
+      merchantMatchesKeyword(merchant, params.keyword ?? ""),
     )
-    .filter((merchant) => merchantMatchesKeyword(merchant, params.keyword ?? ""))
     .map((merchant) =>
       attachClientDistance(merchant, params.latitude, params.longitude),
+    )
+    .filter(
+      (merchant) =>
+        typeof merchant.distance === "number" &&
+        Number.isFinite(merchant.distance) &&
+        merchant.distance <= MAX_NEARBY_DISTANCE_KM,
     )
     .sort((a, b) => {
       const distanceA =
