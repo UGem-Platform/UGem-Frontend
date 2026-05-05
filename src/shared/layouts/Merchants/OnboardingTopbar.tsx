@@ -1,12 +1,15 @@
 import { Bell } from "lucide-react";
 import { clearAuth, getCurrentUser } from "../../../features/auth";
+import { notify } from "../../lib/notify";
 
 export function OnboardingTopbar() {
   const user = getCurrentUser();
 
   function logout() {
-    clearAuth();
-    window.location.href = "/login";
+    notify.confirmLogout(() => {
+      clearAuth();
+      window.location.href = "/login";
+    });
   }
 
   return (

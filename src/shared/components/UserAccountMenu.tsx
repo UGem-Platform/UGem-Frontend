@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { clearAuth, getCurrentUser } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
+import { notify } from "@/shared/lib/notify";
 
 type UserAccountMenuProps = {
   fallbackName: string;
@@ -28,8 +29,10 @@ export function UserAccountMenu({
   const initial = (displayName || email || "U").trim().charAt(0).toUpperCase();
 
   function handleLogout() {
-    clearAuth();
-    window.location.href = "/login";
+    notify.confirmLogout(() => {
+      clearAuth();
+      window.location.href = "/login";
+    });
   }
 
   return (
