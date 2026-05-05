@@ -11,7 +11,6 @@ import {
   type GeocodeResult,
   geocodeAddress as vietmapGeocodeAddress,
   reverseGeocode as vietmapReverseGeocode,
-  VIETMAP_STYLE_URL,
   HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
   VIETMAP_API_KEY,
@@ -145,7 +144,9 @@ export function AddressLocationStep({
       if (!isValidVietnamCoords(lat, lng)) {
         console.warn("commitCoordinates: invalid", { lat, lng });
         setGeocodeStatus("error");
-        setLocationError("Toạ độ không hợp lệ. Hãy chọn vị trí nằm trong Việt Nam.");
+        setLocationError(
+          "Toạ độ không hợp lệ. Hãy chọn vị trí nằm trong Việt Nam.",
+        );
         return;
       }
 
@@ -219,7 +220,9 @@ export function AddressLocationStep({
       setLocating(false);
 
       if (!bestPosition) {
-        setLocationError("Không lấy được vị trí hiện tại. Kiểm tra quyền truy cập vị trí của trình duyệt.");
+        setLocationError(
+          "Không lấy được vị trí hiện tại. Kiểm tra quyền truy cập vị trí của trình duyệt.",
+        );
         setGeocodeStatus("error");
         return;
       }
@@ -286,10 +289,7 @@ export function AddressLocationStep({
       },
     );
 
-    locateTimeoutRef.current = setTimeout(
-      finish,
-      LOCATION_SAMPLE_TIMEOUT_MS,
-    );
+    locateTimeoutRef.current = setTimeout(finish, LOCATION_SAMPLE_TIMEOUT_MS);
   }, [applyCoordinates, clearLocationWatch]);
 
   useEffect(() => {
@@ -304,9 +304,12 @@ export function AddressLocationStep({
     const initialCenter: [number, number] =
       validLocationCoords ?? DEFAULT_CENTER;
 
+    // Use 'tm' (topographic) style - better visuals than 'lm'
+    const styleUrl = `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${VIETMAP_API_KEY}`;
+
     const map = new vietmapgl.Map({
       container: mapContainer.current,
-      style: VIETMAP_STYLE_URL,
+      style: styleUrl,
       center: initialCenter,
       zoom: validLocationCoords ? 15 : 12,
       transformRequest: (url) => {
