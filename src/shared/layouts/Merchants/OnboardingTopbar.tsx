@@ -1,5 +1,5 @@
-import { Bell } from "lucide-react";
 import { clearAuth, getCurrentUser } from "../../../features/auth";
+import { NotificationBellMenu } from "../../components/NotificationBellMenu";
 import { notify } from "../../lib/notify";
 
 export function OnboardingTopbar() {
@@ -21,7 +21,7 @@ export function OnboardingTopbar() {
       </nav>
 
       <div className="onboarding-user">
-        <Bell size={18} />
+        <NotificationBellMenu />
         <div className="onboarding-avatar">
           {(user?.Email || "M").charAt(0).toUpperCase()}
         </div>

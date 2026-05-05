@@ -1,4 +1,5 @@
 import { clearAuth, getCurrentUser } from "../../../features/auth";
+import { NotificationBellMenu } from "../../components/NotificationBellMenu";
 import { notify } from "../../lib/notify";
 
 export function MerchantHeader() {
@@ -20,6 +21,8 @@ export function MerchantHeader() {
       </div>
 
       <div className="merchant-user">
+        <NotificationBellMenu />
+
         <div>
           <strong>Xin chào, {displayName}</strong>
           <span>{email}</span>

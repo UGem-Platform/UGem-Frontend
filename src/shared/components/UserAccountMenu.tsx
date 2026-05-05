@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { clearAuth, getCurrentUser } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
+import { NotificationBellMenu } from "@/shared/components/NotificationBellMenu";
 import { notify } from "@/shared/lib/notify";
 
 type UserAccountMenuProps = {
@@ -42,6 +43,8 @@ export function UserAccountMenu({
         className,
       )}
     >
+      <NotificationBellMenu />
+
       <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-800">
         {initial}
       </div>

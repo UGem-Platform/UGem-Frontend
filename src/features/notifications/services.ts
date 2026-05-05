@@ -13,6 +13,7 @@ export type NotificationItem = {
   content?: string;
   createdAt?: string;
   type?: "info" | "success" | "warning" | "error";
+  isRead?: boolean;
 };
 
 export async function getNotifications() {
