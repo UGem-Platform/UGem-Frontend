@@ -12,14 +12,9 @@ import {
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
-import type { LoginRoleOption } from "../types";
 
-type Props = {
-  selectedRole: LoginRoleOption;
-};
-
-export function LoginForm({ selectedRole }: Props) {
-  const loginMutation = useLogin(selectedRole);
+export function LoginForm() {
+  const loginMutation = useLogin();
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),

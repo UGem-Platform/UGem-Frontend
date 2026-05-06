@@ -10,7 +10,6 @@ type ApiResponse<T> = {
 export async function getStaffApplications() {
   const res = await api.get<ApiResponse<Application[]>>("/applications", {
     params: {
-      status: "Pending",
       pageIndex: 0,
       pageSize: 100,
     },

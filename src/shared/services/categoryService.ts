@@ -13,3 +13,17 @@ export async function getChildCategories(parentId: string) {
 
   return data.data ?? [];
 }
+
+export async function createCategory(payload: {
+  name: string;
+  description: string;
+  parentId?: string | null;
+}) {
+  const { data } = await api.post<ApiResponse<Category>>("/categories", {
+    name: payload.name,
+    description: payload.description,
+    parentId: payload.parentId ?? null,
+  });
+
+  return data.data;
+}

@@ -49,7 +49,9 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
   useEffect(() => {
     if (!open) return;
 
-    void loadNotifications();
+    queueMicrotask(() => {
+      void loadNotifications();
+    });
   }, [open]);
 
   return (

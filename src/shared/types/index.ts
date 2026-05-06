@@ -19,6 +19,7 @@ export type JwtPayload = {
   Name?: string;
   Role?: UserRole;
   CustomerId?: string;
+  MerchantId?: string;
   exp?: number;
 };
 
@@ -56,7 +57,7 @@ export type CreateFoodRequest = {
   description: string;
   price: number;
   imageUrl: string;
-  merchantId: string;
+  merchantId?: string;
   isAvailable: boolean;
   categoryIds: string[];
 };

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { getCurrentUser } from "@/features/auth";
 import type { Application } from "../types";
 import { getStaffApplications } from "../services/applicationService";
 
@@ -8,22 +9,23 @@ type ApiError = {
   };
 };
 
+export function getApplicationsQueryKey(role?: string) {
+  return ["applications", role?.toLowerCase() ?? "unknown"] as const;
+}
+
 export function useStaffApplications() {
+  const currentUserRole = getCurrentUser()?.Role;
+
   return useQuery<Application[]>({
-    queryKey: ["admin", "applications", "pending"],
+    queryKey: getApplicationsQueryKey(currentUserRole),
     queryFn: getStaffApplications,
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      const error = query.state.error;
-      // Stop polling on error or empty data
-      if (error || !data || data.length === 0) return false;
-      return 5000; // 5s
-    },
     retry: (failureCount, error) => {
       const apiError = error as ApiError;
       if (apiError?.response?.status === 404) return false; // Don't retry 404
       return failureCount < 3;
     },
-    staleTime: 1000 * 30, // 30s
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60,
   });
 }

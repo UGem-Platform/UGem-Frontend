@@ -61,6 +61,13 @@ export type MerchantApplication = {
   id: string;
   name: string;
   description: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  logoUrl?: string;
+  openingHours?: string;
+  latitude?: number;
+  longitude?: number;
   type?: string;
   status: ApplicationStatus;
   createdAt?: string;
@@ -99,7 +106,7 @@ export type CreateFoodPayload = {
   description: string;
   price: number;
   imageUrl: string;
-  merchantId: string;
+  merchantId?: string;
   isAvailable: boolean;
   categoryIds: string[];
 };

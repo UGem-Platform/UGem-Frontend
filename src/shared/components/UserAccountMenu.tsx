@@ -1,10 +1,13 @@
-import { LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { LogOut, UserRound } from "lucide-react";
 
 import { clearAuth, getCurrentUser } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import { NotificationBellMenu } from "@/shared/components/NotificationBellMenu";
 import { notify } from "@/shared/lib/notify";
+import { getUserProfile, type UserProfile } from "@/shared/services";
 
 type UserAccountMenuProps = {
   fallbackName: string;
@@ -24,10 +27,41 @@ export function UserAccountMenu({
   className,
 }: UserAccountMenuProps) {
   const user = getCurrentUser();
-  const displayName = user?.Name || fallbackName;
-  const email = user?.Email || "";
-  const roleLabel = getRoleLabel(user?.Role);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const displayName =
+    profile?.fullName || profile?.name || user?.Name || fallbackName;
+  const email = profile?.email || user?.Email || "";
+  const roleLabel = getRoleLabel(profile?.role || user?.Role);
   const initial = (displayName || email || "U").trim().charAt(0).toUpperCase();
+
+  useEffect(() => {
+    let active = true;
+
+    const loadProfile = async () => {
+      try {
+        const data = await getUserProfile();
+
+        if (active) {
+          setProfile(data ?? null);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void loadProfile();
+
+    const handleProfileUpdated = () => {
+      void loadProfile();
+    };
+
+    window.addEventListener("ugem:profile-updated", handleProfileUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("ugem:profile-updated", handleProfileUpdated);
+    };
+  }, []);
 
   function handleLogout() {
     notify.confirmLogout(() => {
@@ -64,6 +98,21 @@ export function UserAccountMenu({
           <p className="truncate text-xs text-slate-500">{email}</p>
         ) : null}
       </div>
+
+      {user?.Role === "Staff" ? (
+        <Button
+          asChild
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 text-xs"
+        >
+          <Link to="/staff/profile">
+            <UserRound className="h-3.5 w-3.5" />
+            Profile
+          </Link>
+        </Button>
+      ) : null}
 
       <Button
         type="button"

@@ -21,6 +21,7 @@ import type { Merchant } from "../types";
 import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";
 import {
   geocodeAddress,
+  type GeocodeResult,
   metersToKm,
   secondsToText,
   type GeocodeResult,
@@ -31,6 +32,8 @@ type LocationResult = {
   coords: Coords;
   usedDefault: boolean;
   accuracy?: number;
+  errorCode?: number;
+  errorMessage?: string;
 };
 type MerchantRecord = Record<string, unknown>;
 type LocationMode = "browser" | "manual" | "default";
@@ -55,6 +58,7 @@ function resolveLocation(): Promise<LocationResult> {
     let settled = false;
     let watchId: number | null = null;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let lastError: GeolocationPositionError | null = null;
 
     const finish = (fallbackToDefault = false) => {
       if (settled) return;
@@ -63,10 +67,12 @@ function resolveLocation(): Promise<LocationResult> {
       if (timeoutId) clearTimeout(timeoutId);
 
       if (fallbackToDefault || !bestPosition) {
-        console.debug(
-          "[resolveLocation] Using DEFAULT_COORDS (no position available)",
-        );
-        resolve({ coords: DEFAULT_COORDS, usedDefault: true });
+        resolve({
+          coords: DEFAULT_COORDS,
+          usedDefault: true,
+          errorCode: lastError?.code,
+          errorMessage: lastError?.message,
+        });
         return;
       }
 
@@ -111,10 +117,8 @@ function resolveLocation(): Promise<LocationResult> {
           finish();
         }
       },
-      () => {
-        console.debug(
-          "[resolveLocation] ❌ watchPosition error - finishing with fallback",
-        );
+      (error) => {
+        lastError = error;
         finish(bestPosition === null);
       },
       {
@@ -156,6 +160,22 @@ function getNumberField(record: MerchantRecord, keys: string[]) {
   }
 
   return null;
+}
+
+function getLocationErrorMessage(result: LocationResult) {
+  if (result.errorCode === 1) {
+    return "Không lấy được vị trí hiện tại vì trình duyệt đang chặn quyền Location. Hãy Allow Location rồi reload trang.";
+  }
+
+  if (result.errorCode === 2) {
+    return "Thiết bị chưa trả được vị trí hiện tại. Hãy bật GPS/Location Services rồi thử lại.";
+  }
+
+  if (result.errorCode === 3) {
+    return "Lấy vị trí hiện tại bị timeout. Hãy bật GPS/Location Services hoặc thử lại sau vài giây.";
+  }
+
+  return "Không lấy được vị trí hiện tại. Hãy kiểm tra quyền Location.";
 }
 
 function getMerchantCoords(
@@ -211,6 +231,12 @@ export default function CustomerHomePage() {
   const [hasCustomerLocation, setHasCustomerLocation] = useState(false);
   const [locationMode, setLocationMode] = useState<LocationMode>("default");
   const [originInput, setOriginInput] = useState("");
+  const [appliedOriginInput, setAppliedOriginInput] = useState("");
+  const [originSuggestions, setOriginSuggestions] = useState<GeocodeResult[]>(
+    [],
+  );
+  const [originSuggestionsOpen, setOriginSuggestionsOpen] = useState(false);
+  const [originSuggesting, setOriginSuggesting] = useState(false);
   const [originResolving, setOriginResolving] = useState(false);
   const [geocodeCandidates, setGeocodeCandidates] = useState<GeocodeResult[]>(
     [],
@@ -313,12 +339,68 @@ export default function CustomerHomePage() {
   );
 
   useEffect(() => {
+    const text = originInput.trim();
+    let active = true;
+
+    const timeoutId = setTimeout(async () => {
+      if (text.length < 3 || text === appliedOriginInput.trim()) {
+        setOriginSuggestions([]);
+        setOriginSuggestionsOpen(false);
+        setOriginSuggesting(false);
+        return;
+      }
+
+      setOriginSuggesting(true);
+
+      try {
+        const results = await geocodeAddress(text, {
+          proximity: { lat: coords.latitude, lng: coords.longitude },
+          size: 6,
+        });
+
+        if (!active) return;
+
+        setOriginSuggestions(results);
+        setOriginSuggestionsOpen(true);
+      } catch (error) {
+        console.error(error);
+
+        if (active) {
+          setOriginSuggestions([]);
+          setOriginSuggestionsOpen(true);
+        }
+      } finally {
+        if (active) {
+          setOriginSuggesting(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [appliedOriginInput, coords.latitude, coords.longitude, originInput]);
+
+  useEffect(() => {
     (async () => {
-      const defaultCoords = DEFAULT_COORDS;
-      if (isMobile) {
-        // On mobile, try to auto-resolve location for better UX
-        console.debug(
-          "[CustomerHomePage init] Mobile detected - attempting resolveLocation()",
+      const result = await resolveLocation();
+      setCoords(result.coords);
+      setHasCustomerLocation(!result.usedDefault);
+      setLocationMode(result.usedDefault ? "default" : "browser");
+      setLocationAccuracy(
+        typeof result.accuracy === "number"
+          ? Math.round(result.accuracy)
+          : null,
+      );
+
+      if (result.usedDefault) {
+        setLocationError(`${getLocationErrorMessage(result)} Đang dùng vị trí mặc định.`);
+      } else if (result.accuracy && result.accuracy > 150) {
+        setLocationError(
+          `Vị trí hiện tại chưa thật chính xác (~${Math.round(
+            result.accuracy,
+          )}m). Nếu thấy sai, hãy bật GPS/Location Services rồi tải lại trang.`,
         );
         try {
           const result = await resolveLocation();
@@ -532,15 +614,7 @@ export default function CustomerHomePage() {
       );
 
       if (result.usedDefault) {
-        console.warn(
-          "[handleRefreshCustomerLocation] ⚠️ Got default coords - geolocation failed completely",
-        );
-        notify.error(
-          "Không lấy được vị trí. Vui lòng nhập địa chỉ để tìm quán.",
-        );
-        setLocationError(
-          "❌ Vị trí hiện tại không khả dụng - hãy nhập địa chỉ thủ công",
-        );
+        notify.error(getLocationErrorMessage(result));
         return;
       }
 
@@ -558,40 +632,41 @@ export default function CustomerHomePage() {
           : null,
       );
       setOriginInput("");
-      setLocationError(
-        result.accuracy && result.accuracy > 500
-          ? `⚠️ Vị trí có thể không chính xác (~${Math.round(result.accuracy)}m). Kéo chấm trên bản đồ nếu cần, sau đó bấm 'Xác nhận vị trí'.`
-          : "Vị trí đã tìm thấy. Vui lòng xác nhận vị trí trên bản đồ hoặc bấm 'Xác nhận vị trí'.",
-      );
-
-      // Save recent origin as 'Vị trí hiện tại' label
-      try {
-        const label = `Vị trí hiện tại (${result.coords.latitude.toFixed(5)}, ${result.coords.longitude.toFixed(5)})`;
-        const next = [label, ...recentOrigins.filter((r) => r !== label)].slice(
-          0,
-          6,
-        );
-        setRecentOrigins(next);
-        localStorage.setItem(RECENT_ORIGINS_KEY, JSON.stringify(next));
-      } catch (e) {
-        console.warn(
-          "[handleRefreshCustomerLocation] Could not save recent origin:",
-          e,
-        );
-      }
-
-      notify.success("✅ Đã cập nhật vị trí");
-    } catch (error) {
-      console.error(
-        "[handleRefreshCustomerLocation] ❌ Unexpected error:",
-        error,
-      );
-      notify.error("Lỗi khi lấy vị trí: " + String(error));
+      setAppliedOriginInput("");
+      setOriginSuggestions([]);
+      setOriginSuggestionsOpen(false);
+      setLocationError("");
+      await applyCustomerOrigin(result.coords, "browser", result.accuracy);
     } finally {
       console.debug(
         "[handleRefreshCustomerLocation] END (locatingCustomer = false)",
       );
       setLocatingCustomer(false);
+    }
+  }
+
+  async function applyOriginSuggestion(suggestion: GeocodeResult) {
+    const label = suggestion.display || suggestion.address || suggestion.name;
+
+    setOriginInput(label);
+    setAppliedOriginInput(label);
+    setOriginSuggestions([]);
+    setOriginSuggestionsOpen(false);
+    setOriginResolving(true);
+
+    try {
+      setLocationError("");
+      await applyCustomerOrigin(
+        {
+          latitude: suggestion.lat,
+          longitude: suggestion.lng,
+        },
+        "manual",
+        null,
+      );
+      notify.success("Đã đặt vị trí xuất phát.");
+    } finally {
+      setOriginResolving(false);
     }
   }
 
@@ -618,48 +693,11 @@ export default function CustomerHomePage() {
         return;
       }
 
-      // If single, accept immediately. If multiple, show candidates for user to choose.
-      if (results.length === 1) {
-        const first = results[0];
-        setLocationError("");
-        await applyCustomerOrigin(
-          {
-            latitude: first.lat,
-            longitude: first.lng,
-          },
-          "manual",
-          null,
-        );
-        try {
-          const next = [text, ...recentOrigins.filter((r) => r !== text)].slice(
-            0,
-            6,
-          );
-          setRecentOrigins(next);
-          localStorage.setItem(RECENT_ORIGINS_KEY, JSON.stringify(next));
-        } catch {
-          // ignore
-        }
-
-        notify.success("Đã đặt vị trí xuất phát.");
-      } else {
-        // Present candidates to user for explicit selection
-        setGeocodeCandidates(results);
-        notify.info(
-          "Có nhiều kết quả, hãy chọn đúng địa điểm trong danh sách gợi ý.",
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      notify.error("Không lấy được tọa độ từ vị trí bạn nhập.");
-    } finally {
-      setOriginResolving(false);
-    }
-  }
-
-  async function handleSelectGeocodeCandidate(item: GeocodeResult) {
-    setOriginResolving(true);
-    try {
+      setOriginInput(first.display || first.address || first.name);
+      setAppliedOriginInput(first.display || first.address || first.name);
+      setOriginSuggestions([]);
+      setOriginSuggestionsOpen(false);
+      setLocationError("");
       await applyCustomerOrigin(
         { latitude: item.lat, longitude: item.lng },
         "manual",
@@ -876,12 +914,65 @@ export default function CustomerHomePage() {
                     onSubmit={handleOriginSubmit}
                     className="mt-3 flex flex-col gap-2 sm:flex-row"
                   >
+                    <div className="relative flex-1">
                     <Input
                       value={originInput}
-                      onChange={(e) => setOriginInput(e.target.value)}
+                      onChange={(e) => {
+                        setOriginInput(e.target.value);
+                        setAppliedOriginInput("");
+                        setOriginSuggestionsOpen(true);
+                      }}
                       placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
+                      onFocus={() => {
+                        if (originInput.trim().length >= 3) {
+                          setOriginSuggestionsOpen(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        window.setTimeout(
+                          () => setOriginSuggestionsOpen(false),
+                          120,
+                        );
+                      }}
                       className="h-9 text-xs"
+                      autoComplete="off"
                     />
+                      {originSuggestionsOpen &&
+                        originInput.trim().length >= 3 && (
+                          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-cyan-100 bg-white py-1 text-sm shadow-lg">
+                            {originSuggesting ? (
+                              <div className="px-3 py-2 text-xs text-slate-500">
+                                Đang tìm gợi ý...
+                              </div>
+                            ) : originSuggestions.length > 0 ? (
+                              originSuggestions.map((suggestion) => (
+                                <button
+                                  key={`${suggestion.ref_id}-${suggestion.lat}-${suggestion.lng}`}
+                                  type="button"
+                                  onMouseDown={(event) =>
+                                    event.preventDefault()
+                                  }
+                                  onClick={() =>
+                                    void applyOriginSuggestion(suggestion)
+                                  }
+                                  className="block w-full px-3 py-2 text-left hover:bg-cyan-50"
+                                >
+                                  <span className="block truncate font-medium text-slate-800">
+                                    {suggestion.name || suggestion.display}
+                                  </span>
+                                  <span className="mt-0.5 block truncate text-xs text-slate-500">
+                                    {suggestion.address || suggestion.display}
+                                  </span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-3 py-2 text-xs text-slate-500">
+                                Không có gợi ý phù hợp.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                    </div>
                     <div className="flex gap-2">
                       <Button
                         type="submit"

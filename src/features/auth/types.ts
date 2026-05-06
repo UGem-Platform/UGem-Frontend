@@ -9,17 +9,15 @@ export type LoginResponse = {
 
 export type RegisterRole = "Customer" | "Merchant";
 
-export type LoginRoleOption = RegisterRole | "Staff";
-
 export type GoogleLoginRequest = {
   idToken: string;
-  role?: RegisterRole;
 };
 
 export type GoogleLoginResponse = LoginResponse & {
   fullName?: string;
   role?: string;
   avatarUrl?: string | null;
+  isNewUser?: boolean;
 };
 
 export type RegisterRequest = {
@@ -39,6 +37,7 @@ export type JwtPayload = {
   Name?: string;
   Role?: UserRole;
   CustomerId?: string;
+  MerchantId?: string;
   exp?: number;
 };
 

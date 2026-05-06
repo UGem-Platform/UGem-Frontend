@@ -1,16 +1,27 @@
-import { useReviews } from "../hooks";
+import { useSearchParams } from "react-router-dom";
 import { Star } from "lucide-react";
+import { useReviews } from "../hooks";
 import type { Review } from "../services";
 
+function getReviewText(review: Review) {
+  return review.content || review.comment || review.description || "";
+}
+
 export default function ReviewsPage() {
-  const { data: reviews = [], isLoading, isError, error } = useReviews();
+  const [searchParams] = useSearchParams();
+  const merchantId = searchParams.get("merchantId") ?? undefined;
+  const { data: reviews = [], isLoading, isError, error } = useReviews(merchantId);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-5 text-2xl font-bold">Đánh giá</h1>
 
-        {isLoading ? (
+        {!merchantId ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Chọn merchant để xem đánh giá theo API /reviews/merchant.
+          </p>
+        ) : isLoading ? (
           <p>Đang tải...</p>
         ) : isError ? (
           <p className="text-red-600">
@@ -27,16 +38,16 @@ export default function ReviewsPage() {
                   key={review.id || idx}
                   className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
                       <p className="font-semibold">
                         {review.title || review.name || "Đánh giá"}
                       </p>
                       <p className="text-sm text-slate-600">
-                        {review.comment || review.description || ""}
+                        {getReviewText(review)}
                       </p>
                       <div className="mt-2 flex items-center gap-1">
-                        {Array.from({ length: review.rating || 5 }).map(
+                        {Array.from({ length: review.rating || 0 }).map(
                           (_, i) => (
                             <Star
                               key={i}
@@ -46,7 +57,7 @@ export default function ReviewsPage() {
                           ),
                         )}
                         <span className="ml-2 text-sm text-slate-500">
-                          ({review.rating || 5}/5)
+                          ({review.rating || 0}/5)
                         </span>
                       </div>
                     </div>

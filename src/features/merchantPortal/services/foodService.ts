@@ -23,3 +23,8 @@ export async function getFoodById(id: string) {
 
   return "data" in data ? data.data : data;
 }
+
+export async function deleteFood(id: string) {
+  const { data } = await api.delete<ApiResponse<null>>(`/foods/${id}`);
+  return data;
+}

@@ -22,7 +22,6 @@ export async function googleLoginApi(payload: GoogleLoginRequest) {
     "/auth/google-login",
     {
       idToken: payload.idToken,
-      role: payload.role,
     },
   );
 

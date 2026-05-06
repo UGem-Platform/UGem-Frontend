@@ -411,6 +411,7 @@
   padding: 0 14px;
   font-weight: 700;
   text-align: left;
+  text-decoration: none;
 }
 
 .merchant-nav-item.active {

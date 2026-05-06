@@ -1,3 +1,4 @@
+import { NavLink } from "react-router-dom";
 import {
   BarChart3,
   HelpCircle,
@@ -7,41 +8,55 @@ import {
   Store,
   Timer,
 } from "lucide-react";
+import { getCurrentUser } from "../../../features/auth";
 
 const menuItems = [
   {
     label: "Nhà hàng của bạn",
     icon: Store,
-    active: false,
-    disabled: true,
+    path: "/merchant/restaurant",
   },
   {
     label: "Hồ sơ quán",
     icon: Home,
-    active: true,
-    disabled: false,
+    path: "/merchant",
+    end: true,
   },
   {
     label: "Trạng thái xét duyệt",
     icon: Timer,
-    active: false,
-    disabled: false,
+    path: "/merchant/application/status",
   },
   {
     label: "Campaign",
     icon: Megaphone,
-    active: false,
-    disabled: true,
+    path: "/merchant/campaigns",
   },
   {
     label: "Thống kê lượt xem",
     icon: BarChart3,
-    active: false,
-    disabled: true,
+    path: "/merchant/view-statistics",
   },
 ];
 
 export function MerchantSidebar() {
+  const user = getCurrentUser();
+  const visibleMenuItems =
+    user?.Role === "Customer"
+      ? [
+          {
+            label: "Gá»­i há»“ sÆ¡ quÃ¡n",
+            icon: Store,
+            path: "/merchant/application/create",
+          },
+          {
+            label: "Tráº¡ng thÃ¡i xÃ©t duyá»‡t",
+            icon: Timer,
+            path: "/merchant/application/status",
+          },
+        ]
+      : menuItems;
+
   return (
     <aside className="merchant-sidebar">
       <div className="merchant-sidebar-logo">
@@ -49,16 +64,18 @@ export function MerchantSidebar() {
       </div>
 
       <nav className="merchant-sidebar-nav">
-        {menuItems.map(({ label, icon: Icon, active, disabled }) => (
-          <button
+        {visibleMenuItems.map(({ label, icon: Icon, path, end }) => (
+          <NavLink
             key={label}
-            className={`merchant-nav-item ${active ? "active" : ""}`}
-            disabled={disabled}
-            type="button"
+            to={path}
+            end={end}
+            className={({ isActive }) =>
+              `merchant-nav-item ${isActive ? "active" : ""}`
+            }
           >
             <Icon size={18} />
             <span>{label}</span>
-          </button>
+          </NavLink>
         ))}
       </nav>
 

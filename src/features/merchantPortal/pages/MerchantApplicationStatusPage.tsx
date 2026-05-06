@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   Circle,
@@ -15,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "@/features/auth";
 import { useMyApplications } from "../hooks/useMyApplications";
 import type { MerchantApplication } from "../types";
+import type { MerchantDetail } from "@/features/customer/types";
+import { getMyMerchantDetail } from "../services";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 
@@ -25,6 +28,18 @@ function getLatestApplication(applications: MerchantApplication[]) {
 
     return dateB - dateA;
   })[0];
+}
+
+function getApplicationAddress(
+  application: MerchantApplication,
+  merchant?: MerchantDetail | null,
+) {
+  return (
+    application.address ||
+    merchant?.address ||
+    extractDescriptionLine(application.description, "Địa chỉ") ||
+    "Địa chỉ đang chờ cập nhật"
+  );
 }
 
 function getStatusBadge(status?: string) {
@@ -92,6 +107,10 @@ function StepItem({ active, done, title, description, icon }: StepItemProps) {
 export function MerchantApplicationStatusPage() {
   const navigate = useNavigate();
   const user = getCurrentUser();
+  const portalPath = user?.Role === "Customer" ? "/customer" : "/merchant";
+  const [merchantDetail, setMerchantDetail] = useState<MerchantDetail | null>(
+    null,
+  );
 
   const {
     data: applications = [],
@@ -100,12 +119,52 @@ export function MerchantApplicationStatusPage() {
     error,
   } = useMyApplications();
 
-  const application = getLatestApplication(applications);
+  let application = getLatestApplication(applications);
   const status = application?.status;
 
   const isPending = status === "Pending";
   const isApproved = status === "Approved";
   const isRejected = status === "Rejected";
+  const applicationAddress = application
+    ? getApplicationAddress(application, merchantDetail)
+    : "";
+
+  if (
+    application &&
+    applicationAddress &&
+    !extractDescriptionLine(application.description, "Địa chỉ")
+  ) {
+    application = {
+      ...application,
+      description: `Địa chỉ: ${applicationAddress}\n${application.description}`,
+    };
+  }
+
+  useEffect(() => {
+    let active = true;
+
+    const loadMerchant = async () => {
+      try {
+        const data = await getMyMerchantDetail();
+
+        if (active) {
+          setMerchantDetail(data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (isApproved) {
+      queueMicrotask(() => {
+        void loadMerchant();
+      });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [isApproved]);
 
   return (
     <main className="merchant-portal-layout">
@@ -267,7 +326,7 @@ export function MerchantApplicationStatusPage() {
                       <button
                         className="resubmit-button"
                         type="button"
-                        onClick={() => navigate("/merchant")}
+                        onClick={() => navigate(portalPath)}
                       >
                         Về Merchant Portal
                       </button>
@@ -297,7 +356,7 @@ export function MerchantApplicationStatusPage() {
       </section>
 
       <nav className="mobile-status-nav">
-        <button type="button" onClick={() => navigate("/merchant")}>
+        <button type="button" onClick={() => navigate(portalPath)}>
           <Home size={18} />
           Dashboard
         </button>

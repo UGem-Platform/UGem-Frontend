@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
-import { createFood, getFoods } from "../services/foodService";
+import { Plus, Trash2 } from "lucide-react";
+import { createFood, deleteFood, getFoods } from "../services/foodService";
 import type { Food } from "../types";
 import { getCategories } from "@/shared/services/categoryService";
 import type { Category } from "@/shared/types";
@@ -11,13 +11,13 @@ export function MerchantFoodsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [deletingFoodId, setDeletingFoodId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: "",
     description: "",
     price: 0,
     imageUrl: "",
-    merchantId: "",
     categoryIds: [] as string[],
   });
 
@@ -54,11 +54,6 @@ export function MerchantFoodsPage() {
       return;
     }
 
-    if (!form.merchantId.trim()) {
-      notify.error("Vui lòng nhập merchantId.");
-      return;
-    }
-
     setCreating(true);
 
     try {
@@ -67,7 +62,6 @@ export function MerchantFoodsPage() {
         description: form.description.trim(),
         price: Number(form.price),
         imageUrl: form.imageUrl.trim(),
-        merchantId: form.merchantId.trim(),
         isAvailable: true,
         categoryIds: form.categoryIds,
       });
@@ -79,7 +73,6 @@ export function MerchantFoodsPage() {
         description: "",
         price: 0,
         imageUrl: "",
-        merchantId: "",
         categoryIds: [],
       });
 
@@ -92,13 +85,28 @@ export function MerchantFoodsPage() {
     }
   }
 
+  async function handleDeleteFood(foodId: string) {
+    setDeletingFoodId(foodId);
+
+    try {
+      await deleteFood(foodId);
+      notify.success("Đã xóa món.");
+      await loadData();
+    } catch (error) {
+      console.error(error);
+      notify.error("Xóa món thất bại.");
+    } finally {
+      setDeletingFoodId(null);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-6">
       <div className="mx-auto max-w-5xl">
         <div className="mb-5">
           <h1 className="text-2xl font-bold text-slate-900">Quản lý món ăn</h1>
           <p className="text-sm text-slate-500">
-            Tạo và xem danh sách món ăn của merchant.
+            Tạo, xem và xóa món ăn của merchant hiện tại.
           </p>
         </div>
 
@@ -165,18 +173,6 @@ export function MerchantFoodsPage() {
             </label>
 
             <label className="space-y-1 md:col-span-2">
-              <span className="text-sm font-medium">Merchant ID *</span>
-              <input
-                value={form.merchantId}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, merchantId: e.target.value }))
-                }
-                placeholder="guid-merchant"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-500"
-              />
-            </label>
-
-            <label className="space-y-1 md:col-span-2">
               <span className="text-sm font-medium">Danh mục</span>
               <select
                 multiple
@@ -196,9 +192,6 @@ export function MerchantFoodsPage() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-slate-500">
-                Giữ Ctrl để chọn nhiều danh mục.
-              </p>
             </label>
           </div>
 
@@ -236,8 +229,19 @@ export function MerchantFoodsPage() {
                     />
                   )}
 
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{food.name}</h3>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-semibold">{food.name}</h3>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteFood(food.id)}
+                        disabled={deletingFoodId === food.id}
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-100 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                        aria-label="Xóa món"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
 
                     {food.description && (
                       <p className="mt-1 line-clamp-2 text-sm text-slate-500">
