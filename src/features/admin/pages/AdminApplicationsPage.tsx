@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
 import { useStaffApplications } from "../hooks/useApplications";
@@ -87,13 +87,17 @@ function sortReviewed(applications: Application[]) {
 function ApplicationTable({
   applications,
   emptyText,
+  basePath,
+  canReview,
 }: {
   applications: Application[];
   emptyText: string;
+  basePath: string;
+  canReview: boolean;
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[760px]">
+      <table className="w-full min-w-190">
         <thead className="bg-cyan-50 text-left text-sm text-slate-700">
           <tr>
             <th className="p-4">Tên quán</th>
@@ -111,7 +115,10 @@ function ApplicationTable({
             const isPending = normalizeStatus(app.status) === "pending";
 
             return (
-              <tr key={app.id} className="border-t border-slate-100 hover:bg-cyan-50/70">
+              <tr
+                key={app.id}
+                className="border-t border-slate-100 hover:bg-cyan-50/70"
+              >
                 <td className="p-4 font-semibold text-slate-900">
                   {app.name || "Không tên"}
                 </td>
@@ -123,17 +130,19 @@ function ApplicationTable({
                     {statusMeta.label}
                   </span>
                 </td>
-                <td className="p-4 text-slate-700">{formatDate(app.createdAt)}</td>
+                <td className="p-4 text-slate-700">
+                  {formatDate(app.createdAt)}
+                </td>
                 <td className="p-4 text-slate-700">
                   {isPending ? "Chưa xử lý" : formatDate(app.reviewedAt)}
                 </td>
                 <td className="p-4">
                   <Link
-                    to={`/admin/applications/${app.id}`}
+                    to={`${basePath}/${app.id}`}
                     state={{ application: app }}
                     className="font-semibold text-cyan-700 hover:underline"
                   >
-                    {isPending ? "Xem và duyệt" : "Xem chi tiết"}
+                    {isPending && canReview ? "Xem và duyệt" : "Xem chi tiết"}
                   </Link>
                 </td>
               </tr>
@@ -153,7 +162,27 @@ function ApplicationTable({
   );
 }
 
-export default function AdminApplicationsPage() {
+type ApplicationsPageProps = {
+  basePath?: string;
+  title?: string;
+  subtitle?: string;
+  fallbackName?: string;
+  canReview?: boolean;
+  secondaryAction?: ReactNode;
+};
+
+type ApplicationTab = "pending" | "reviewed";
+
+export default function AdminApplicationsPage({
+  basePath = "/staff/applications",
+  title = "Job duyệt hồ sơ Merchant",
+  subtitle = "Hàng đợi hồ sơ merchant cần Staff kiểm tra và xử lý.",
+  fallbackName = "Staff",
+  canReview = true,
+  secondaryAction,
+}: ApplicationsPageProps) {
+  const [activeTab, setActiveTab] = useState<ApplicationTab>("pending");
+
   const {
     data: applications = [],
     dataUpdatedAt,
@@ -182,6 +211,39 @@ export default function AdminApplicationsPage() {
     };
   }, [applications]);
 
+  const tabItems = useMemo(
+    () => [
+      {
+        key: "pending" as const,
+        label: "Chờ duyệt",
+        description: "Pending và hồ sơ chưa ai nhận xử lý",
+        count: groupedApplications.pending.length,
+      },
+      {
+        key: "reviewed" as const,
+        label: "Đã duyệt",
+        description: "Hồ sơ đã được duyệt hoặc từ chối",
+        count: groupedApplications.reviewed.length,
+      },
+    ],
+    [groupedApplications.pending.length, groupedApplications.reviewed.length],
+  );
+
+  const activeTabMeta =
+    tabItems.find((item) => item.key === activeTab) ?? tabItems[0];
+
+  const activeApplications =
+    activeTab === "pending"
+      ? groupedApplications.pending
+      : groupedApplications.reviewed;
+
+  const activeEmptyText =
+    activeTab === "pending"
+      ? "Chưa có hồ sơ đang chờ duyệt."
+      : "Chưa có hồ sơ đã xử lý.";
+
+  const ActiveTabIcon = activeTab === "pending" ? Clock3 : CheckCircle2;
+
   const handleRefresh = () => {
     void refetch();
   };
@@ -199,8 +261,9 @@ export default function AdminApplicationsPage() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">Duyệt hồ sơ Merchant</h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <h1 className="text-2xl font-bold">{title}</h1>
+            <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
+            <p className="mt-1 text-xs text-slate-500">
               Cập nhật lần cuối: {formatDate(dataUpdatedAt, "Chưa tải")}
             </p>
           </div>
@@ -216,7 +279,8 @@ export default function AdminApplicationsPage() {
               />
               {isRefetching ? "Đang tải..." : "Làm mới"}
             </button>
-            <UserAccountMenu fallbackName="Staff" />
+            {secondaryAction}
+            <UserAccountMenu fallbackName={fallbackName} />
           </div>
         </div>
 
@@ -249,72 +313,85 @@ export default function AdminApplicationsPage() {
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm font-semibold text-amber-700">
-                  Hồ sơ đang duyệt
-                </p>
-                <p className="mt-1 text-3xl font-bold text-amber-900">
-                  {groupedApplications.pending.length}
-                </p>
+            <div className="overflow-hidden rounded-xl border border-white/70 bg-white/90 shadow-sm backdrop-blur">
+              <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Danh sách hồ sơ merchant
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Chuyển tab để xem hồ sơ đang chờ Staff nhận xử lý hoặc hồ sơ
+                    đã duyệt.
+                  </p>
+                </div>
+                <div className="inline-flex rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600">
+                  {tabItems.map((item) => {
+                    const isActive = activeTab === item.key;
+
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => setActiveTab(item.key)}
+                        className={`rounded-full px-4 py-2 transition-colors ${
+                          isActive
+                            ? "bg-cyan-600 text-white shadow-sm"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        {item.label}
+                        <span
+                          className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : "bg-white text-slate-500"
+                          }`}
+                        >
+                          {item.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm font-semibold text-emerald-700">
-                  Hồ sơ đã xử lý
-                </p>
-                <p className="mt-1 text-3xl font-bold text-emerald-900">
-                  {groupedApplications.reviewed.length}
-                </p>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`grid h-10 w-10 place-items-center rounded-lg ${
+                      activeTab === "pending"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    <ActiveTabIcon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-slate-900">
+                      {activeTabMeta.label}
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      {activeTabMeta.description}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-sm font-bold ${
+                    activeTab === "pending"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-emerald-100 text-emerald-800"
+                  }`}
+                >
+                  {activeTabMeta.count} hồ sơ
+                </span>
               </div>
+
+              <ApplicationTable
+                applications={activeApplications}
+                emptyText={activeEmptyText}
+                basePath={basePath}
+                canReview={canReview}
+              />
             </div>
-
-            <section className="overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-sm backdrop-blur">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-amber-100 text-amber-700">
-                    <Clock3 className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h2 className="font-bold">Trạng thái đơn đang duyệt</h2>
-                    <p className="text-sm text-slate-500">
-                      Hồ sơ mới hoặc đang chờ Staff xử lý.
-                    </p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800">
-                  {groupedApplications.pending.length} hồ sơ
-                </span>
-              </div>
-
-              <ApplicationTable
-                applications={groupedApplications.pending}
-                emptyText="Chưa có hồ sơ đang duyệt."
-              />
-            </section>
-
-            <section className="overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-sm backdrop-blur">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-100 text-emerald-700">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h2 className="font-bold">Trạng thái đơn đã duyệt</h2>
-                    <p className="text-sm text-slate-500">
-                      Hồ sơ đã được duyệt hoặc đã từ chối.
-                    </p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-800">
-                  {groupedApplications.reviewed.length} hồ sơ
-                </span>
-              </div>
-
-              <ApplicationTable
-                applications={groupedApplications.reviewed}
-                emptyText="Chưa có hồ sơ đã xử lý."
-              />
-            </section>
           </div>
         )}
       </div>

@@ -23,10 +23,11 @@ import {
   acceptApplication,
   rejectApplication,
 } from "../services/applicationService";
-import { STAFF_APPLICATIONS_QUERY_KEY } from "../hooks/useApplications";
+import { getApplicationsQueryKey } from "../hooks/useApplications";
 import type { Application } from "../types";
 import { notify } from "@/shared/lib/notify";
 import { UserAccountMenu } from "@/shared/components";
+import { getCurrentUser } from "@/features/auth";
 import { getCategories } from "@/shared/services/categoryService";
 import type { Category } from "@/shared/types";
 
@@ -52,7 +53,9 @@ function formatMoney(value?: number) {
 }
 
 function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Có lỗi xảy ra, vui lòng thử lại.";
+  return error instanceof Error
+    ? error.message
+    : "Có lỗi xảy ra, vui lòng thử lại.";
 }
 
 function getStatusMeta(status?: string) {
@@ -83,10 +86,7 @@ function getStatusMeta(status?: string) {
 }
 
 function getInitials(name?: string) {
-  const parts = (name || "UGem")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  const parts = (name || "UGem").trim().split(/\s+/).filter(Boolean);
 
   return parts
     .slice(-2)
@@ -147,11 +147,23 @@ function isGuidLike(value?: string | null) {
   );
 }
 
-export default function AdminApplicationDetailPage() {
+type ApplicationDetailPageProps = {
+  basePath?: string;
+  fallbackName?: string;
+  canReview?: boolean;
+};
+
+export default function AdminApplicationDetailPage({
+  basePath = "/staff/applications",
+  fallbackName = "Staff",
+  canReview = true,
+}: ApplicationDetailPageProps) {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const currentUserRole = getCurrentUser()?.Role;
+  const applicationsQueryKey = getApplicationsQueryKey(currentUserRole);
 
   const application = location.state?.application as Application | undefined;
 
@@ -181,7 +193,7 @@ export default function AdminApplicationDetailPage() {
     return (
       <main className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-10">
         <div className="mx-auto mb-5 flex max-w-xl justify-end">
-          <UserAccountMenu fallbackName="Staff" />
+          <UserAccountMenu fallbackName={fallbackName} />
         </div>
         <section className="mx-auto max-w-xl rounded-3xl border border-white/80 bg-white/90 p-8 text-center shadow-xl shadow-cyan-950/10 backdrop-blur">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-amber-700">
@@ -195,7 +207,7 @@ export default function AdminApplicationDetailPage() {
           </p>
           <button
             type="button"
-            onClick={() => navigate("/admin/applications")}
+            onClick={() => navigate(basePath)}
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-cyan-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-900/15 transition hover:bg-cyan-800"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -226,16 +238,14 @@ export default function AdminApplicationDetailPage() {
   async function refreshApplicationsCache(nextStatus: "Approved" | "Rejected") {
     const reviewedAt = new Date().toISOString();
 
-    queryClient.setQueryData<Application[]>(
-      STAFF_APPLICATIONS_QUERY_KEY,
-      (current) =>
-        current?.map((item) =>
-          item.id === id ? { ...item, status: nextStatus, reviewedAt } : item,
-        ),
+    queryClient.setQueryData<Application[]>(applicationsQueryKey, (current) =>
+      current?.map((item) =>
+        item.id === id ? { ...item, status: nextStatus, reviewedAt } : item,
+      ),
     );
 
     await queryClient.invalidateQueries({
-      queryKey: STAFF_APPLICATIONS_QUERY_KEY,
+      queryKey: applicationsQueryKey,
     });
   }
 
@@ -255,7 +265,7 @@ export default function AdminApplicationDetailPage() {
         description: `${name} đã được chuyển sang trạng thái merchant.`,
       });
       await refreshApplicationsCache("Approved");
-      navigate("/admin/applications");
+      navigate(basePath);
     } catch (error) {
       console.error(error);
       notify.error("Duyệt hồ sơ thất bại", {
@@ -291,7 +301,7 @@ export default function AdminApplicationDetailPage() {
         description: "Lý do từ chối đã được ghi nhận.",
       });
       await refreshApplicationsCache("Rejected");
-      navigate("/admin/applications");
+      navigate(basePath);
     } catch (error) {
       console.error(error);
       notify.error("Từ chối hồ sơ thất bại", {
@@ -308,14 +318,14 @@ export default function AdminApplicationDetailPage() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <button
-          type="button"
-          onClick={() => navigate("/admin/applications")}
-          className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-white/80 px-4 py-2 text-sm font-bold text-cyan-800 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Quay lại
+            type="button"
+            onClick={() => navigate(basePath)}
+            className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-white/80 px-4 py-2 text-sm font-bold text-cyan-800 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Quay lại
           </button>
-          <UserAccountMenu fallbackName="Staff" />
+          <UserAccountMenu fallbackName={fallbackName} />
         </div>
 
         <section className="overflow-hidden rounded-3xl border border-white/80 bg-white/90 shadow-xl shadow-cyan-950/10 backdrop-blur">
@@ -425,7 +435,7 @@ export default function AdminApplicationDetailPage() {
                       <p className="text-xs font-bold text-cyan-700">
                         {item.label}
                       </p>
-                      <p className="mt-1 break-words text-sm font-black text-slate-950">
+                      <p className="mt-1 wrap-break-word text-sm font-black text-slate-950">
                         {item.value}
                       </p>
                     </div>
@@ -482,12 +492,13 @@ export default function AdminApplicationDetailPage() {
                             </p>
                             {(() => {
                               const rawCategory = item.category?.trim() ?? "";
-                              const categoryLabel = getCategoryLabel(rawCategory);
+                              const categoryLabel =
+                                getCategoryLabel(rawCategory);
 
                               if (!categoryLabel) return null;
 
                               return (
-                                <p className="mt-1 break-words text-xs font-bold text-cyan-700">
+                                <p className="mt-1 wrap-break-word text-xs font-bold text-cyan-700">
                                   {categoryLabel}
                                   {isGuidLike(rawCategory) &&
                                     !categoryNameById.has(rawCategory) &&
@@ -528,9 +539,7 @@ export default function AdminApplicationDetailPage() {
                   <h2 className="text-lg font-black text-slate-950">
                     Người nộp
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Tài khoản gửi hồ sơ.
-                  </p>
+                  <p className="text-sm text-slate-500">Tài khoản gửi hồ sơ.</p>
                 </div>
               </div>
 
@@ -593,54 +602,63 @@ export default function AdminApplicationDetailPage() {
                 </span>
               </div>
 
-              {!isPendingStatus && (
-                <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-600">
-                  Hồ sơ này đã được xử lý, không thể thao tác lại.
+              {!canReview ? (
+                <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4 text-sm font-semibold leading-6 text-cyan-800">
+                  Admin đang xem job ở chế độ quản lý. Quyền duyệt hoặc từ chối
+                  hồ sơ được tách cho Staff xử lý.
                 </div>
+              ) : (
+                <>
+                  {!isPendingStatus && (
+                    <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-600">
+                      Hồ sơ này đã được xử lý, không thể thao tác lại.
+                    </div>
+                  )}
+
+                  <label className="block">
+                    <span className="text-sm font-bold text-slate-800">
+                      Lý do từ chối
+                    </span>
+                    <textarea
+                      value={reason}
+                      onChange={(event) => setReason(event.target.value)}
+                      placeholder="Ví dụ: Cần bổ sung ảnh món rõ hơn hoặc thông tin quán chưa đủ tin cậy..."
+                      className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15 disabled:bg-slate-50"
+                      disabled={submitting || !isPendingStatus}
+                    />
+                  </label>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      disabled={submitting || !isPendingStatus}
+                      onClick={handleAccept}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-black text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {submittingAction === "accept" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="h-4 w-4" />
+                      )}
+                      Duyệt
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={submitting || !isPendingStatus}
+                      onClick={handleReject}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 text-sm font-black text-white shadow-lg shadow-rose-900/15 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {submittingAction === "reject" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Ban className="h-4 w-4" />
+                      )}
+                      Từ chối
+                    </button>
+                  </div>
+                </>
               )}
-
-              <label className="block">
-                <span className="text-sm font-bold text-slate-800">
-                  Lý do từ chối
-                </span>
-                <textarea
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                  placeholder="Ví dụ: Cần bổ sung ảnh món rõ hơn hoặc thông tin quán chưa đủ tin cậy..."
-                  className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15 disabled:bg-slate-50"
-                  disabled={submitting || !isPendingStatus}
-                />
-              </label>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  disabled={submitting || !isPendingStatus}
-                  onClick={handleAccept}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-black text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {submittingAction === "accept" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="h-4 w-4" />
-                  )}
-                  Duyệt
-                </button>
-
-                <button
-                  type="button"
-                  disabled={submitting || !isPendingStatus}
-                  onClick={handleReject}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 text-sm font-black text-white shadow-lg shadow-rose-900/15 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {submittingAction === "reject" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Ban className="h-4 w-4" />
-                  )}
-                  Từ chối
-                </button>
-              </div>
             </section>
           </aside>
         </div>

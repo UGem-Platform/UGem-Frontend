@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { Compass, Store } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import HeroCarousel from "../components/HeroCarousel";
 import { LoginForm } from "../components/LoginForm";
-import {
-  getRouteByRole,
-  saveAndValidateAuthToken,
-} from "../hooks/useLogin";
+import { getRouteByRole } from "../hooks/useLogin";
 import { googleLoginApi } from "../services";
-import type { LoginRoleOption } from "../types";
+import { saveAuthToken } from "../store";
 import { Logo } from "./Logo";
 import { notify } from "@/shared/lib/notify";
 
@@ -64,27 +62,18 @@ const CAPTIONS = [
   },
 ];
 
-const LOGIN_ROLE_OPTIONS: Array<{
-  label: string;
-  value: LoginRoleOption;
-}> = [
-  { label: "Khách hàng", value: "Customer" },
-  { label: "Chủ quán", value: "Merchant" },
-  { label: "Nhân viên", value: "Staff" },
-];
-
 export function LoginPage() {
   const [slide, setSlide] = useState(0);
-  const [selectedRole, setSelectedRole] =
-    useState<LoginRoleOption>("Customer");
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showGooglePurposeDialog, setShowGooglePurposeDialog] =
+    useState(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
-  const selectedRoleRef = useRef<LoginRoleOption>("Customer");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    selectedRoleRef.current = selectedRole;
-  }, [selectedRole]);
+  function handleGooglePurpose(path: string) {
+    setShowGooglePurposeDialog(false);
+    navigate(path, { replace: true });
+  }
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -111,10 +100,8 @@ export function LoginPage() {
 
           setGoogleLoading(true);
           try {
-            const selected = selectedRoleRef.current;
             const data = await googleLoginApi({
               idToken: response.credential,
-              role: selected === "Staff" ? undefined : selected,
             });
             const token = data.accessToken;
 
@@ -122,7 +109,12 @@ export function LoginPage() {
               throw new Error("Không nhận được token từ server.");
             }
 
-            const user = saveAndValidateAuthToken(token, selected);
+            const user = saveAuthToken(token);
+            if (data.isNewUser && user.Role === "Customer") {
+              setShowGooglePurposeDialog(true);
+              return;
+            }
+
             navigate(getRouteByRole(user.Role), { replace: true });
           } catch (error) {
             notify.error(
@@ -212,23 +204,6 @@ export function LoginPage() {
             </div>
 
             <div className="mt-6 space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                {LOGIN_ROLE_OPTIONS.map((role) => (
-                  <button
-                    key={role.value}
-                    type="button"
-                    onClick={() => setSelectedRole(role.value)}
-                    className={`rounded-xl border px-2 py-2 text-xs font-semibold transition sm:text-sm ${
-                      selectedRole === role.value
-                        ? "border-cyan-500 bg-cyan-50 text-cyan-700"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    {role.label}
-                  </button>
-                ))}
-              </div>
-
               {GOOGLE_CLIENT_ID ? (
                 <div
                   className={`flex min-h-11 justify-center ${
@@ -254,7 +229,7 @@ export function LoginPage() {
               <div className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <LoginForm selectedRole={selectedRole} />
+            <LoginForm />
 
             <div className="mt-4 space-y-1 text-center">
               <button className="text-sm text-cyan-700 hover:underline">
@@ -274,6 +249,49 @@ export function LoginPage() {
           </p>
         </div>
       </section>
+
+      {showGooglePurposeDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+          <section
+            aria-modal="true"
+            role="dialog"
+            className="w-full max-w-md rounded-3xl border border-white/70 bg-white p-6 shadow-2xl"
+          >
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-slate-900">
+                Bạn muốn bắt đầu với UGem như thế nào?
+              </h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Tài khoản Google mới đã được tạo dưới vai trò Customer. Bạn có
+                thể khám phá món ngon ngay hoặc gửi hồ sơ quán để được xét
+                duyệt.
+              </p>
+            </div>
+
+            <div className="mt-6 grid gap-3">
+              <button
+                type="button"
+                onClick={() => handleGooglePurpose("/customer")}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                <Compass size={18} />
+                Khám phá món ngon
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleGooglePurpose("/merchant/application/create")
+                }
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-900/20 transition hover:bg-cyan-800"
+              >
+                <Store size={18} />
+                Mở quán trên UGem
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

@@ -29,6 +29,7 @@ import { OnboardingSidebar } from "../../../shared/layouts/Merchants/OnboardingS
 import { OnboardingTopbar } from "../../../shared/layouts/Merchants/OnboardingTopbar";
 import { OnboardingStepper } from "../../../shared/layouts/Merchants/OnboardingStepper";
 import { notify } from "@/shared/lib/notify";
+import { getCurrentUser } from "@/features/auth";
 
 const DRAFT_KEY = "ugem_merchant_application_draft";
 
@@ -147,6 +148,8 @@ function BlockedStateUI({
 
 export function MerchantOnboardingPage() {
   const navigate = useNavigate();
+  const user = getCurrentUser();
+  const portalPath = user?.Role === "Customer" ? "/customer" : "/merchant";
   const createMutation = useCreateApplication();
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -214,7 +217,7 @@ export function MerchantOnboardingPage() {
       <BlockedStateUI
         status={isPending ? "Pending" : "Approved"}
         onNavigateToPortal={() =>
-          navigate(isPending ? "/merchant/application/status" : "/merchant")
+          navigate(isPending ? "/merchant/application/status" : portalPath)
         }
       />
     );
@@ -316,7 +319,7 @@ export function MerchantOnboardingPage() {
               description: "Bạn có thể theo dõi trạng thái xét duyệt trong Merchant Portal.",
             },
           );
-          navigate("/merchant");
+          navigate("/merchant/application/status");
         },
         onError: (error) => {
           notify.error(

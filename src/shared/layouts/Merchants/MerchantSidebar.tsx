@@ -8,6 +8,7 @@ import {
   Store,
   Timer,
 } from "lucide-react";
+import { getCurrentUser } from "../../../features/auth";
 
 const menuItems = [
   {
@@ -39,6 +40,23 @@ const menuItems = [
 ];
 
 export function MerchantSidebar() {
+  const user = getCurrentUser();
+  const visibleMenuItems =
+    user?.Role === "Customer"
+      ? [
+          {
+            label: "Gá»­i há»“ sÆ¡ quÃ¡n",
+            icon: Store,
+            path: "/merchant/application/create",
+          },
+          {
+            label: "Tráº¡ng thÃ¡i xÃ©t duyá»‡t",
+            icon: Timer,
+            path: "/merchant/application/status",
+          },
+        ]
+      : menuItems;
+
   return (
     <aside className="merchant-sidebar">
       <div className="merchant-sidebar-logo">
@@ -46,7 +64,7 @@ export function MerchantSidebar() {
       </div>
 
       <nav className="merchant-sidebar-nav">
-        {menuItems.map(({ label, icon: Icon, path, end }) => (
+        {visibleMenuItems.map(({ label, icon: Icon, path, end }) => (
           <NavLink
             key={label}
             to={path}

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { getCurrentUser } from "@/features/auth";
 import type { Application } from "../types";
 import { getStaffApplications } from "../services/applicationService";
 
@@ -8,11 +9,15 @@ type ApiError = {
   };
 };
 
-export const STAFF_APPLICATIONS_QUERY_KEY = ["admin", "applications"] as const;
+export function getApplicationsQueryKey(role?: string) {
+  return ["applications", role?.toLowerCase() ?? "unknown"] as const;
+}
 
 export function useStaffApplications() {
+  const currentUserRole = getCurrentUser()?.Role;
+
   return useQuery<Application[]>({
-    queryKey: STAFF_APPLICATIONS_QUERY_KEY,
+    queryKey: getApplicationsQueryKey(currentUserRole),
     queryFn: getStaffApplications,
     retry: (failureCount, error) => {
       const apiError = error as ApiError;

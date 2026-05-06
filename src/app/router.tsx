@@ -1,6 +1,9 @@
-import AdminApplicationDetailPage from "@/features/admin/pages/AdminApplicationDetailPage";
-import AdminApplicationsPage from "@/features/admin/pages/AdminApplicationsPage";
+import AdminJobDetailPage from "@/features/admin/pages/AdminJobDetailPage";
+import AdminJobsPage from "@/features/admin/pages/AdminJobsPage";
 import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
+import StaffApplicationDetailPage from "@/features/admin/pages/StaffApplicationDetailPage";
+import StaffApplicationsPage from "@/features/admin/pages/StaffApplicationsPage";
+import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
 import { LoginPage, RegisterPage } from "@/features/auth";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
@@ -108,7 +111,7 @@ const routers = createBrowserRouter([
       {
         path: "/merchant/application/create",
         element: (
-          <ProtectedRoute allowedRoles={["Merchant"]}>
+          <ProtectedRoute allowedRoles={["Customer", "Merchant"]}>
             <MerchantOnboardingPage />
           </ProtectedRoute>
         ),
@@ -116,7 +119,7 @@ const routers = createBrowserRouter([
       {
         path: "/merchant/application/status",
         element: (
-          <ProtectedRoute allowedRoles={["Merchant"]}>
+          <ProtectedRoute allowedRoles={["Customer", "Merchant"]}>
             <MerchantApplicationStatusPage />
           </ProtectedRoute>
         ),
@@ -154,18 +157,54 @@ const routers = createBrowserRouter([
         ),
       },
       {
-        path: "/admin/applications",
+        path: "/staff/applications",
         element: (
-          <ProtectedRoute allowedRoles={["Staff", "Admin"]}>
-            <AdminApplicationsPage />
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffApplicationsPage />
           </ProtectedRoute>
         ),
       },
       {
+        path: "/staff/applications/:id",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffApplicationDetailPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/staff/profile",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/jobs",
+        element: (
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminJobsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/jobs/:id",
+        element: (
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminJobDetailPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/applications",
+        element: <Navigate to="/admin/jobs" replace />,
+      },
+      {
         path: "/admin/applications/:id",
         element: (
-          <ProtectedRoute allowedRoles={["Staff", "Admin"]}>
-            <AdminApplicationDetailPage />
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminJobDetailPage />
           </ProtectedRoute>
         ),
       },

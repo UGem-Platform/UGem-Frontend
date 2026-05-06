@@ -107,6 +107,7 @@ function StepItem({ active, done, title, description, icon }: StepItemProps) {
 export function MerchantApplicationStatusPage() {
   const navigate = useNavigate();
   const user = getCurrentUser();
+  const portalPath = user?.Role === "Customer" ? "/customer" : "/merchant";
   const [merchantDetail, setMerchantDetail] = useState<MerchantDetail | null>(
     null,
   );
@@ -325,7 +326,7 @@ export function MerchantApplicationStatusPage() {
                       <button
                         className="resubmit-button"
                         type="button"
-                        onClick={() => navigate("/merchant")}
+                        onClick={() => navigate(portalPath)}
                       >
                         Về Merchant Portal
                       </button>
@@ -355,7 +356,7 @@ export function MerchantApplicationStatusPage() {
       </section>
 
       <nav className="mobile-status-nav">
-        <button type="button" onClick={() => navigate("/merchant")}>
+        <button type="button" onClick={() => navigate(portalPath)}>
           <Home size={18} />
           Dashboard
         </button>

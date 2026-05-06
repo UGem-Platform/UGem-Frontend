@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { UserAccountMenu } from "@/shared/components";
 import { useStaffList } from "../hooks/useStaff";
 import type { Staff } from "../services/staffService";
@@ -11,7 +10,7 @@ export default function AdminStaffPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">Quản lý nhân viên</h1>
-          <UserAccountMenu fallbackName="Staff" />
+          <UserAccountMenu fallbackName="Admin" />
         </div>
 
         {isLoading ? (
@@ -44,13 +43,8 @@ export default function AdminStaffPage() {
                       </td>
                       <td className="p-4">{staff.email || "N/A"}</td>
                       <td className="p-4">{staff.role || "Staff"}</td>
-                      <td className="p-4">
-                        <Link
-                          to={`/admin/staff/${staff.id}`}
-                          className="text-cyan-700"
-                        >
-                          Xem chi tiết
-                        </Link>
+                      <td className="p-4 text-slate-600">
+                        Theo dõi trong trang quản lý job
                       </td>
                     </tr>
                   ))
