@@ -10,9 +10,12 @@ import MerchantDetailPage from "@/features/customer/pages/MerchantDetailPage";
 import WishlistPage from "@/features/customer/pages/WishlistPage";
 import {
   MerchantApplicationStatusPage,
+  MerchantCampaignPage,
   MerchantFoodsPage,
   MerchantOnboardingPage,
   MerchantPortalPage,
+  MerchantRestaurantPage,
+  MerchantViewStatisticsPage,
 } from "@/features/merchantPortal";
 import MerchantOrdersPage from "@/features/merchantPortal/pages/MerchantOrdersPage";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
@@ -95,6 +98,14 @@ const routers = createBrowserRouter([
         ),
       },
       {
+        path: "/merchant/restaurant",
+        element: (
+          <ProtectedRoute allowedRoles={["Merchant"]}>
+            <MerchantRestaurantPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/merchant/application/create",
         element: (
           <ProtectedRoute allowedRoles={["Merchant"]}>
@@ -120,7 +131,27 @@ const routers = createBrowserRouter([
       },
       {
         path: "/merchant/foods",
-        element: <MerchantFoodsPage />,
+        element: (
+          <ProtectedRoute allowedRoles={["Merchant"]}>
+            <MerchantFoodsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/merchant/campaigns",
+        element: (
+          <ProtectedRoute allowedRoles={["Merchant"]}>
+            <MerchantCampaignPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/merchant/view-statistics",
+        element: (
+          <ProtectedRoute allowedRoles={["Merchant"]}>
+            <MerchantViewStatisticsPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/admin/applications",

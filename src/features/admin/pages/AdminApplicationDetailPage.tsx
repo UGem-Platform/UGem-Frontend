@@ -1,5 +1,6 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -22,6 +23,7 @@ import {
   acceptApplication,
   rejectApplication,
 } from "../services/applicationService";
+import { STAFF_APPLICATIONS_QUERY_KEY } from "../hooks/useApplications";
 import type { Application } from "../types";
 import { notify } from "@/shared/lib/notify";
 import { UserAccountMenu } from "@/shared/components";
@@ -149,6 +151,7 @@ export default function AdminApplicationDetailPage() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const application = location.state?.application as Application | undefined;
 
@@ -206,7 +209,8 @@ export default function AdminApplicationDetailPage() {
   const name = application.name || "Không tên";
   const statusMeta = getStatusMeta(application.status);
   const StatusIcon = statusMeta.icon;
-  const isPendingStatus = !application.status || application.status === "Pending";
+  const isPendingStatus =
+    !application.status || application.status.toLowerCase() === "pending";
   const menuItems = application.applicationMenus ?? [];
   const heroImage = menuItems.find((item) => item.imageUrl)?.imageUrl;
   const applicant = application.applicant;
@@ -217,6 +221,22 @@ export default function AdminApplicationDetailPage() {
     if (!trimmedCategory) return "";
 
     return categoryNameById.get(trimmedCategory) ?? trimmedCategory;
+  }
+
+  async function refreshApplicationsCache(nextStatus: "Approved" | "Rejected") {
+    const reviewedAt = new Date().toISOString();
+
+    queryClient.setQueryData<Application[]>(
+      STAFF_APPLICATIONS_QUERY_KEY,
+      (current) =>
+        current?.map((item) =>
+          item.id === id ? { ...item, status: nextStatus, reviewedAt } : item,
+        ),
+    );
+
+    await queryClient.invalidateQueries({
+      queryKey: STAFF_APPLICATIONS_QUERY_KEY,
+    });
   }
 
   async function handleAccept() {
@@ -234,6 +254,7 @@ export default function AdminApplicationDetailPage() {
         id: toastId,
         description: `${name} đã được chuyển sang trạng thái merchant.`,
       });
+      await refreshApplicationsCache("Approved");
       navigate("/admin/applications");
     } catch (error) {
       console.error(error);
@@ -269,6 +290,7 @@ export default function AdminApplicationDetailPage() {
         id: toastId,
         description: "Lý do từ chối đã được ghi nhận.",
       });
+      await refreshApplicationsCache("Rejected");
       navigate("/admin/applications");
     } catch (error) {
       console.error(error);

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
 
 import { clearAuth, getCurrentUser } from "@/features/auth";
@@ -5,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import { NotificationBellMenu } from "@/shared/components/NotificationBellMenu";
 import { notify } from "@/shared/lib/notify";
+import { getUserProfile, type UserProfile } from "@/shared/services";
 
 type UserAccountMenuProps = {
   fallbackName: string;
@@ -24,10 +26,34 @@ export function UserAccountMenu({
   className,
 }: UserAccountMenuProps) {
   const user = getCurrentUser();
-  const displayName = user?.Name || fallbackName;
-  const email = user?.Email || "";
-  const roleLabel = getRoleLabel(user?.Role);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const displayName =
+    profile?.fullName || profile?.name || user?.Name || fallbackName;
+  const email = profile?.email || user?.Email || "";
+  const roleLabel = getRoleLabel(profile?.role || user?.Role);
   const initial = (displayName || email || "U").trim().charAt(0).toUpperCase();
+
+  useEffect(() => {
+    let active = true;
+
+    const loadProfile = async () => {
+      try {
+        const data = await getUserProfile();
+
+        if (active) {
+          setProfile(data ?? null);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleLogout() {
     notify.confirmLogout(() => {

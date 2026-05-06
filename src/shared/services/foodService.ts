@@ -62,3 +62,8 @@ export async function getFoodById(id: string) {
   const { data } = await api.get<ApiResponse<Food> | Food>(`/foods/${id}`);
   return unwrapFoodItem(data);
 }
+
+export async function deleteFood(id: string) {
+  const { data } = await api.delete<ApiResponse<null>>(`/foods/${id}`);
+  return data;
+}

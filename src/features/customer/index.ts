@@ -1,5 +1,6 @@
 export {
   getCustomerProfile,
+  updateCustomerProfile,
   confirmOrderReceived,
   confirmOrderNotReceived,
 } from "./services/customerService";

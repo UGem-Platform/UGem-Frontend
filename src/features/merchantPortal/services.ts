@@ -1,8 +1,23 @@
 import { api } from "../../lib/axios";
+import { getCurrentUser } from "@/features/auth";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
+import type { MerchantDetail } from "@/features/customer/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
 const APPLICATION_TYPE = "Merchant";
+
+function unwrapApiResponse<T>(payload: T | ApiResponse<T>) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "success" in payload &&
+    "data" in payload
+  ) {
+    return payload.data;
+  }
+
+  return payload as T;
+}
 
 function appendString(formData: FormData, key: string, value?: string | null) {
   formData.append(key, value?.trim() ?? "");
@@ -90,6 +105,30 @@ export async function getMyApplications() {
   return res.data.data ?? [];
 }
 
+export function getCurrentMerchantId() {
+  return getCurrentUser()?.MerchantId ?? null;
+}
+
+export async function getMyMerchantDetail() {
+  const merchantId = getCurrentMerchantId();
+
+  if (!merchantId) {
+    return null;
+  }
+
+  const res = await api.get<ApiResponse<MerchantDetail> | MerchantDetail>(
+    `/merchants/${merchantId}`,
+  );
+
+  const merchant = unwrapApiResponse(res.data);
+
+  return {
+    ...merchant,
+    foods: merchant.foods ?? merchant.menu ?? [],
+    menu: merchant.menu ?? merchant.foods ?? [],
+  };
+}
+
 export async function getMerchantOrders() {
   const res = await api.get<
     ApiResponse<MerchantOrderSummary[]> | MerchantOrderSummary[]
@@ -109,5 +148,27 @@ export async function rejectOrder(orderId: string, reason: string) {
     status: "Rejected",
     reason,
   });
+  return res.data;
+}
+
+export async function getMerchantCheckInQr(orderId: string) {
+  const res = await api.get<Blob>(`/merchants/generate-qr/${orderId}`, {
+    responseType: "blob",
+  });
+
+  return URL.createObjectURL(res.data);
+}
+
+export type UpdateMerchantPayload = {
+  merchantName?: string;
+  merchantDescription?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  openingHours?: string;
+};
+
+export async function updateMerchant(payload: UpdateMerchantPayload) {
+  const res = await api.put<ApiResponse<string | null>>("/merchants", payload);
   return res.data;
 }

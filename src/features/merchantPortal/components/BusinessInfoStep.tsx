@@ -18,9 +18,26 @@ type Props = Readonly<{
 
 const priceRanges = ["Tiết kiệm", "Bình dân", "Tầm trung"];
 
+const openingHourPresets = [
+  { label: "Sáng - tối", value: "08:00 - 22:00" },
+  { label: "Cả ngày", value: "00:00 - 23:59" },
+  { label: "Tối", value: "16:00 - 23:00" },
+];
+
+function getOpeningHourParts(value?: string) {
+  const [start = "08:00", end = "22:00"] = (value || "08:00 - 22:00")
+    .split("-")
+    .map((item) => item.trim());
+
+  return { start, end };
+}
+
 export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
   const priceRange = watch("priceRange");
   const logoUploadDataUrl = watch("logoUploadDataUrl");
+  const openingHours = watch("openingHours") || "08:00 - 22:00";
+  const { start: openingStart, end: openingEnd } =
+    getOpeningHourParts(openingHours);
 
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoUploadError, setLogoUploadError] = useState("");
@@ -120,24 +137,70 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
               )}
             </label>
 
-            <label className="block space-y-2">
+            <div className="block space-y-2">
               <span className="text-sm font-bold text-slate-800">
                 Giờ mở cửa *
               </span>
-              <div className="relative">
-                <Clock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <input type="hidden" {...register("openingHours")} />
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <div className="relative">
+                  <Clock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="time"
+                    value={openingStart}
+                    onChange={(event) =>
+                      setValue(
+                        "openingHours",
+                        `${event.target.value} - ${openingEnd}`,
+                        { shouldDirty: true, shouldValidate: true },
+                      )
+                    }
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                    aria-label="Giờ mở cửa"
+                  />
+                </div>
+                <span className="text-sm font-bold text-slate-400">-</span>
                 <input
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
-                  placeholder="08:00 - 22:00"
-                  {...register("openingHours")}
+                  type="time"
+                  value={openingEnd}
+                  onChange={(event) =>
+                    setValue(
+                      "openingHours",
+                      `${openingStart} - ${event.target.value}`,
+                      { shouldDirty: true, shouldValidate: true },
+                    )
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                  aria-label="Giờ đóng cửa"
                 />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {openingHourPresets.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() =>
+                      setValue("openingHours", preset.value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                    className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+                      openingHours === preset.value
+                        ? "border-cyan-600 bg-cyan-700 text-white"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-cyan-300 hover:bg-cyan-50"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
               {errors.openingHours && (
                 <small className="block text-sm font-medium text-rose-600">
                   {errors.openingHours.message}
                 </small>
               )}
-            </label>
+            </div>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
