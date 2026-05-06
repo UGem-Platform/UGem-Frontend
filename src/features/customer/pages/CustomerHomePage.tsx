@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Map as MapIcon,
-  Navigation,
-  X,
-  Clock,
-  Route,
-} from "lucide-react";
+import { Map as MapIcon, Navigation, X, Clock, Route } from "lucide-react";
 import { notify } from "@/shared/lib/notify";
 
 import { cn } from "@/lib/utils";
@@ -30,6 +24,7 @@ import {
   type GeocodeResult,
   metersToKm,
   secondsToText,
+  type GeocodeResult,
 } from "@/shared/services/vietmapService";
 
 type Coords = { latitude: number; longitude: number };
@@ -48,8 +43,9 @@ const DEFAULT_COORDS: Coords = {
   longitude: 106.660172,
 };
 
-const GOOD_LOCATION_ACCURACY_METERS = 60;
-const LOCATION_SAMPLE_TIMEOUT_MS = 10_000;
+const GOOD_LOCATION_ACCURACY_METERS = 100; // Browser GPS typically has 50-150m accuracy
+const LOCATION_SAMPLE_TIMEOUT_MS = 8_000; // Reduce to 8s - if no good accuracy by then, accept best available
+const MIN_ACCEPTABLE_ACCURACY_METERS = 2000; // Very loose: accept even poor accuracy, just warn user. Desktop IP-based is 500m-5km off anyway
 
 function resolveLocation(): Promise<LocationResult> {
   return new Promise((resolve) => {
@@ -80,6 +76,12 @@ function resolveLocation(): Promise<LocationResult> {
         return;
       }
 
+      // Accept position even if accuracy is poor - just mark it as inaccurate
+      console.debug(
+        "[resolveLocation] Accepted position (even if not ideal):",
+        `lat=${bestPosition.coords.latitude.toFixed(6)}, lng=${bestPosition.coords.longitude.toFixed(6)}, accuracy=${Math.round(bestPosition.coords.accuracy)}m`,
+      );
+
       resolve({
         coords: {
           latitude: bestPosition.coords.latitude,
@@ -92,14 +94,26 @@ function resolveLocation(): Promise<LocationResult> {
 
     watchId = navigator.geolocation.watchPosition(
       (position) => {
+        const accuracy = Math.round(position.coords.accuracy);
+        const isGood = accuracy <= GOOD_LOCATION_ACCURACY_METERS;
+        const isAcceptable = accuracy <= MIN_ACCEPTABLE_ACCURACY_METERS;
+
+        console.debug(
+          `[resolveLocation] Got position: lat=${position.coords.latitude.toFixed(6)}, lng=${position.coords.longitude.toFixed(6)}, accuracy=${accuracy}m ${isGood ? "✅GOOD" : isAcceptable ? "⚠️OK" : "❌POOR"}`,
+        );
+
         if (
           !bestPosition ||
           position.coords.accuracy < bestPosition.coords.accuracy
         ) {
           bestPosition = position;
+          console.debug(
+            "[resolveLocation] ⬆️ New best position (better accuracy)",
+          );
         }
 
         if (position.coords.accuracy <= GOOD_LOCATION_ACCURACY_METERS) {
+          console.debug("[resolveLocation] ✅ Accuracy good enough, finishing");
           finish();
         }
       },
@@ -117,6 +131,13 @@ function resolveLocation(): Promise<LocationResult> {
     timeoutId = setTimeout(
       () => finish(bestPosition === null),
       LOCATION_SAMPLE_TIMEOUT_MS,
+    );
+
+    // Debug log
+    console.debug(
+      "[resolveLocation] Started watching position with timeout:",
+      LOCATION_SAMPLE_TIMEOUT_MS,
+      "ms",
     );
   });
 }
@@ -163,12 +184,7 @@ function getMerchantCoords(
   const record = merchant as MerchantRecord;
 
   const lat = getNumberField(record, ["latitude", "lat", "Latitude", "Lat"]);
-  const lng = getNumberField(record, [
-    "longitude",
-    "lng",
-    "Longitude",
-    "Lng",
-  ]);
+  const lng = getNumberField(record, ["longitude", "lng", "Longitude", "Lng"]);
 
   if (lat === null || lng === null) return null;
 
@@ -222,8 +238,30 @@ export default function CustomerHomePage() {
   const [originSuggestionsOpen, setOriginSuggestionsOpen] = useState(false);
   const [originSuggesting, setOriginSuggesting] = useState(false);
   const [originResolving, setOriginResolving] = useState(false);
+  const [geocodeCandidates, setGeocodeCandidates] = useState<GeocodeResult[]>(
+    [],
+  );
   const [locatingCustomer, setLocatingCustomer] = useState(false);
+  const RECENT_ORIGINS_KEY = "ugem:recent_origins";
+  const [recentOrigins, setRecentOrigins] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(RECENT_ORIGINS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
   const [coords, setCoords] = useState<Coords>(DEFAULT_COORDS);
+  // Candidate location (from geolocation) pending user confirmation
+  const [candidateLocation, setCandidateLocation] = useState<Coords | null>(
+    null,
+  );
+  const [candidateAccuracy, setCandidateAccuracy] = useState<number | null>(
+    null,
+  );
+  const isMobile =
+    typeof window !== "undefined" &&
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
   const [showMap, setShowMap] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(min-width: 1024px)").matches;
@@ -364,15 +402,47 @@ export default function CustomerHomePage() {
             result.accuracy,
           )}m). Nếu thấy sai, hãy bật GPS/Location Services rồi tải lại trang.`,
         );
-      } else {
-        setLocationError("");
+        try {
+          const result = await resolveLocation();
+          console.debug(
+            "[CustomerHomePage init] mobile resolveLocation result:",
+            result,
+          );
+          if (!result.usedDefault) {
+            // Apply directly on mobile for convenience
+            await applyCustomerOrigin(
+              result.coords,
+              "browser",
+              result.accuracy,
+            );
+            setLocationError("");
+            await loadMerchants("", result.coords);
+            return;
+          }
+        } catch (e) {
+          console.warn("Mobile resolveLocation failed", e);
+        }
       }
 
-      await loadMerchants("", result.coords);
+      // Fallback/default behavior for desktop and failed mobile resolve
+      console.debug(
+        "[CustomerHomePage init] Using default coords, user should input address",
+      );
+      setCoords(defaultCoords);
+      setHasCustomerLocation(false);
+      setLocationMode("default");
+      setLocationAccuracy(null);
+      setLocationError(
+        "⚠️ Vui lòng nhập địa chỉ của bạn để tìm quán gần nhất. Ví dụ: BS10B Vinhomes Grand Park, TP.HCM",
+      );
+
+      await loadMerchants("", defaultCoords);
     })();
-  }, [loadMerchants]);
+  }, [loadMerchants, applyCustomerOrigin, isMobile]);
 
   useEffect(() => {
+    if (!isMobile) return;
+
     if (locationMode === "manual") return;
     if (!navigator.geolocation) return;
 
@@ -412,7 +482,7 @@ export default function CustomerHomePage() {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [locationMode]);
+  }, [isMobile, locationMode]);
 
   // ── Tự động tính route khi chọn quán ─────────────────────────
   useEffect(() => {
@@ -432,7 +502,9 @@ export default function CustomerHomePage() {
 
       if (!hasCustomerLocation) {
         setRouteLoadingMerchantId(null);
-        notify.error("Hãy bật quyền vị trí để tính đường đi từ chỗ bạn đang đứng.");
+        notify.error(
+          "Hãy bật quyền vị trí để tính đường đi từ chỗ bạn đang đứng.",
+        );
         return;
       }
 
@@ -447,9 +519,7 @@ export default function CustomerHomePage() {
           const candidates = results
             .map((item) => ({ lat: item.lat, lng: item.lng }))
             .filter(
-              (item) =>
-                Number.isFinite(item.lat) &&
-                Number.isFinite(item.lng),
+              (item) => Number.isFinite(item.lat) && Number.isFinite(item.lng),
             );
           const candidate =
             candidates.find((item) =>
@@ -483,8 +553,8 @@ export default function CustomerHomePage() {
 
       setRouteDestinationCoords(merchantCoords);
       const result = await route(
-        { lat: coords.latitude, lng: coords.longitude },
-        { lat: merchantCoords.lat, lng: merchantCoords.lng },
+        { lng: coords.longitude, lat: coords.latitude },
+        { lng: merchantCoords.lng, lat: merchantCoords.lat },
         "motorcycle",
       );
 
@@ -517,19 +587,50 @@ export default function CustomerHomePage() {
   }
 
   async function handleRefreshCustomerLocation() {
+    console.debug("[handleRefreshCustomerLocation] START");
+
     if (!navigator.geolocation) {
+      console.error("[handleRefreshCustomerLocation] ❌ No geolocation API");
       notify.error("Trình duyệt không hỗ trợ lấy vị trí hiện tại.");
       return;
     }
 
+    console.debug("[handleRefreshCustomerLocation] Geolocation API available");
     setLocatingCustomer(true);
+
     try {
+      console.debug(
+        "[handleRefreshCustomerLocation] Calling resolveLocation()...",
+      );
       const result = await resolveLocation();
+      console.debug(
+        "[handleRefreshCustomerLocation] resolveLocation completed:",
+        {
+          usedDefault: result.usedDefault,
+          lat: result.coords.latitude,
+          lng: result.coords.longitude,
+          accuracy: result.accuracy,
+        },
+      );
+
       if (result.usedDefault) {
         notify.error(getLocationErrorMessage(result));
         return;
       }
 
+      // Instead of applying immediately, set as candidate for user confirmation
+      console.debug(
+        "[handleRefreshCustomerLocation] ✅ Got location, setting candidate for confirmation...",
+      );
+      setCandidateLocation({
+        latitude: result.coords.latitude,
+        longitude: result.coords.longitude,
+      });
+      setCandidateAccuracy(
+        typeof result.accuracy === "number"
+          ? Math.round(result.accuracy)
+          : null,
+      );
       setOriginInput("");
       setAppliedOriginInput("");
       setOriginSuggestions([]);
@@ -537,6 +638,9 @@ export default function CustomerHomePage() {
       setLocationError("");
       await applyCustomerOrigin(result.coords, "browser", result.accuracy);
     } finally {
+      console.debug(
+        "[handleRefreshCustomerLocation] END (locatingCustomer = false)",
+      );
       setLocatingCustomer(false);
     }
   }
@@ -573,11 +677,18 @@ export default function CustomerHomePage() {
 
     setOriginResolving(true);
     try {
+      // Use proximity bias centered on the current map candidate (if any)
+      const proximity = {
+        lat: candidateLocation?.latitude ?? coords.latitude,
+        lng: candidateLocation?.longitude ?? coords.longitude,
+      };
+
       const results = await geocodeAddress(text, {
-        size: 5,
+        size: 6,
+        proximity,
       });
-      const first = results[0];
-      if (!first) {
+
+      if (!results || results.length === 0) {
         notify.error("Không tìm được vị trí bạn nhập.");
         return;
       }
@@ -588,20 +699,50 @@ export default function CustomerHomePage() {
       setOriginSuggestionsOpen(false);
       setLocationError("");
       await applyCustomerOrigin(
-        {
-          latitude: first.lat,
-          longitude: first.lng,
-        },
+        { latitude: item.lat, longitude: item.lng },
         "manual",
         null,
       );
-      notify.success("Đã đặt vị trí xuất phát.");
-    } catch (error) {
-      console.error(error);
-      notify.error("Không lấy được tọa độ từ vị trí bạn nhập.");
+      setGeocodeCandidates([]);
+      setOriginInput("");
+      notify.success("Đã đặt vị trí từ gợi ý");
+    } catch (e) {
+      console.error(e);
+      notify.error("Không thể đặt vị trí từ gợi ý");
     } finally {
       setOriginResolving(false);
     }
+  }
+
+  async function handleConfirmCandidate() {
+    if (!candidateLocation) return;
+    setLocatingCustomer(true);
+    try {
+      await applyCustomerOrigin(
+        candidateLocation,
+        "browser",
+        candidateAccuracy ?? null,
+      );
+      setCandidateLocation(null);
+      setCandidateAccuracy(null);
+      setLocationError("");
+      notify.success("Đã xác nhận vị trí của bạn.");
+    } catch (e) {
+      console.error(e);
+      notify.error("Không thể xác nhận vị trí.");
+    } finally {
+      setLocatingCustomer(false);
+    }
+  }
+
+  function handleCancelCandidate() {
+    setCandidateLocation(null);
+    setCandidateAccuracy(null);
+    setLocationError("⚠️ Vui lòng nhập địa chỉ của bạn để tìm quán gần nhất.");
+  }
+
+  function handleCandidateDrag(lat: number, lng: number) {
+    setCandidateLocation({ latitude: lat, longitude: lng });
   }
 
   function handleSelectMerchantId(id: string) {
@@ -631,14 +772,14 @@ export default function CustomerHomePage() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <UserAccountMenu fallbackName="Customer" />
             <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowMap((v) => !v)}
-            aria-pressed={showMap}
-            className="gap-2"
-          >
-            <MapIcon />
-            {showMap ? "Ẩn bản đồ" : "Bản đồ"}
+              type="button"
+              variant="outline"
+              onClick={() => setShowMap((v) => !v)}
+              aria-pressed={showMap}
+              className="gap-2"
+            >
+              <MapIcon />
+              {showMap ? "Ẩn bản đồ" : "Bản đồ"}
             </Button>
           </div>
         </div>
@@ -656,8 +797,8 @@ export default function CustomerHomePage() {
         </form>
 
         {locationError && (
-          <Card className="mb-4">
-            <CardContent className="py-3 text-sm text-muted-foreground">
+          <Card className="mb-4 border-orange-200 bg-orange-50">
+            <CardContent className="py-4 text-sm text-orange-800 font-medium">
               {locationError}
             </CardContent>
           </Card>
@@ -855,6 +996,114 @@ export default function CustomerHomePage() {
                     </div>
                   </form>
 
+                  {/* Geocode candidates (proximity-biased) */}
+                  {geocodeCandidates.length > 0 && (
+                    <div className="mt-2">
+                      <Card className="border">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-sm">
+                                Gợi ý địa điểm
+                              </CardTitle>
+                              <CardDescription className="text-xs">
+                                Chọn vị trí đúng nhất với ý bạn
+                              </CardDescription>
+                            </div>
+                            <div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setGeocodeCandidates([])}
+                              >
+                                Đóng
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-2">
+                          <ul className="space-y-1">
+                            {geocodeCandidates.map((c) => {
+                              const distM = Math.round(
+                                distanceKm(
+                                  {
+                                    latitude:
+                                      candidateLocation?.latitude ??
+                                      coords.latitude,
+                                    longitude:
+                                      candidateLocation?.longitude ??
+                                      coords.longitude,
+                                  },
+                                  { lat: c.lat, lng: c.lng },
+                                ) * 1000,
+                              );
+                              return (
+                                <li
+                                  key={c.ref_id}
+                                  className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-slate-50"
+                                >
+                                  <div className="flex-1">
+                                    <div className="text-sm font-medium">
+                                      {c.display || c.name}
+                                    </div>
+                                    <div className="text-xs text-slate-500">
+                                      {c.address} • ~{distM}m
+                                    </div>
+                                  </div>
+                                  <div className="ml-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleSelectGeocodeCandidate(c)
+                                      }
+                                    >
+                                      Chọn
+                                    </Button>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+
+                  {/* Candidate confirmation UI */}
+                  {candidateLocation && (
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="flex-1 rounded-md border p-3 text-sm bg-white">
+                        <div className="font-semibold">Vị trí đề xuất</div>
+                        <div className="text-xs text-slate-500">
+                          {candidateLocation.latitude.toFixed(6)},{" "}
+                          {candidateLocation.longitude.toFixed(6)}{" "}
+                          {candidateAccuracy ? `(±${candidateAccuracy}m)` : ""}
+                        </div>
+                        <div className="mt-2 text-xs text-slate-600">
+                          Kéo chấm trên bản đồ để điều chỉnh vị trí, sau đó bấm
+                          "Xác nhận vị trí".
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleConfirmCandidate}
+                          className="h-9"
+                        >
+                          Xác nhận vị trí
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancelCandidate}
+                          className="h-9"
+                        >
+                          Huỷ
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Route info card */}
                   {routeResult && (
                     <div className="mt-2 flex flex-wrap items-center gap-3 rounded-xl bg-cyan-50 px-4 py-3 dark:bg-cyan-950/50">
@@ -922,16 +1171,20 @@ export default function CustomerHomePage() {
                 </CardHeader>
 
                 <CardContent className="p-0">
-                  <div className="h-[520px] w-full lg:h-[calc(100vh-190px)] lg:min-h-[620px]">
-                    <NearbyMerchantsMap
-                      center={coords}
-                      merchants={merchants}
-                      selectedMerchantId={selectedMerchantId}
-                      onSelectMerchantId={handleSelectMerchantId}
-                      routeCoordinates={routeResult?.coordinates}
-                      onLocateCustomer={handleRefreshCustomerLocation}
-                      locateLoading={locatingCustomer}
-                    />
+                  <div className="h-130 w-full lg:h-[calc(100vh-190px)] lg:min-h-155">
+                    <div className="relative h-full w-full">
+                      <NearbyMerchantsMap
+                        center={candidateLocation ?? coords}
+                        merchants={merchants}
+                        selectedMerchantId={selectedMerchantId}
+                        onSelectMerchantId={handleSelectMerchantId}
+                        routeCoordinates={routeResult?.coordinates}
+                        onLocateCustomer={handleRefreshCustomerLocation}
+                        locateLoading={locatingCustomer}
+                        editableUserMarker={!!candidateLocation}
+                        onUserMarkerDrag={handleCandidateDrag}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
