@@ -17,6 +17,9 @@ type Props = Readonly<{
   routeCoordinates?: [number, number][];
   onLocateCustomer?: () => void;
   locateLoading?: boolean;
+  /** If true, make user marker draggable for confirmation */
+  editableUserMarker?: boolean;
+  onUserMarkerDrag?: (lat: number, lng: number) => void;
 }>;
 
 type MerchantRecord = Record<string, unknown>;
@@ -76,6 +79,8 @@ export default function NearbyMerchantsMap({
   routeCoordinates,
   onLocateCustomer,
   locateLoading,
+  editableUserMarker,
+  onUserMarkerDrag,
 }: Props) {
   const markers = useMemo<MapMarker[]>(() => {
     const userMarker: MapMarker = {
@@ -83,6 +88,7 @@ export default function NearbyMerchantsMap({
       lat: center.latitude,
       lng: center.longitude,
       type: "user",
+      draggable: !!editableUserMarker,
       popupHtml:
         '<div style="font-weight:700;font-size:13px;padding:2px 4px">Vị trí của bạn</div>',
     };
@@ -120,26 +126,30 @@ export default function NearbyMerchantsMap({
     });
 
     return [userMarker, ...merchantMarkers];
-  }, [center.latitude, center.longitude, merchants]);
+  }, [center.latitude, center.longitude, editableUserMarker, merchants]);
 
   return (
-    <VietMapGL
-      centerLng={center.longitude}
-      centerLat={center.latitude}
-      zoom={14}
-      markers={markers}
-      selectedMarkerId={selectedMerchantId}
-      onMarkerClick={(markerId) => {
-        if (markerId !== USER_MARKER_ID) {
-          onSelectMerchantId?.(markerId);
-        }
-      }}
-      routeCoordinates={routeCoordinates}
-      routeColor="#e11d48"
-      fitToMarkers
-      onLocateClick={onLocateCustomer}
-      locateLoading={locateLoading}
-      className="h-full w-full"
-    />
+    <div className="relative h-full w-full">
+      <VietMapGL
+        centerLng={center.longitude}
+        centerLat={center.latitude}
+        zoom={14}
+        markers={markers}
+        selectedMarkerId={selectedMerchantId}
+        onMarkerClick={(markerId) => {
+          if (markerId !== USER_MARKER_ID) {
+            onSelectMerchantId?.(markerId);
+          }
+        }}
+        routeCoordinates={routeCoordinates}
+        routeColor="#e11d48"
+        fitToMarkers
+        onLocateClick={onLocateCustomer}
+        locateLoading={locateLoading}
+        editableUserMarker={editableUserMarker}
+        onUserMarkerDrag={(lng, lat) => onUserMarkerDrag?.(lat, lng)}
+        className="h-full w-full"
+      />
+    </div>
   );
 }

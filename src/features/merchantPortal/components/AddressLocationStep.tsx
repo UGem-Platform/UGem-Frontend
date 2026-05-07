@@ -11,7 +11,6 @@ import {
   type GeocodeResult,
   reverseGeocode as vietmapReverseGeocode,
   searchGeocodeAddress as vietmapSearchGeocodeAddress,
-  VIETMAP_STYLE_URL,
   HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
   VIETMAP_API_KEY,
@@ -305,9 +304,12 @@ export function AddressLocationStep({
     const initialCenter: [number, number] =
       validLocationCoords ?? DEFAULT_CENTER;
 
+    // Use 'tm' (topographic) style - better visuals than 'lm'
+    const styleUrl = `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${VIETMAP_API_KEY}`;
+
     const map = new vietmapgl.Map({
       container: mapContainer.current,
-      style: VIETMAP_STYLE_URL,
+      style: styleUrl,
       center: initialCenter,
       zoom: validLocationCoords ? 15 : 12,
       transformRequest: (url) => {

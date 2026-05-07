@@ -12,7 +12,7 @@ import { Navigation } from "lucide-react";
 import * as vietmapgl from "@vietmap/vietmap-gl-js/dist/vietmap-gl";
 import "@vietmap/vietmap-gl-js/dist/vietmap-gl.css";
 import {
-  VIETMAP_STYLE_URL,
+  getVietmapStyleUrl,
   HAS_VIETMAP_KEY,
   VIETMAP_API_KEY,
 } from "@/shared/services/vietmapService";
@@ -29,6 +29,8 @@ export interface MapMarker {
   type?: "restaurant" | "charging" | "user" | "custom";
   /** Màu tuỳ chọn (override type color) */
   color?: string;
+  /** Allow marker to be draggable (for user confirmation) */
+  draggable?: boolean;
 }
 
 export interface VietMapGLProps {
@@ -51,6 +53,8 @@ export interface VietMapGLProps {
   fitToMarkers?: boolean;
   onLocateClick?: () => void;
   locateLoading?: boolean;
+  editableUserMarker?: boolean;
+  onUserMarkerDrag?: (lng: number, lat: number) => void;
   /** Class CSS cho container */
   className?: string;
 }
@@ -202,8 +206,10 @@ export default function VietMapGL({
   fitToMarkers = false,
   onLocateClick,
   locateLoading = false,
+  onUserMarkerDrag,
   className = "h-full w-full",
-}: Readonly<VietMapGLProps>) {
+  styleName = "tm",
+}: Readonly<VietMapGLProps & { styleName?: string }>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<vietmapgl.Map | null>(null);
   const markerMapRef = useRef<
@@ -212,6 +218,8 @@ export default function VietMapGL({
   const routeReadyRef = useRef(false);
   const routeFitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [routeOverlayPath, setRouteOverlayPath] = useState<string | null>(null);
+  const userMarkerRef = useRef<vietmapgl.Marker | null>(null);
+  const [internalLocating, setInternalLocating] = useState(false);
 
   // ── 1. Khởi tạo map một lần ──────────────────────────────
   useEffect(() => {
@@ -219,13 +227,18 @@ export default function VietMapGL({
 
     const map = new vietmapgl.Map({
       container: containerRef.current,
-      style: VIETMAP_STYLE_URL,
+      style: getVietmapStyleUrl(styleName),
       center: [
         normalizeCenter(centerLng, 106.660172),
         normalizeCenter(centerLat, 10.762622),
       ],
       zoom,
+      pitch: 20, // 3D tilt for better visuals
+      bearing: 0, // Rotation (0 = north up)
       attributionControl: { compact: true },
+      // transitionDuration is not present in some type defs; keep it for runtime
+      // @ts-expect-error - transitionDuration not declared in type defs but supported at runtime
+      transitionDuration: 500,
       transformRequest: (url) => {
         // Tự động thêm apikey vào các request gọi đến vietmap.vn (để lấy tile, font, sprite...)
         if (HAS_VIETMAP_KEY && url.includes("vietmap.vn")) {
@@ -251,6 +264,10 @@ export default function VietMapGL({
         clearTimeout(routeFitTimerRef.current);
         routeFitTimerRef.current = null;
       }
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
       map.remove();
       mapRef.current = null;
       routeReadyRef.current = false;
@@ -258,7 +275,42 @@ export default function VietMapGL({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── 2. Di chuyển khi center thay đổi ─────────────────────
+  // ── 2. Cập nhật style khi styleName thay đổi ──────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      console.debug("[VietMapGL] Map not ready, skipping style update");
+      return;
+    }
+
+    console.debug(
+      `[VietMapGL] Changing style to: ${styleName}, map.loaded()=${map.loaded()}`,
+    );
+
+    const updateStyle = () => {
+      const styleUrl = getVietmapStyleUrl(styleName);
+      console.debug("[VietMapGL] Style URL:", styleUrl);
+      try {
+        map.setStyle(styleUrl);
+        console.debug("[VietMapGL] Style change requested successfully");
+      } catch (e) {
+        console.warn("[VietMapGL] Failed to change map style:", e);
+      }
+    };
+
+    // Nếu map chưa loaded, đợi load event
+    if (!map.loaded()) {
+      console.debug("[VietMapGL] Map not loaded yet, waiting for 'load' event");
+      map.once("load", updateStyle);
+    } else {
+      console.debug(
+        "[VietMapGL] Map already loaded, updating style immediately",
+      );
+      updateStyle();
+    }
+  }, [styleName]);
+
+  // ── 3. Di chuyển khi center thay đổi ─────────────────────
   useEffect(() => {
     mapRef.current?.easeTo({
       center: [centerLng, centerLat],
@@ -266,7 +318,7 @@ export default function VietMapGL({
     });
   }, [centerLng, centerLat]);
 
-  // ── 3. Cập nhật markers ───────────────────────────────────
+  // ── 4. Cập nhật markers ───────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -293,10 +345,24 @@ export default function VietMapGL({
             `<div style="font-weight:600;font-size:13px;padding:2px 4px">${m.id}</div>`,
         );
 
-        const marker = new vietmapgl.Marker({ element: el })
+        const marker = new vietmapgl.Marker({
+          element: el,
+          draggable: !!m.draggable,
+        })
           .setLngLat([m.lng, m.lat])
           .setPopup(popup)
           .addTo(map);
+
+        if (m.draggable) {
+          marker.on("dragend", () => {
+            try {
+              const p = marker.getLngLat();
+              onUserMarkerDrag?.(p.lng, p.lat);
+            } catch (e) {
+              console.warn("User marker dragend handler failed", e);
+            }
+          });
+        }
 
         el.addEventListener("click", () => {
           onMarkerClick?.(m.id);
@@ -340,9 +406,15 @@ export default function VietMapGL({
     } else {
       map.once("load", renderMarkers);
     }
-  }, [fitToMarkers, markers, onMarkerClick, routeCoordinates]);
+  }, [
+    fitToMarkers,
+    markers,
+    onMarkerClick,
+    routeCoordinates,
+    onUserMarkerDrag,
+  ]);
 
-  // ── 4. Mở popup & fly to marker được chọn ────────────────
+  // ── 5. Mở popup & fly to marker được chọn ────────────────
   useEffect(() => {
     const hasRoute = (routeCoordinates?.length ?? 0) >= 2;
 
@@ -362,7 +434,7 @@ export default function VietMapGL({
     });
   }, [routeCoordinates, selectedMarkerId]);
 
-  // ── 5. Vẽ / xoá route ────────────────────────────────────
+  // ── 6. Vẽ / xoá route ────────────────────────────────────
   const applyRoute = useCallback(
     (map: vietmapgl.Map, coords: [number, number][]) => {
       const validCoords = coords.filter(isValidRoutePoint);
@@ -489,20 +561,78 @@ export default function VietMapGL({
   }, [routeCoordinates, updateRouteOverlay]);
 
   const handleLocateClick = useCallback(() => {
-    mapRef.current?.easeTo({
+    const map = mapRef.current;
+    if (!map) return;
+    // Prefer parent-controlled locate flow: if parent provided an onLocateClick
+    // handler, delegate geolocation and state updates to parent to avoid
+    // duplicate markers and inconsistent state.
+    if (onLocateClick) {
+      onLocateClick();
+      return;
+    }
+
+    // If no parent handler, fall back to internal geolocation behaviour.
+    if (typeof navigator !== "undefined" && "geolocation" in navigator) {
+      setInternalLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          try {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            map.easeTo({
+              center: [lng, lat],
+              zoom: Math.max(map.getZoom(), 16),
+              duration: 600,
+            });
+
+            const el = createMarkerElement("user", undefined);
+            if (userMarkerRef.current) {
+              userMarkerRef.current.setLngLat([lng, lat]);
+            } else {
+              const popup = new vietmapgl.Popup({
+                offset: 14,
+                closeButton: false,
+                closeOnClick: false,
+                maxWidth: "240px",
+              }).setHTML(`<div style="font-weight:600">Vị trí của bạn</div>`);
+
+              userMarkerRef.current = new vietmapgl.Marker({ element: el })
+                .setLngLat([lng, lat])
+                .setPopup(popup)
+                .addTo(map);
+            }
+          } finally {
+            setInternalLocating(false);
+          }
+        },
+        () => {
+          map.easeTo({
+            center: [centerLng, centerLat],
+            zoom: Math.max(map.getZoom(), 16),
+            duration: 600,
+          });
+          setInternalLocating(false);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 },
+      );
+      return;
+    }
+
+    // Fallback: just move to provided center
+    map.easeTo({
       center: [centerLng, centerLat],
-      zoom: Math.max(mapRef.current?.getZoom() ?? zoom, 16),
+      zoom: Math.max(map.getZoom(), 16),
       duration: 600,
     });
-    onLocateClick?.();
-  }, [centerLat, centerLng, onLocateClick, zoom]);
+  }, [centerLat, centerLng, onLocateClick]);
 
   return (
     <div ref={containerRef} className={`${className} relative`}>
       {routeOverlayPath && (
         <svg
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
+          className="pointer-events-none absolute inset-0 z-1 h-full w-full"
         >
           <path
             d={routeOverlayPath}
@@ -529,11 +659,11 @@ export default function VietMapGL({
           aria-label="Lấy vị trí hiện tại"
           title="Lấy vị trí hiện tại"
           onClick={handleLocateClick}
-          disabled={locateLoading}
+          disabled={locateLoading || internalLocating}
           className="absolute bottom-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-lg transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70"
         >
           <Navigation
-            className={`h-5 w-5 ${locateLoading ? "animate-pulse" : ""}`}
+            className={`h-5 w-5 ${locateLoading || internalLocating ? "animate-pulse" : ""}`}
           />
         </button>
       )}

@@ -15,8 +15,15 @@ const HAS_VIETMAP_SERVICE_KEY =
   Boolean(VIETMAP_SERVICE_KEY) &&
   VIETMAP_SERVICE_KEY !== "YOUR_VIETMAP_API_KEY_HERE";
 
-/** Style URL VietMap Light map (SDK v6+). */
-export const VIETMAP_STYLE_URL = `https://maps.vietmap.vn/maps/styles/lm/style.json?apikey=${VIETMAP_API_KEY}`;
+const VIETMAP_STYLE_BASE = `https://maps.vietmap.vn/maps/styles`;
+
+/** Return a style URL for a given style name (e.g. 'lm', 'tm', 'tm2'). */
+export function getVietmapStyleUrl(styleName = "tm") {
+  return `${VIETMAP_STYLE_BASE}/${styleName}/style.json?apikey=${VIETMAP_API_KEY}`;
+}
+
+// Default style URL (legacy export)
+export const VIETMAP_STYLE_URL = getVietmapStyleUrl();
 
 export {
   HAS_VIETMAP_KEY,
@@ -26,6 +33,25 @@ export {
   VIETMAP_SERVICE_KEY,
 };
 
+// Debug: print masked runtime env info in development to help troubleshooting
+if (import.meta.env.DEV) {
+  try {
+    const mask = (s: string) => (s ? `${s.slice(0, 6)}…` : "(empty)");
+    console.debug("[vietmapService] VIETMAP_API_KEY:", mask(VIETMAP_API_KEY));
+    console.debug("[vietmapService] VIETMAP_TILE_KEY:", mask(VIETMAP_TILE_KEY));
+    console.debug(
+      "[vietmapService] VIETMAP_SERVICE_KEY:",
+      mask(VIETMAP_SERVICE_KEY),
+    );
+    console.debug(
+      "[vietmapService] HAS_VIETMAP_KEY, HAS_VIETMAP_SERVICE_KEY:",
+      HAS_VIETMAP_KEY,
+      HAS_VIETMAP_SERVICE_KEY,
+    );
+  } catch {
+    /* ignore */
+  }
+}
 // ─── Types ────────────────────────────────────────────────────
 
 export type LngLat = { lng: number; lat: number };
