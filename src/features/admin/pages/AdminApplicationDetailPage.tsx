@@ -191,28 +191,39 @@ export default function AdminApplicationDetailPage({
 
   if (!application) {
     return (
-      <main className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-10">
-        <div className="mx-auto mb-5 flex max-w-xl justify-end">
+      <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-10 text-slate-950">
+        <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+
+        <div className="relative mx-auto mb-5 flex max-w-xl justify-end">
           <UserAccountMenu fallbackName={fallbackName} />
         </div>
-        <section className="mx-auto max-w-xl rounded-3xl border border-white/80 bg-white/90 p-8 text-center shadow-xl shadow-cyan-950/10 backdrop-blur">
-          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-amber-700">
-            <FileText className="h-7 w-7" />
+
+        <section className="relative mx-auto max-w-xl overflow-hidden rounded-3xl border border-white/70 bg-white/75 p-8 text-center shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+          <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/30 blur-2xl" />
+          <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-amber-300/30 blur-2xl" />
+
+          <div className="relative">
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-amber-50 text-amber-700 shadow-lg shadow-amber-900/10 ring-1 ring-amber-100">
+              <FileText className="h-7 w-7" />
+            </div>
+
+            <h1 className="text-xl font-black text-slate-950">
+              Không có dữ liệu hồ sơ
+            </h1>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Hãy quay lại danh sách và mở lại hồ sơ cần duyệt.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => navigate(basePath)}
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-cyan-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-800"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Quay lại danh sách
+            </button>
           </div>
-          <h1 className="text-xl font-black text-slate-950">
-            Không có dữ liệu hồ sơ
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Hãy quay lại danh sách và mở lại hồ sơ cần duyệt.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate(basePath)}
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-cyan-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-900/15 transition hover:bg-cyan-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Quay lại danh sách
-          </button>
         </section>
       </main>
     );
@@ -314,86 +325,108 @@ export default function AdminApplicationDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-6 text-slate-950">
-      <div className="mx-auto max-w-6xl">
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-6 text-slate-950">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+
+      <div className="relative mx-auto max-w-6xl">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => navigate(basePath)}
-            className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-white/80 px-4 py-2 text-sm font-bold text-cyan-800 shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50"
+            className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-black text-cyan-800 shadow-lg shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50"
           >
             <ArrowLeft className="h-4 w-4" />
             Quay lại
           </button>
+
           <UserAccountMenu fallbackName={fallbackName} />
         </div>
 
-        <section className="overflow-hidden rounded-3xl border border-white/80 bg-white/90 shadow-xl shadow-cyan-950/10 backdrop-blur">
-          <div className="grid gap-0 lg:grid-cols-[320px_1fr]">
-            <div className="relative min-h-72 bg-slate-100">
+        <section className="overflow-hidden rounded-3xl border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+          <div className="grid gap-0 lg:grid-cols-[340px_1fr]">
+            <div className="relative min-h-80 overflow-hidden bg-slate-100">
               {heroImage ? (
                 <img
                   src={heroImage}
                   alt={name}
-                  className="h-full min-h-72 w-full object-cover"
+                  className="h-full min-h-80 w-full object-cover"
                 />
               ) : (
-                <div className="grid h-full min-h-72 place-items-center bg-linear-to-br from-cyan-100 via-white to-amber-100 text-cyan-800">
+                <div className="grid h-full min-h-80 place-items-center bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.22),transparent_38%),linear-gradient(135deg,#cffafe,#ffffff,#fef3c7)] text-cyan-800">
                   <Store className="h-16 w-16" />
                 </div>
               )}
-              <div className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-black text-slate-900 shadow-sm backdrop-blur">
+
+              <div className="absolute inset-0 bg-linear-to-t from-slate-950/45 via-transparent to-transparent" />
+
+              <div className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-2 text-xs font-black text-slate-900 shadow-lg shadow-slate-950/10 backdrop-blur-xl">
                 <StatusIcon className="h-4 w-4" />
                 {statusMeta.label}
               </div>
+
+              <div className="absolute bottom-5 left-5 right-5">
+                <div className="inline-flex max-w-full items-center gap-2 rounded-full bg-slate-950/65 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-lg backdrop-blur-xl">
+                  Hồ sơ Merchant
+                </div>
+              </div>
             </div>
 
-            <div className="p-6 md:p-8">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">
+            <div className="relative overflow-hidden p-6 md:p-8">
+              <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
+              <div className="absolute -bottom-16 -left-16 h-36 w-36 rounded-full bg-amber-300/20 blur-2xl" />
+
+              <div className="relative flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-700">
                     Hồ sơ Merchant
                   </p>
-                  <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+
+                  <h1 className="mt-2 break-words text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
                     {name}
                   </h1>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-bold ${statusMeta.badge}`}
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-black shadow-sm ${statusMeta.badge}`}
                     >
                       <StatusIcon className="h-4 w-4" />
                       {statusMeta.label}
                     </span>
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-bold text-slate-700">
+
+                    <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-sm font-black text-slate-700 shadow-sm">
                       {application.type || "Merchant"}
                     </span>
                   </div>
                 </div>
 
-                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-cyan-700 text-sm font-black text-white shadow-lg shadow-cyan-900/20">
+                <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-slate-950 text-sm font-black text-white shadow-xl shadow-slate-950/15 ring-1 ring-white/20">
                   {getInitials(name)}
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+              <div className="relative mt-7 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur">
                   <CalendarClock className="mb-3 h-5 w-5 text-cyan-700" />
                   <p className="text-xs font-bold text-slate-500">Ngày gửi</p>
-                  <p className="mt-1 text-sm font-black text-slate-950">
+                  <p className="mt-1 text-sm font-black leading-5 text-slate-950">
                     {formatDate(application.createdAt)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+
+                <div className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur">
                   <ClipboardList className="mb-3 h-5 w-5 text-cyan-700" />
                   <p className="text-xs font-bold text-slate-500">Menu</p>
-                  <p className="mt-1 text-sm font-black text-slate-950">
+                  <p className="mt-1 text-sm font-black leading-5 text-slate-950">
                     {menuItems.length} món gửi kèm
                   </p>
                 </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+
+                <div className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur">
                   <Clock3 className="mb-3 h-5 w-5 text-cyan-700" />
                   <p className="text-xs font-bold text-slate-500">Rà soát</p>
-                  <p className="mt-1 text-sm font-black text-slate-950">
+                  <p className="mt-1 text-sm font-black leading-5 text-slate-950">
                     {isPendingStatus
                       ? "Chưa xử lý"
                       : formatDate(application.reviewedAt)}
@@ -404,15 +437,16 @@ export default function AdminApplicationDetailPage({
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
-            <section className="rounded-3xl border border-white/80 bg-white/90 p-6 shadow-lg shadow-cyan-950/5 backdrop-blur">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_370px]">
+          <div className="min-w-0 space-y-6">
+            <section className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-cyan-50 text-cyan-800">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cyan-50 text-cyan-800 shadow-sm ring-1 ring-cyan-100">
                   <FileText className="h-5 w-5" />
                 </div>
-                <div>
-                  <h2 className="text-lg font-black text-slate-950">
+
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-black text-slate-950">
                     Tổng quan hồ sơ
                   </h2>
                   <p className="text-sm text-slate-500">
@@ -421,7 +455,7 @@ export default function AdminApplicationDetailPage({
                 </div>
               </div>
 
-              <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
+              <p className="whitespace-pre-line break-words text-sm leading-7 text-slate-700">
                 {descriptionInfo.summary}
               </p>
 
@@ -430,12 +464,12 @@ export default function AdminApplicationDetailPage({
                   {descriptionInfo.facts.map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-2xl border border-cyan-100 bg-cyan-50/60 p-4"
+                      className="min-w-0 rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4 shadow-sm"
                     >
-                      <p className="text-xs font-bold text-cyan-700">
+                      <p className="truncate text-xs font-bold text-cyan-700">
                         {item.label}
                       </p>
-                      <p className="mt-1 wrap-break-word text-sm font-black text-slate-950">
+                      <p className="mt-1 break-words text-sm font-black text-slate-950">
                         {item.value}
                       </p>
                     </div>
@@ -444,13 +478,14 @@ export default function AdminApplicationDetailPage({
               )}
             </section>
 
-            <section className="rounded-3xl border border-white/80 bg-white/90 p-6 shadow-lg shadow-cyan-950/5 backdrop-blur">
+            <section className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-50 text-amber-700">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-50 text-amber-700 shadow-sm ring-1 ring-amber-100">
                   <Utensils className="h-5 w-5" />
                 </div>
-                <div>
-                  <h2 className="text-lg font-black text-slate-950">
+
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-black text-slate-950">
                     Menu gửi kèm
                   </h2>
                   <p className="text-sm text-slate-500">
@@ -464,13 +499,13 @@ export default function AdminApplicationDetailPage({
                   {menuItems.map((item, index) => (
                     <article
                       key={item.id || `${item.name}-${index}`}
-                      className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm"
+                      className="group overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-950/10"
                     >
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
                           alt={item.name}
-                          className="h-44 w-full object-cover"
+                          className="h-44 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                           loading="lazy"
                         />
                       ) : (
@@ -485,11 +520,12 @@ export default function AdminApplicationDetailPage({
                       )}
 
                       <div className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-black text-slate-950">
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="break-words text-sm font-black text-slate-950">
                               {item.name || `Món #${index + 1}`}
                             </p>
+
                             {(() => {
                               const rawCategory = item.category?.trim() ?? "";
                               const categoryLabel =
@@ -498,7 +534,7 @@ export default function AdminApplicationDetailPage({
                               if (!categoryLabel) return null;
 
                               return (
-                                <p className="mt-1 wrap-break-word text-xs font-bold text-cyan-700">
+                                <p className="mt-1 break-words text-xs font-bold text-cyan-700">
                                   {categoryLabel}
                                   {isGuidLike(rawCategory) &&
                                     !categoryNameById.has(rawCategory) &&
@@ -507,13 +543,14 @@ export default function AdminApplicationDetailPage({
                               );
                             })()}
                           </div>
-                          <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-700">
+
+                          <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-700 ring-1 ring-emerald-100">
                             {formatMoney(item.price)}
                           </span>
                         </div>
 
                         {item.description && (
-                          <p className="mt-3 text-sm leading-6 text-slate-600">
+                          <p className="mt-3 break-words text-sm leading-6 text-slate-600">
                             {item.description}
                           </p>
                         )}
@@ -522,21 +559,22 @@ export default function AdminApplicationDetailPage({
                   ))}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm font-semibold text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-white/65 p-8 text-center text-sm font-semibold text-slate-500">
                   Không có menu gửi kèm.
                 </div>
               )}
             </section>
           </div>
 
-          <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-            <section className="rounded-3xl border border-white/80 bg-white/90 p-6 shadow-lg shadow-cyan-950/5 backdrop-blur">
+          <aside className="min-w-0 space-y-6 lg:sticky lg:top-6 lg:self-start">
+            <section className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-700">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-700 shadow-sm ring-1 ring-slate-200">
                   <UserRound className="h-5 w-5" />
                 </div>
-                <div>
-                  <h2 className="text-lg font-black text-slate-950">
+
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-black text-slate-950">
                     Người nộp
                   </h2>
                   <p className="text-sm text-slate-500">Tài khoản gửi hồ sơ.</p>
@@ -545,8 +583,8 @@ export default function AdminApplicationDetailPage({
 
               {applicant ? (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-2xl bg-cyan-700 text-sm font-black text-white">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-cyan-700 text-sm font-black text-white shadow-lg shadow-cyan-900/15">
                       {applicant.avatarUrl ? (
                         <img
                           src={applicant.avatarUrl}
@@ -557,8 +595,9 @@ export default function AdminApplicationDetailPage({
                         getInitials(applicant.fullName)
                       )}
                     </div>
-                    <div>
-                      <p className="font-black text-slate-950">
+
+                    <div className="min-w-0">
+                      <p className="truncate font-black text-slate-950">
                         {applicant.fullName || "Chưa cập nhật"}
                       </p>
                       <p className="text-xs font-semibold text-slate-500">
@@ -568,13 +607,18 @@ export default function AdminApplicationDetailPage({
                   </div>
 
                   <div className="space-y-3 text-sm">
-                    <p className="flex items-center gap-2 break-all text-slate-700">
+                    <p className="flex min-w-0 items-center gap-2 break-all text-slate-700">
                       <Mail className="h-4 w-4 shrink-0 text-cyan-700" />
-                      {applicant.email || "Chưa có email"}
+                      <span className="min-w-0 break-all">
+                        {applicant.email || "Chưa có email"}
+                      </span>
                     </p>
-                    <p className="flex items-center gap-2 text-slate-700">
+
+                    <p className="flex min-w-0 items-center gap-2 text-slate-700">
                       <Phone className="h-4 w-4 shrink-0 text-cyan-700" />
-                      {applicant.phoneNumber || "Chưa có số điện thoại"}
+                      <span className="min-w-0 break-words">
+                        {applicant.phoneNumber || "Chưa có số điện thoại"}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -585,32 +629,33 @@ export default function AdminApplicationDetailPage({
               )}
             </section>
 
-            <section className="rounded-3xl border border-white/80 bg-white/90 p-6 shadow-lg shadow-cyan-950/5 backdrop-blur">
+            <section className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
               <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-black text-slate-950">
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-black text-slate-950">
                     Xử lý hồ sơ
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm leading-6 text-slate-500">
                     Duyệt khi thông tin hợp lệ, từ chối nếu cần bổ sung.
                   </p>
                 </div>
+
                 <span
-                  className={`grid h-10 w-10 place-items-center rounded-2xl ${statusMeta.soft}`}
+                  className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl shadow-sm ring-1 ring-black/5 ${statusMeta.soft}`}
                 >
                   <StatusIcon className="h-5 w-5" />
                 </span>
               </div>
 
               {!canReview ? (
-                <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4 text-sm font-semibold leading-6 text-cyan-800">
+                <div className="rounded-2xl border border-cyan-100 bg-cyan-50/80 p-4 text-sm font-semibold leading-6 text-cyan-800">
                   Admin đang xem job ở chế độ quản lý. Quyền duyệt hoặc từ chối
                   hồ sơ được tách cho Staff xử lý.
                 </div>
               ) : (
                 <>
                   {!isPendingStatus && (
-                    <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-600">
+                    <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm font-semibold text-slate-600">
                       Hồ sơ này đã được xử lý, không thể thao tác lại.
                     </div>
                   )}
@@ -619,11 +664,12 @@ export default function AdminApplicationDetailPage({
                     <span className="text-sm font-bold text-slate-800">
                       Lý do từ chối
                     </span>
+
                     <textarea
                       value={reason}
                       onChange={(event) => setReason(event.target.value)}
                       placeholder="Ví dụ: Cần bổ sung ảnh món rõ hơn hoặc thông tin quán chưa đủ tin cậy..."
-                      className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15 disabled:bg-slate-50"
+                      className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15 disabled:bg-slate-50"
                       disabled={submitting || !isPendingStatus}
                     />
                   </label>
@@ -633,7 +679,7 @@ export default function AdminApplicationDetailPage({
                       type="button"
                       disabled={submitting || !isPendingStatus}
                       onClick={handleAccept}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-black text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-black text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                     >
                       {submittingAction === "accept" ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -647,7 +693,7 @@ export default function AdminApplicationDetailPage({
                       type="button"
                       disabled={submitting || !isPendingStatus}
                       onClick={handleReject}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 text-sm font-black text-white shadow-lg shadow-rose-900/15 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 text-sm font-black text-white shadow-lg shadow-rose-900/15 transition hover:-translate-y-0.5 hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                     >
                       {submittingAction === "reject" ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

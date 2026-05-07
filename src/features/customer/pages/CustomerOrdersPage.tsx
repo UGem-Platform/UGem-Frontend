@@ -38,9 +38,14 @@ export default function CustomerOrdersPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="mb-5 text-2xl font-bold">Đơn hàng của tôi</h1>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-6 text-slate-950">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold">Đơn hàng của tôi</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Theo dõi lịch sử đặt món và trạng thái xử lý đơn hàng.
+          </p>
+        </div>
 
         {loading ? (
           <p>Đang tải...</p>
@@ -48,9 +53,9 @@ export default function CustomerOrdersPage() {
           <div className="space-y-3">
             {orders.map((order) => {
               const content = (
-                <div className="block rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur">
-                  <div className="flex justify-between">
-                    <div>
+                <div className="block rounded-lg border border-white/70 bg-white/90 p-4 shadow-lg shadow-slate-950/5 backdrop-blur transition hover:-translate-y-px hover:shadow-xl">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <div className="min-w-0">
                       <p className="font-semibold">{order.name}</p>
                       <p className="text-sm text-slate-500">
                         Trạng thái: {order.status}
@@ -60,28 +65,30 @@ export default function CustomerOrdersPage() {
                       </p>
                     </div>
 
-                    <p className="font-bold text-cyan-700">
+                    <p className="text-right font-bold text-cyan-700">
                       {order.finalPrice.toLocaleString("vi-VN")}đ
                     </p>
 
-                    {order.deliveryAddress && (
-                      <p className="text-sm text-slate-500">
-                        Địa chỉ: {order.deliveryAddress}
-                      </p>
-                    )}
+                    <div className="space-y-1 sm:col-span-2">
+                      {order.deliveryAddress && (
+                        <p className="text-sm text-slate-500">
+                          Địa chỉ: {order.deliveryAddress}
+                        </p>
+                      )}
 
-                    {order.orderedAt && (
-                      <p className="text-sm text-slate-500">
-                        Ngày đặt:{" "}
-                        {new Date(order.orderedAt).toLocaleString("vi-VN")}
-                      </p>
-                    )}
+                      {order.orderedAt && (
+                        <p className="text-sm text-slate-500">
+                          Ngày đặt:{" "}
+                          {new Date(order.orderedAt).toLocaleString("vi-VN")}
+                        </p>
+                      )}
 
-                    {order.notes && (
-                      <p className="text-sm text-slate-500">
-                        Ghi chú: {order.notes}
-                      </p>
-                    )}
+                      {order.notes && (
+                        <p className="text-sm text-slate-500">
+                          Ghi chú: {order.notes}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

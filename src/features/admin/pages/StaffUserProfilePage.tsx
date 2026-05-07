@@ -33,6 +33,7 @@ function getErrorMessage(error: unknown) {
 
 export default function StaffUserProfilePage() {
   const currentUser = getCurrentUser();
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -41,9 +42,13 @@ export default function StaffUserProfilePage() {
 
   const displayName =
     profile?.fullName || profile?.name || currentUser?.Name || "Staff";
+
   const email = profile?.email || currentUser?.Email || "-";
+
   const roleLabel = profile?.role || currentUser?.Role || "Staff";
+
   const phoneNumber = profile?.phoneNumber || "Chưa cập nhật";
+
   const userId = currentUser?.UserId || profile?.userId || profile?.id || "-";
 
   useEffect(() => {
@@ -54,6 +59,7 @@ export default function StaffUserProfilePage() {
 
       try {
         const data = await getUserProfile();
+
         if (!active) return;
 
         setProfile(data ?? null);
@@ -61,6 +67,7 @@ export default function StaffUserProfilePage() {
         setAvatarUrl(data?.avatarUrl || "");
       } catch (error) {
         console.error(error);
+
         if (active) {
           notify.error("Không tải được hồ sơ Staff.");
           setFullName(currentUser?.Name || "");
@@ -100,14 +107,21 @@ export default function StaffUserProfilePage() {
       });
 
       const nextProfile = await getUserProfile();
+
       setProfile(nextProfile ?? null);
+
       setFullName(nextProfile?.fullName || nextProfile?.name || trimmedName);
+
       setAvatarUrl(nextProfile?.avatarUrl || trimmedAvatar);
+
       window.dispatchEvent(new Event("ugem:profile-updated"));
 
-      notify.success("Đã cập nhật hồ sơ Staff.", { id: toastId });
+      notify.success("Đã cập nhật hồ sơ Staff.", {
+        id: toastId,
+      });
     } catch (error) {
       console.error(error);
+
       notify.error("Cập nhật hồ sơ thất bại.", {
         id: toastId,
         description: getErrorMessage(error),
@@ -119,128 +133,169 @@ export default function StaffUserProfilePage() {
 
   return (
     <StaffShell activeItem="profile">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold">Profile Staff</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Quản lý thông tin hiển thị và tài khoản Staff đang đăng nhập.
-            </p>
+      <div className="relative mx-auto max-w-5xl">
+        <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+
+        <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+
+        <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+
+        <div className="relative">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
+                Staff Profile
+              </div>
+
+              <h1 className="break-words text-3xl font-black tracking-tight text-slate-950">
+                Profile Staff
+              </h1>
+
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Quản lý thông tin hiển thị và tài khoản Staff đang đăng nhập.
+              </p>
+            </div>
+
+            <UserAccountMenu fallbackName="Staff" />
           </div>
 
-          <UserAccountMenu fallbackName="Staff" />
-        </div>
+          <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+            <section className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/25 blur-2xl" />
 
-        <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
-          <section className="overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-xl shadow-cyan-950/10 backdrop-blur">
-            <div className="border-b border-slate-100 p-6">
-              <div className="grid place-items-center text-center">
-                <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-2xl bg-cyan-100 text-3xl font-black text-cyan-800">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    getInitial(displayName)
-                  )}
+              <div className="absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-amber-300/25 blur-2xl" />
+
+              <div className="relative border-b border-white/70 p-6">
+                <div className="grid place-items-center text-center">
+                  <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-[28px] bg-cyan-100 text-4xl font-black text-cyan-800 shadow-xl shadow-cyan-900/10 ring-1 ring-white/70">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      getInitial(displayName)
+                    )}
+                  </div>
+
+                  <h2 className="mt-5 max-w-full truncate text-2xl font-black tracking-tight text-slate-950">
+                    {displayName}
+                  </h2>
+
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-500">
+                    {email}
+                  </p>
+
+                  <span className="mt-4 inline-flex rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-black text-cyan-700 shadow-sm">
+                    {roleLabel}
+                  </span>
                 </div>
-                <h2 className="mt-4 max-w-full truncate text-xl font-black text-slate-950">
-                  {displayName}
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">{email}</p>
               </div>
-            </div>
 
-            <div className="space-y-3 p-5 text-sm">
-              <ProfileInfoRow
-                icon={ShieldCheck}
-                label="Vai trò"
-                value={roleLabel}
-              />
-              <ProfileInfoRow icon={Mail} label="Email" value={email} />
-              <ProfileInfoRow
-                icon={Phone}
-                label="Số điện thoại"
-                value={phoneNumber}
-              />
-              <ProfileInfoRow icon={IdCard} label="User ID" value={userId} />
-            </div>
-          </section>
+              <div className="relative space-y-3 p-5 text-sm">
+                <ProfileInfoRow
+                  icon={ShieldCheck}
+                  label="Vai trò"
+                  value={roleLabel}
+                />
 
-          <section className="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-xl shadow-cyan-950/10 backdrop-blur">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-cyan-50 text-cyan-800">
-                <UserRound className="h-5 w-5" />
+                <ProfileInfoRow icon={Mail} label="Email" value={email} />
+
+                <ProfileInfoRow
+                  icon={Phone}
+                  label="Số điện thoại"
+                  value={phoneNumber}
+                />
+
+                <ProfileInfoRow icon={IdCard} label="User ID" value={userId} />
               </div>
-              <div>
-                <h2 className="text-lg font-black text-slate-950">
-                  Thông tin hiển thị
-                </h2>
-                <p className="text-sm text-slate-500">
-                  Tên và avatar sẽ được dùng trong menu tài khoản.
-                </p>
-              </div>
-            </div>
+            </section>
 
-            {isLoading ? (
-              <div className="grid gap-3">
-                <div className="h-11 animate-pulse rounded-xl bg-slate-100" />
-                <div className="h-11 animate-pulse rounded-xl bg-slate-100" />
-                <div className="h-24 animate-pulse rounded-xl bg-slate-100" />
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-800">
-                    Tên Staff
-                  </span>
-                  <input
-                    value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
-                    className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
-                    placeholder="Nhập tên hiển thị"
-                    disabled={isSaving}
-                  />
-                </label>
+            <section className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+              <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-cyan-300/20 blur-2xl" />
 
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-800">
-                    Avatar URL
-                  </span>
-                  <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 focus-within:border-cyan-500 focus-within:ring-4 focus-within:ring-cyan-500/15">
-                    <Image className="h-4 w-4 shrink-0 text-slate-400" />
+              <div className="absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-amber-300/20 blur-2xl" />
+
+              <div className="relative mb-6 flex items-start gap-4">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cyan-50 text-cyan-800 shadow-sm ring-1 ring-cyan-100">
+                  <UserRound className="h-5 w-5" />
+                </div>
+
+                <div className="min-w-0">
+                  <h2 className="text-xl font-black text-slate-950">
+                    Thông tin hiển thị
+                  </h2>
+
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Tên và avatar sẽ được dùng trong menu tài khoản.
+                  </p>
+                </div>
+              </div>
+
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="h-12 animate-pulse rounded-2xl bg-slate-100/80" />
+
+                  <div className="h-12 animate-pulse rounded-2xl bg-slate-100/80" />
+
+                  <div className="h-28 animate-pulse rounded-2xl bg-slate-100/80" />
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="relative space-y-5">
+                  <label className="block">
+                    <span className="text-sm font-black text-slate-800">
+                      Tên Staff
+                    </span>
+
                     <input
-                      value={avatarUrl}
-                      onChange={(event) => setAvatarUrl(event.target.value)}
-                      className="h-11 min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
-                      placeholder="https://..."
+                      value={fullName}
+                      onChange={(event) => setFullName(event.target.value)}
+                      className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 text-sm font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
+                      placeholder="Nhập tên hiển thị"
                       disabled={isSaving}
                     />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm font-black text-slate-800">
+                      Avatar URL
+                    </span>
+
+                    <div className="mt-2 flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-4 shadow-sm ring-1 ring-slate-950/5 transition focus-within:border-cyan-500 focus-within:ring-4 focus-within:ring-cyan-500/15">
+                      <Image className="h-4 w-4 shrink-0 text-slate-400" />
+
+                      <input
+                        value={avatarUrl}
+                        onChange={(event) => setAvatarUrl(event.target.value)}
+                        className="h-12 min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                        placeholder="https://..."
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </label>
+
+                  <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4 text-sm leading-6 text-cyan-900 shadow-sm">
+                    Email, role và số điện thoại đang là thông tin đồng bộ từ hệ
+                    thống nên chỉ hiển thị tại đây.
                   </div>
-                </label>
 
-                <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-4 text-sm leading-6 text-cyan-900">
-                  Email, role và số điện thoại đang là thông tin đồng bộ từ hệ
-                  thống nên chỉ hiển thị tại đây.
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="h-11 bg-cyan-600 px-5 font-bold text-white hover:bg-cyan-700"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  Lưu thay đổi
-                </Button>
-              </form>
-            )}
-          </section>
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="h-12 rounded-2xl bg-cyan-600 px-5 font-black text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:hover:translate-y-0"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    Lưu thay đổi
+                  </Button>
+                </form>
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </StaffShell>
@@ -257,15 +312,19 @@ function ProfileInfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-cyan-700">
+    <div className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/80 p-3 shadow-sm ring-1 ring-slate-950/5">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-50 text-cyan-700 shadow-sm ring-1 ring-cyan-100">
         <Icon className="h-4 w-4" />
       </span>
+
       <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
           {label}
         </p>
-        <p className="mt-1 break-all font-bold text-slate-950">{value}</p>
+
+        <p className="mt-1 break-all text-sm font-black text-slate-950">
+          {value}
+        </p>
       </div>
     </div>
   );

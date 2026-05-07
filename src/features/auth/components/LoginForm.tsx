@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LockKeyhole, Mail, Loader2 } from "lucide-react";
+import { LockKeyhole, Mail, Loader2, ShieldCheck } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { loginSchema, type LoginSchema } from "../schema";
 import { useLogin } from "../hooks/useLogin";
@@ -39,31 +39,49 @@ export function LoginForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4 text-sm leading-6 text-cyan-900 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-cyan-700 shadow-sm ring-1 ring-cyan-100">
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+
+            <div>
+              <p className="font-black text-cyan-950">UGem Secure Login</p>
+              <p className="mt-0.5 text-xs font-semibold text-cyan-800/80">
+                Đăng nhập để tiếp tục vào hệ thống quản lý.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                <div className="group relative">
+                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-700" />
 
                   <Input
                     type="email"
                     placeholder="Email của bạn"
                     autoComplete="email"
                     className="
-                      h-12 rounded-2xl border-border/70 bg-background/80
-                      pl-12 text-base shadow-sm transition-all
-                      placeholder:text-muted-foreground/70
-                      focus-visible:border-cyan-600
-                      focus-visible:ring-cyan-600/20
+                      h-12 rounded-2xl border-white/70 bg-white/85
+                      pl-12 text-base font-semibold text-slate-950
+                      shadow-sm ring-1 ring-slate-950/5 transition-all
+                      placeholder:text-slate-400
+                      focus-visible:border-cyan-500
+                      focus-visible:ring-4
+                      focus-visible:ring-cyan-500/15
                     "
                     {...field}
                   />
                 </div>
               </FormControl>
-              <FormMessage className="text-sm font-medium text-red-600" />
+
+              <FormMessage className="text-sm font-semibold text-rose-600" />
             </FormItem>
           )}
         />
@@ -74,31 +92,34 @@ export function LoginForm() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                <div className="group relative">
+                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-700" />
 
                   <Input
                     type="password"
                     placeholder="Mật khẩu"
                     autoComplete="current-password"
                     className="
-                      h-12 rounded-2xl border-border/70 bg-background/80
-                      pl-12 text-base shadow-sm transition-all
-                      placeholder:text-muted-foreground/70
-                      focus-visible:border-cyan-600
-                      focus-visible:ring-cyan-600/20
+                      h-12 rounded-2xl border-white/70 bg-white/85
+                      pl-12 text-base font-semibold text-slate-950
+                      shadow-sm ring-1 ring-slate-950/5 transition-all
+                      placeholder:text-slate-400
+                      focus-visible:border-cyan-500
+                      focus-visible:ring-4
+                      focus-visible:ring-cyan-500/15
                     "
                     {...field}
                   />
                 </div>
               </FormControl>
-              <FormMessage className="text-sm font-medium text-red-600" />
+
+              <FormMessage className="text-sm font-semibold text-rose-600" />
             </FormItem>
           )}
         />
 
         {loginMutation.isError && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/85 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm ring-1 ring-rose-100">
             {apiError}
           </div>
         )}
@@ -107,7 +128,7 @@ export function LoginForm() {
           type="submit"
           disabled={loginMutation.isPending}
           className="
-            h-12 w-full rounded-2xl bg-cyan-700 text-base font-semibold
+            h-12 w-full rounded-2xl bg-cyan-700 text-base font-black
             text-white shadow-lg shadow-cyan-900/20 transition-all
             hover:-translate-y-0.5 hover:bg-cyan-800
             hover:shadow-xl hover:shadow-cyan-900/25

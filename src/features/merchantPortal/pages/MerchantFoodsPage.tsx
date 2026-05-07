@@ -5,6 +5,8 @@ import type { Food } from "../types";
 import { getCategories } from "@/shared/services/categoryService";
 import type { Category } from "@/shared/types";
 import { notify } from "@/shared/lib/notify";
+import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
+import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 
 export function MerchantFoodsPage() {
   const [foods, setFoods] = useState<Food[]>([]);
@@ -101,8 +103,13 @@ export function MerchantFoodsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-6">
-      <div className="mx-auto max-w-5xl">
+    <main className="merchant-portal-layout">
+      <MerchantSidebar />
+
+      <section className="merchant-main">
+        <MerchantHeader />
+
+        <div className="merchant-content">
         <div className="mb-5">
           <h1 className="text-2xl font-bold text-slate-900">Quản lý món ăn</h1>
           <p className="text-sm text-slate-500">
@@ -112,7 +119,7 @@ export function MerchantFoodsPage() {
 
         <form
           onSubmit={handleCreateFood}
-          className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm backdrop-blur"
+          className="rounded-lg border border-white/70 bg-white/90 p-5 shadow-lg shadow-slate-950/5 backdrop-blur"
         >
           <h2 className="mb-4 text-lg font-semibold">Thêm món mới</h2>
 
@@ -125,7 +132,7 @@ export function MerchantFoodsPage() {
                   setForm((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder="Bún bò Huế"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-500"
+                className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
               />
             </label>
 
@@ -141,7 +148,7 @@ export function MerchantFoodsPage() {
                   }))
                 }
                 placeholder="45000"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-500"
+                className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
               />
             </label>
 
@@ -156,7 +163,7 @@ export function MerchantFoodsPage() {
                   }))
                 }
                 placeholder="Đậm vị Huế"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-500"
+                className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
               />
             </label>
 
@@ -168,7 +175,7 @@ export function MerchantFoodsPage() {
                   setForm((prev) => ({ ...prev, imageUrl: e.target.value }))
                 }
                 placeholder="https://..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-500"
+                className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
               />
             </label>
 
@@ -184,7 +191,7 @@ export function MerchantFoodsPage() {
 
                   setForm((prev) => ({ ...prev, categoryIds: selected }));
                 }}
-                className="min-h-28 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-cyan-500"
+                className="min-h-28 w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
               >
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
@@ -198,14 +205,14 @@ export function MerchantFoodsPage() {
           <button
             type="submit"
             disabled={creating}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-3 font-medium text-white hover:bg-cyan-700 disabled:opacity-50"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-5 py-3 font-semibold text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-px hover:bg-cyan-700 disabled:translate-y-0 disabled:opacity-50"
           >
             <Plus size={18} />
             {creating ? "Đang tạo..." : "Thêm món"}
           </button>
         </form>
 
-        <div className="mt-6 rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm backdrop-blur">
+        <div className="mt-6 rounded-lg border border-white/70 bg-white/90 p-5 shadow-lg shadow-slate-950/5 backdrop-blur">
           <h2 className="mb-4 text-lg font-semibold">Danh sách món</h2>
 
           {loading && <p className="text-slate-500">Đang tải...</p>}
@@ -218,14 +225,14 @@ export function MerchantFoodsPage() {
             {foods.map((food) => (
               <div
                 key={food.id}
-                className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                className="rounded-lg border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md"
               >
                 <div className="flex gap-3">
                   {food.imageUrl && (
                     <img
                       src={food.imageUrl}
                       alt={food.name}
-                      className="h-20 w-20 rounded-xl object-cover"
+                      className="h-20 w-20 rounded-lg object-cover"
                     />
                   )}
 
@@ -236,7 +243,7 @@ export function MerchantFoodsPage() {
                         type="button"
                         onClick={() => void handleDeleteFood(food.id)}
                         disabled={deletingFoodId === food.id}
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-100 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-100 text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
                         aria-label="Xóa món"
                       >
                         <Trash2 size={16} />
@@ -264,7 +271,8 @@ export function MerchantFoodsPage() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 }

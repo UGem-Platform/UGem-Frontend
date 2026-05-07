@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { Compass, Store } from "lucide-react";
+import { Compass, Store, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+
 import HeroCarousel from "../components/HeroCarousel";
 import { LoginForm } from "../components/LoginForm";
 import { getRouteByRole } from "../hooks/useLogin";
 import { googleLoginApi } from "../services";
 import { saveAuthToken } from "../store";
 import { Logo } from "./Logo";
+
 import { notify } from "@/shared/lib/notify";
 
 const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID?.toString().trim() ?? "";
+
 const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 
 type GoogleCredentialResponse = {
@@ -26,6 +29,7 @@ declare global {
             client_id: string;
             callback: (response: GoogleCredentialResponse) => void;
           }) => void;
+
           renderButton: (
             parent: HTMLElement,
             options: Record<string, unknown>,
@@ -43,31 +47,13 @@ const HERO_IMAGES = [
   "https://adormusic.s3.us-east-2.amazonaws.com/wp-content/uploads/2023/07/22045644/mi-quang-ba-mua-5-1024x1024.jpeg",
 ];
 
-const CAPTIONS = [
-  {
-    title: "Hidden Gem miền Bắc",
-    subtitle: "Phở Gánh Hàng Chiếu - Hà Nội",
-  },
-  {
-    title: "Hương vị miền Trung",
-    subtitle: "Bún Bò Huế O Xuân - TP.HCM",
-  },
-  {
-    title: "Quán ngon miền Nam",
-    subtitle: "Cơm Tấm Ba Ghiền - TP.HCM",
-  },
-  {
-    title: "Đặc sản miền Trung",
-    subtitle: "Mì Quảng Bà Mua - Đà Nẵng",
-  },
-];
-
 export function LoginPage() {
-  const [slide, setSlide] = useState(0);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showGooglePurposeDialog, setShowGooglePurposeDialog] =
-    useState(false);
+
+  const [showGooglePurposeDialog, setShowGooglePurposeDialog] = useState(false);
+
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
+
   const navigate = useNavigate();
 
   function handleGooglePurpose(path: string) {
@@ -90,8 +76,10 @@ export function LoginPage() {
       }
 
       googleButtonRef.current.innerHTML = "";
+
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
+
         callback: async (response) => {
           if (!response.credential) {
             notify.error("Không nhận được Google ID token.");
@@ -99,10 +87,12 @@ export function LoginPage() {
           }
 
           setGoogleLoading(true);
+
           try {
             const data = await googleLoginApi({
               idToken: response.credential,
             });
+
             const token = data.accessToken;
 
             if (!token) {
@@ -110,12 +100,15 @@ export function LoginPage() {
             }
 
             const user = saveAuthToken(token);
+
             if (data.isNewUser && user.Role === "Customer") {
               setShowGooglePurposeDialog(true);
               return;
             }
 
-            navigate(getRouteByRole(user.Role), { replace: true });
+            navigate(getRouteByRole(user.Role), {
+              replace: true,
+            });
           } catch (error) {
             notify.error(
               error instanceof Error
@@ -144,9 +137,11 @@ export function LoginPage() {
 
     if (existingScript) {
       renderGoogleButton();
+
       existingScript.addEventListener("load", renderGoogleButton, {
         once: true,
       });
+
       return () => {
         cancelled = true;
         existingScript.removeEventListener("load", renderGoogleButton);
@@ -154,11 +149,15 @@ export function LoginPage() {
     }
 
     const script = document.createElement("script");
+
     script.src = GOOGLE_SCRIPT_SRC;
     script.async = true;
     script.defer = true;
+
     script.onload = renderGoogleButton;
+
     script.onerror = () => notify.error("Không tải được Google Sign-In.");
+
     document.head.appendChild(script);
 
     return () => {
@@ -167,127 +166,182 @@ export function LoginPage() {
   }, [navigate]);
 
   return (
-    <main className="grid min-h-screen grid-cols-1 bg-gradient-to-br from-cyan-50 via-sky-50 to-amber-50 lg:grid-cols-[1.2fr_0.8fr]">
-      <section className="relative min-h-[48vh] lg:min-h-screen">
-        <HeroCarousel images={HERO_IMAGES} onChange={setSlide} />
+    <main className="relative grid min-h-screen grid-cols-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] lg:grid-cols-[1.18fr_0.82fr]">
+      {/* grid background */}
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
 
-        <div className="absolute bottom-6 left-6 z-30 max-w-sm rounded-2xl border border-white/30 bg-white/88 p-4 shadow-xl backdrop-blur-lg">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-100 text-sm font-black text-cyan-800">
-              UG
-            </span>
-            <div>
-              <strong className="block text-sm text-slate-900">
-                {CAPTIONS[slide]?.title}
-              </strong>
-              <small className="text-xs text-slate-600">
-                {CAPTIONS[slide]?.subtitle}
-              </small>
-            </div>
-          </div>
-        </div>
+      {/* glow */}
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+
+      {/* left */}
+      <section className="relative min-h-[52vh] p-3 lg:min-h-screen lg:p-4">
+        <HeroCarousel images={HERO_IMAGES} />
+
+        {/* floating caption */}
       </section>
 
-      <section className="flex min-h-screen items-center justify-center px-6 py-10">
+      {/* right */}
+      <section className="relative flex min-h-screen items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          <div className="rounded-3xl border border-white/60 bg-white/85 p-8 shadow-2xl backdrop-blur-xl">
-            <Logo />
+          <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-8 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+            {/* glow */}
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
 
-            <div className="mt-6 space-y-2">
-              <h1 className="text-2xl font-bold text-slate-900">
-                Khám phá quán ăn đang bị{" "}
-                <span className="text-2xl text-cyan-700">FLOP</span>
-              </h1>
-              <p className="text-sm text-slate-600">
-                Những quán ngon địa phương chưa nhiều người biết đến
-              </p>
-            </div>
+            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl" />
 
-            <div className="mt-6 space-y-3">
-              {GOOGLE_CLIENT_ID ? (
-                <div
-                  className={`flex min-h-11 justify-center ${
-                    googleLoading ? "pointer-events-none opacity-60" : ""
-                  }`}
-                >
-                  <div ref={googleButtonRef} />
+            <div className="relative">
+              <Logo />
+
+              <div className="mt-7">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
+                  UGem Platform
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 font-medium text-slate-400"
-                >
-                  Chưa cấu hình Google Client ID
+
+                <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+                  Khám phá quán ăn đang bị{" "}
+                  <span className="bg-gradient-to-r from-cyan-700 to-sky-500 bg-clip-text text-transparent">
+                    FLOP
+                  </span>
+                </h1>
+
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  Những quán ngon địa phương chưa nhiều người biết đến. Tìm
+                  hidden gems, mở merchant và quản lý hồ sơ trong một nền tảng
+                  hiện đại.
+                </p>
+              </div>
+
+              {/* google */}
+              <div className="mt-7 space-y-3">
+                {GOOGLE_CLIENT_ID ? (
+                  <div
+                    className={`flex min-h-11 justify-center rounded-2xl border border-white/70 bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-950/5 ${
+                      googleLoading ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <div ref={googleButtonRef} />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="flex h-12 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white font-semibold text-slate-400 shadow-sm"
+                  >
+                    Chưa cấu hình Google Client ID
+                  </button>
+                )}
+              </div>
+
+              {/* divider */}
+              <div className="my-6 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                <div className="h-px flex-1 bg-slate-200" />
+                Hoặc
+                <div className="h-px flex-1 bg-slate-200" />
+              </div>
+
+              <LoginForm />
+
+              {/* footer links */}
+              <div className="mt-5 space-y-2 text-center">
+                <button className="text-sm font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline">
+                  Quên mật khẩu?
                 </button>
-              )}
-            </div>
 
-            <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
-              <div className="h-px flex-1 bg-slate-200" />
-              Hoặc
-              <div className="h-px flex-1 bg-slate-200" />
-            </div>
-
-            <LoginForm />
-
-            <div className="mt-4 space-y-1 text-center">
-              <button className="text-sm text-cyan-700 hover:underline">
-                Quên mật khẩu?
-              </button>
-              <Link
-                to="/register"
-                className="block text-sm font-medium text-amber-700 hover:underline"
-              >
-                Chưa có tài khoản? Đăng ký
-              </Link>
+                <Link
+                  to="/register"
+                  className="group inline-flex items-center gap-1 text-sm font-black text-amber-700 transition hover:text-amber-800"
+                >
+                  Chưa có tài khoản? Đăng ký
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </Link>
+              </div>
             </div>
           </div>
 
-          <p className="mt-4 text-center text-xs text-slate-500">
-            Bằng cách tiếp tục, bạn đồng ý điều khoản & chính sách
+          <p className="mt-5 text-center text-xs font-medium leading-6 text-slate-500">
+            Bằng cách tiếp tục, bạn đồng ý với điều khoản sử dụng và chính sách
+            quyền riêng tư của UGem.
           </p>
         </div>
       </section>
 
+      {/* purpose dialog */}
       {showGooglePurposeDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md">
           <section
             aria-modal="true"
             role="dialog"
-            className="w-full max-w-md rounded-3xl border border-white/70 bg-white p-6 shadow-2xl"
+            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-7 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl"
           >
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-slate-900">
-                Bạn muốn bắt đầu với UGem như thế nào?
+            <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-cyan-300/20 blur-3xl" />
+
+            <div className="absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-amber-300/20 blur-3xl" />
+
+            <div className="relative">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700">
+                Welcome to UGem
+              </div>
+
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950">
+                Bạn muốn bắt đầu như thế nào?
               </h2>
-              <p className="text-sm leading-6 text-slate-600">
+
+              <p className="mt-3 text-sm leading-7 text-slate-600">
                 Tài khoản Google mới đã được tạo dưới vai trò Customer. Bạn có
-                thể khám phá món ngon ngay hoặc gửi hồ sơ quán để được xét
-                duyệt.
+                thể khám phá món ngon hoặc mở quán trên UGem.
               </p>
-            </div>
 
-            <div className="mt-6 grid gap-3">
-              <button
-                type="button"
-                onClick={() => handleGooglePurpose("/customer")}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                <Compass size={18} />
-                Khám phá món ngon
-              </button>
+              <div className="mt-7 grid gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleGooglePurpose("/customer")}
+                  className="group flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/85 px-5 py-4 text-left shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-700">
+                      <Compass size={18} />
+                    </span>
 
-              <button
-                type="button"
-                onClick={() =>
-                  handleGooglePurpose("/merchant/application/create")
-                }
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-900/20 transition hover:bg-cyan-800"
-              >
-                <Store size={18} />
-                Mở quán trên UGem
-              </button>
+                    <div>
+                      <p className="font-black text-slate-950">
+                        Khám phá món ngon
+                      </p>
+
+                      <p className="text-xs text-slate-500">
+                        Tìm hidden gems quanh bạn
+                      </p>
+                    </div>
+                  </div>
+
+                  <ArrowRight className="h-5 w-5 text-slate-400 transition group-hover:translate-x-0.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleGooglePurpose("/merchant/application/create")
+                  }
+                  className="group flex w-full items-center justify-between rounded-2xl bg-cyan-700 px-5 py-4 text-left text-white shadow-xl shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-800"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/15">
+                      <Store size={18} />
+                    </span>
+
+                    <div>
+                      <p className="font-black">Mở quán trên UGem</p>
+
+                      <p className="text-xs text-cyan-100">
+                        Gửi hồ sơ merchant để xét duyệt
+                      </p>
+                    </div>
+                  </div>
+
+                  <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" />
+                </button>
+              </div>
             </div>
           </section>
         </div>

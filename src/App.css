@@ -1623,3 +1623,355 @@
   background: #fff1df;
   color: #ff6b3d;
 }
+
+/* Premium UI refresh: presentation-only overrides. */
+:root {
+  --ugem-ink: #122033;
+  --ugem-muted: #64748b;
+  --ugem-line: rgba(148, 163, 184, 0.24);
+  --ugem-panel: rgba(255, 255, 255, 0.88);
+  --ugem-panel-strong: rgba(255, 255, 255, 0.96);
+  --ugem-cyan: #0891b2;
+  --ugem-teal: #0f766e;
+  --ugem-amber: #f59e0b;
+  --ugem-shadow: 0 18px 50px rgba(15, 23, 42, 0.09);
+  --ugem-shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+.login-shell,
+.merchant-portal-layout,
+.merchant-onboarding-layout,
+.merchant-status-page {
+  background:
+    linear-gradient(135deg, rgba(248, 251, 255, 0.98), rgba(241, 249, 250, 0.98) 48%, rgba(255, 248, 237, 0.96)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent);
+  color: var(--ugem-ink);
+}
+
+.login-panel,
+.merchant-sidebar,
+.onboarding-sidebar,
+.merchant-topbar,
+.onboarding-topbar,
+.merchant-status-topbar {
+  background: var(--ugem-panel);
+  border-color: var(--ugem-line);
+  backdrop-filter: blur(18px);
+}
+
+.login-card,
+.login-panel .rounded-3xl,
+.merchant-submit-card,
+.merchant-status-card,
+.merchant-process-card,
+.merchant-tips-grid article,
+.merchant-status-content,
+.application-summary-card,
+.review-timeline-card,
+.support-card,
+.status-empty-card,
+.onboarding-card,
+.partner-benefit-card {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: var(--ugem-shadow);
+}
+
+.merchant-portal-layout {
+  grid-template-columns: 272px minmax(0, 1fr);
+}
+
+.merchant-sidebar,
+.onboarding-sidebar {
+  padding: 22px 16px;
+  box-shadow: 12px 0 40px rgba(15, 23, 42, 0.05);
+}
+
+.merchant-sidebar-logo,
+.onboarding-brand {
+  color: var(--ugem-ink);
+  letter-spacing: -0.01em;
+}
+
+.merchant-sidebar-logo strong,
+.onboarding-brand {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  border-radius: 8px;
+  background: #ecfeff;
+  padding: 0 12px;
+  color: #0e7490;
+  font-weight: 900;
+}
+
+.merchant-sidebar-nav,
+.onboarding-sidebar nav {
+  gap: 8px;
+}
+
+.merchant-nav-item,
+.merchant-sidebar-bottom button,
+.onboarding-sidebar nav button {
+  min-height: 42px;
+  border-radius: 8px;
+  color: #536476;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.merchant-nav-item:hover,
+.merchant-sidebar-bottom button:hover,
+.onboarding-sidebar nav button:hover {
+  transform: translateX(2px);
+  background: rgba(8, 145, 178, 0.08);
+  color: #0e7490;
+}
+
+.merchant-nav-item.active,
+.onboarding-sidebar nav button.active {
+  background: linear-gradient(135deg, #0891b2, #0f766e);
+  color: white;
+  box-shadow: 0 10px 24px rgba(8, 145, 178, 0.22);
+}
+
+.merchant-sidebar-bottom {
+  border-top-color: var(--ugem-line);
+}
+
+.merchant-topbar,
+.onboarding-topbar {
+  height: 72px;
+  border-bottom: 1px solid var(--ugem-line);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.merchant-topbar strong,
+.onboarding-topbar strong {
+  color: var(--ugem-ink);
+}
+
+.merchant-user {
+  gap: 14px;
+}
+
+.merchant-user > div:not(.merchant-avatar) {
+  display: grid;
+  text-align: right;
+}
+
+.merchant-avatar,
+.onboarding-avatar,
+.status-avatar {
+  background: linear-gradient(135deg, #0891b2, #0f766e);
+  box-shadow: 0 10px 24px rgba(8, 145, 178, 0.18);
+}
+
+.merchant-user button,
+.onboarding-user button,
+.merchant-status-topbar > button {
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #0e7490;
+  transition: background-color 180ms ease;
+}
+
+.merchant-user button:hover,
+.onboarding-user button:hover,
+.merchant-status-topbar > button:hover {
+  background: rgba(8, 145, 178, 0.08);
+}
+
+.merchant-content {
+  max-width: 1240px;
+  padding: 32px 36px;
+}
+
+.merchant-hero-grid {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.merchant-submit-card {
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(8, 145, 178, 0.98), rgba(15, 118, 110, 0.98)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent);
+  box-shadow: 0 24px 60px rgba(8, 145, 178, 0.2);
+}
+
+.merchant-submit-card h1,
+.onboarding-heading h1,
+.status-heading h1 {
+  color: var(--ugem-ink);
+  letter-spacing: -0.03em;
+}
+
+.merchant-submit-card h1 {
+  color: #ecfeff;
+}
+
+.merchant-submit-card button,
+.resubmit-button,
+.status-empty-card button,
+.next-button {
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(8, 145, 178, 0.16);
+}
+
+.merchant-status-card,
+.merchant-process-card,
+.merchant-tips-grid article,
+.application-summary-card,
+.support-card,
+.status-empty-card {
+  border-radius: 8px;
+  background: var(--ugem-panel-strong);
+}
+
+.status-icon,
+.status-step-icon,
+.partner-image,
+.merchant-avatar,
+.onboarding-avatar {
+  border-radius: 8px;
+}
+
+.process-step div {
+  border-radius: 8px;
+}
+
+.process-step:first-child div,
+.status-step.active .status-step-icon,
+.status-step.done .status-step-icon {
+  background: linear-gradient(135deg, #0891b2, #0f766e);
+}
+
+.merchant-tips-grid article {
+  background: linear-gradient(135deg, rgba(236, 254, 255, 0.98), rgba(255, 251, 235, 0.88));
+}
+
+.merchant-banner {
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.44)),
+    url("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80") center/cover;
+}
+
+.merchant-onboarding-layout {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.onboarding-content {
+  max-width: 1180px;
+  padding: 34px;
+}
+
+.onboarding-stepper {
+  gap: 10px;
+}
+
+.stepper-item {
+  color: #64748b;
+}
+
+.stepper-item div {
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+
+.stepper-item.active div,
+.stepper-item.done div {
+  background: linear-gradient(135deg, #0891b2, #0f766e);
+}
+
+.onboarding-card,
+.partner-benefit-card {
+  border-radius: 8px;
+  background: var(--ugem-panel-strong);
+}
+
+.onboarding-card input,
+.onboarding-card select,
+.onboarding-card textarea,
+.price-options button,
+.file-upload-button {
+  border-color: rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.92);
+  color: var(--ugem-ink);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.onboarding-card input:focus,
+.onboarding-card select:focus,
+.onboarding-card textarea:focus {
+  border-color: rgba(8, 145, 178, 0.58);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+}
+
+.price-options button.selected,
+.add-menu-button,
+.back-button {
+  background: #ecfeff;
+  border-color: rgba(8, 145, 178, 0.28);
+  color: #0e7490;
+}
+
+.next-button {
+  background: linear-gradient(135deg, #0891b2, #0f766e);
+}
+
+.review-timeline-card {
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(236, 254, 255, 0.98), rgba(255, 251, 235, 0.9));
+}
+
+.application-cover {
+  background: #e2e8f0;
+}
+
+.application-cover span {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0891b2, #0f766e);
+}
+
+.status-note-box {
+  border-radius: 8px;
+  background: rgba(255, 251, 235, 0.9);
+  color: #92400e;
+}
+
+.support-card button {
+  border-radius: 8px;
+  background: #ecfeff;
+  color: #0e7490;
+}
+
+.mobile-status-nav {
+  border-radius: 8px;
+  border: 1px solid var(--ugem-line);
+}
+
+@media (max-width: 980px) {
+  .merchant-topbar,
+  .onboarding-topbar {
+    padding: 0 18px;
+  }
+
+  .merchant-content,
+  .onboarding-content {
+    padding: 24px 18px;
+  }
+}
+
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+  border-radius: 0.5rem;
+}

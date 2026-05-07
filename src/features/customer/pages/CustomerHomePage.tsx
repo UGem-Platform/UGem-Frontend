@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, Navigation, X, Clock, Route } from "lucide-react";
+import {
+  Clock,
+  List,
+  Loader2,
+  Map as MapIcon,
+  MapPin,
+  Navigation,
+  Route,
+  Search,
+  X,
+} from "lucide-react";
 import { notify } from "@/shared/lib/notify";
 
 import { cn } from "@/lib/utils";
 import { UserAccountMenu } from "@/shared/components";
 import { Button } from "@/shared/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 
 import MerchantCard from "../components/MerchantCard";
@@ -36,6 +39,7 @@ type LocationResult = {
 };
 type MerchantRecord = Record<string, unknown>;
 type LocationMode = "browser" | "manual" | "default";
+type CustomerServiceMode = "delivery" | "dineIn";
 
 const DEFAULT_COORDS: Coords = {
   latitude: 10.762622,
@@ -244,10 +248,11 @@ export default function CustomerHomePage() {
   const [candidateAccuracy, setCandidateAccuracy] = useState<number | null>(
     null,
   );
-  const [showMap, setShowMap] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(min-width: 1024px)").matches;
-  });
+  const [serviceMode, setServiceMode] =
+    useState<CustomerServiceMode>("delivery");
+  const [showMap, setShowMap] = useState(false);
+  const [showMerchantPanel, setShowMerchantPanel] = useState(true);
+  const [showRoutePanel, setShowRoutePanel] = useState(true);
   const [selectedMerchantId, setSelectedMerchantId] = useState<string | null>(
     null,
   );
@@ -505,6 +510,19 @@ export default function CustomerHomePage() {
     loadMerchants(keyword, coords);
   }
 
+  function handleServiceModeChange(nextMode: CustomerServiceMode) {
+    setServiceMode(nextMode);
+
+    if (nextMode === "dineIn") {
+      setShowMap(true);
+      setShowMerchantPanel(true);
+      setShowRoutePanel(true);
+      return;
+    }
+
+    setShowMap(false);
+  }
+
   async function handleRefreshCustomerLocation() {
     console.debug("[handleRefreshCustomerLocation] START");
 
@@ -678,440 +696,643 @@ export default function CustomerHomePage() {
     clearRoute();
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">UGem</h1>
-            <p className="text-sm text-muted-foreground">
-              Khám phá các quán ăn gần bạn
-            </p>
-          </div>
+  function renderServiceModeTabs(className?: string) {
+    return (
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-1.5 rounded-lg border border-slate-200/70 bg-white/90 p-1.5 shadow-sm",
+          className,
+        )}
+        aria-label="Chọn kiểu sử dụng dịch vụ"
+      >
+        <button
+          type="button"
+          onClick={() => handleServiceModeChange("delivery")}
+          aria-pressed={serviceMode === "delivery"}
+          className={cn(
+            "flex h-12 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold transition",
+            serviceMode === "delivery"
+              ? "bg-[#083f4a] text-white shadow-md shadow-cyan-950/15"
+              : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
+          )}
+        >
+          <span
+            className={cn(
+              "flex h-7 w-7 items-center justify-center rounded-md",
+              serviceMode === "delivery" ? "bg-white/15" : "bg-cyan-50",
+            )}
+          >
+            <Navigation className="h-4 w-4" />
+          </span>
+          Giao hàng
+        </button>
+        <button
+          type="button"
+          onClick={() => handleServiceModeChange("dineIn")}
+          aria-pressed={serviceMode === "dineIn"}
+          className={cn(
+            "flex h-12 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold transition",
+            serviceMode === "dineIn"
+              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-900/10"
+              : "text-slate-600 hover:bg-amber-50 hover:text-slate-950",
+          )}
+        >
+          <span
+            className={cn(
+              "flex h-7 w-7 items-center justify-center rounded-md",
+              serviceMode === "dineIn" ? "bg-white/35" : "bg-amber-50",
+            )}
+          >
+            <MapIcon className="h-4 w-4" />
+          </span>
+          Đi ăn nhà hàng
+        </button>
+      </div>
+    );
+  }
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
+  function renderRouteButton(merchant: Merchant) {
+    const selected = selectedMerchantId === merchant.id;
+    const calculating =
+      routeLoadingMerchantId === merchant.id && selectedMerchantId === merchant.id;
+
+    return (
+      <Button
+        type="button"
+        size="sm"
+        variant={selected ? "default" : "outline"}
+        className="h-9 w-full justify-center gap-2 rounded-lg text-xs"
+        onClick={() => {
+          setShowRoutePanel(true);
+          handleSelectMerchantId(merchant.id);
+        }}
+        disabled={calculating}
+        aria-pressed={selected}
+      >
+        {calculating ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : selected ? (
+          <X className="h-3.5 w-3.5" />
+        ) : (
+          <Navigation className="h-3.5 w-3.5" />
+        )}
+        {calculating ? "Đang tính..." : selected ? "Bỏ chọn" : "Xem đường đi"}
+      </Button>
+    );
+  }
+
+  function renderMerchantListContent(withRouteActions: boolean) {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-cyan-200 bg-cyan-50/80 px-4 py-8 text-sm font-medium text-cyan-700">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Đang tải quán gần bạn...
+        </div>
+      );
+    }
+
+    if (merchants.length === 0) {
+      return (
+        <div className="rounded-lg border border-dashed border-slate-200 bg-white/80 px-4 py-8 text-center text-sm text-slate-500">
+          Chưa có quán nào gần bạn.
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {merchants.map((merchant) => {
+          const selected = selectedMerchantId === merchant.id;
+
+          return (
+            <div
+              key={merchant.id}
+              id={`merchant-${merchant.id}`}
+              className={cn(
+                "scroll-mt-4 rounded-lg transition-all",
+                selected ? "bg-cyan-50/70 p-1" : "",
+              )}
+            >
+              <MerchantCard merchant={merchant} selected={selected} />
+
+              {withRouteActions && (
+                <div className="px-1 pt-2">{renderRouteButton(merchant)}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  const mapCanvas = (
+    <NearbyMerchantsMap
+      center={candidateLocation ?? coords}
+      merchants={merchants}
+      selectedMerchantId={selectedMerchantId}
+      onSelectMerchantId={(id) => {
+        setShowRoutePanel(true);
+        handleSelectMerchantId(id);
+      }}
+      routeCoordinates={routeResult?.coordinates}
+      onLocateCustomer={handleRefreshCustomerLocation}
+      locateLoading={locatingCustomer}
+      editableUserMarker={!!candidateLocation}
+      onUserMarkerDrag={handleCandidateDrag}
+    />
+  );
+
+  if (showMap) {
+    return (
+      <div className="fixed inset-0 overflow-hidden bg-slate-100 text-slate-900">
+        <div className="absolute inset-0">{mapCanvas}</div>
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-44 bg-linear-to-b from-white/90 via-white/50 to-transparent" />
+        {showMerchantPanel && (
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[520px] max-w-full bg-linear-to-r from-white/75 via-white/35 to-transparent" />
+        )}
+
+        <header className="pointer-events-none absolute left-0 right-0 top-0 z-30 flex flex-wrap items-start justify-between gap-3 px-4 py-4 lg:px-6">
+          {showMerchantPanel && (
+            <div className="pointer-events-auto w-full max-w-[440px] rounded-lg border border-white/70 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl font-semibold">
+                    UGem
+                  </h1>
+                  <p className="text-sm text-slate-500">
+                    Khám phá các quán ăn gần bạn
+                  </p>
+                </div>
+                <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
+                  {merchantCountText}
+                </span>
+              </div>
+
+              <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+                <Input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="Tìm quán, món ăn..."
+                  className="h-11 rounded-lg border-white/80 bg-white/90 text-sm shadow-sm"
+                />
+                <Button
+                  type="submit"
+                  className="h-11 shrink-0 gap-2 rounded-lg px-4"
+                  disabled={loading}
+                >
+                  <Search className="h-4 w-4" />
+                  Tìm
+                </Button>
+              </form>
+
+              {renderServiceModeTabs("mt-3")}
+            </div>
+          )}
+
+          <div className="pointer-events-auto ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
             <UserAccountMenu fallbackName="Customer" />
             <Button
               type="button"
               variant="outline"
-              onClick={() => setShowMap((v) => !v)}
-              aria-pressed={showMap}
-              className="gap-2"
+              onClick={() => setShowMerchantPanel((value) => !value)}
+              aria-pressed={showMerchantPanel}
+              className="h-10 gap-2 rounded-lg border-white/70 bg-white/90 shadow-lg backdrop-blur"
             >
-              <MapIcon />
-              {showMap ? "Ẩn bản đồ" : "Bản đồ"}
+              <List className="h-4 w-4" />
+              {showMerchantPanel ? "Ẩn quán" : "Hiện quán"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowRoutePanel((value) => !value)}
+              aria-pressed={showRoutePanel}
+              className="h-10 gap-2 rounded-lg border-white/70 bg-white/90 shadow-lg backdrop-blur"
+            >
+              <MapPin className="h-4 w-4" />
+              {showRoutePanel ? "Ẩn vị trí" : "Hiện vị trí"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleServiceModeChange("delivery")}
+              aria-pressed={serviceMode === "delivery"}
+              className="h-10 gap-2 rounded-lg border-white/70 bg-white/90 shadow-lg backdrop-blur"
+            >
+              <Navigation className="h-4 w-4" />
+              Giao hàng
             </Button>
           </div>
-        </div>
+        </header>
 
-        <form onSubmit={handleSearch} className="mb-4 flex gap-2">
-          <Input
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Tìm quán, món ăn..."
-            className="h-11"
-          />
-          <Button type="submit" className="h-11" disabled={loading}>
-            Tìm
-          </Button>
-        </form>
+        {showMerchantPanel && (
+          <aside className="pointer-events-auto absolute bottom-4 left-4 top-[154px] z-20 flex w-[min(440px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-2xl backdrop-blur-xl lg:bottom-6 lg:left-6 lg:top-[158px]">
+            <div className="border-b border-slate-200/80 px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-semibold">Quán gần bạn</h2>
+                  <p className="text-xs text-slate-500">
+                    Chọn quán để xem đường đi trên bản đồ
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    {merchantCountText}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowMerchantPanel(false)}
+                    className="h-8 rounded-lg px-2 text-xs text-slate-500"
+                  >
+                    Ẩn
+                  </Button>
+                </div>
+              </div>
 
-        {locationError && (
-          <Card className="mb-4 border-orange-200 bg-orange-50">
-            <CardContent className="py-4 text-sm text-orange-800 font-medium">
-              {locationError}
-            </CardContent>
-          </Card>
+              {locationError && (
+                <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-800">
+                  {locationError}
+                </div>
+              )}
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin]">
+              {renderMerchantListContent(true)}
+            </div>
+          </aside>
         )}
 
-        <div className={cn("grid gap-4", showMap ? "lg:grid-cols-12" : "")}>
-          <div className={cn(showMap ? "lg:col-span-6" : "lg:col-span-12")}>
-            <Card>
-              <CardHeader className="flex-row items-start justify-between space-y-0">
+        {showRoutePanel && (
+          <section className="pointer-events-auto absolute right-4 top-[92px] z-20 flex max-h-[calc(100vh-7rem)] w-[min(470px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-2xl backdrop-blur-xl lg:right-6">
+            <div className="border-b border-slate-200/80 px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <CardTitle className="text-xl">Quán gần bạn</CardTitle>
-                  <CardDescription>{merchantCountText}</CardDescription>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                {loading ? (
-                  <p className="text-sm text-muted-foreground">Đang tải...</p>
-                ) : merchants.length === 0 ? (
-                  <p className="text-center text-sm text-muted-foreground">
-                    Chưa có quán nào gần bạn.
+                  <h2 className="text-base font-semibold">Bản đồ</h2>
+                  <p className="text-xs text-slate-500">
+                    {selectedMerchant
+                      ? `Đang xem: ${selectedMerchant.name}`
+                      : "Click vào quán để xem đường đi"}
                   </p>
-                ) : (
-                  <div className="space-y-3">
-                    {merchants.map((merchant) => (
-                      <div
-                        key={merchant.id}
-                        id={`merchant-${merchant.id}`}
-                        className={cn(
-                          "rounded-lg transition-all",
-                          selectedMerchantId === merchant.id
-                            ? "ring-2 ring-ring"
-                            : "",
-                        )}
-                      >
-                        <MerchantCard merchant={merchant} />
+                </div>
 
-                        {/* Nút xem đường đi */}
-                        {showMap && (
-                          <div className="px-4 pb-3">
-                            <Button
-                              size="sm"
-                              variant={
-                                selectedMerchantId === merchant.id
-                                  ? "default"
-                                  : "outline"
-                              }
-                              className="gap-1.5 text-xs"
-                              onClick={() =>
-                                handleSelectMerchantId(merchant.id)
-                              }
-                              disabled={
-                                routeLoadingMerchantId === merchant.id &&
-                                selectedMerchantId === merchant.id
-                              }
-                            >
-                              {routeLoadingMerchantId === merchant.id &&
-                              selectedMerchantId === merchant.id ? (
-                                <>
-                                  <span className="animate-spin">⏳</span>
-                                  Đang tính...
-                                </>
-                              ) : selectedMerchantId === merchant.id ? (
-                                <>
-                                  <X className="h-3 w-3" />
-                                  Bỏ chọn
-                                </>
-                              ) : (
-                                <>
-                                  <Navigation className="h-3 w-3" />
-                                  Xem đường đi
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
+                <div className="flex shrink-0 items-center gap-1">
+                  {selectedMerchantId && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleClearRoute}
+                      className="h-8 gap-1 rounded-lg px-2 text-xs text-slate-500"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Xoá
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowRoutePanel(false)}
+                    className="h-8 rounded-lg px-2 text-xs text-slate-500"
+                  >
+                    Ẩn
+                  </Button>
+                </div>
+              </div>
+
+            <form
+              onSubmit={handleOriginSubmit}
+              className="mt-3 flex flex-col gap-2 sm:flex-row"
+            >
+              <div className="relative flex-1">
+                <Input
+                  value={originInput}
+                  onChange={(e) => {
+                    setOriginInput(e.target.value);
+                    setAppliedOriginInput("");
+                    setOriginSuggestionsOpen(true);
+                  }}
+                  placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
+                  onFocus={() => {
+                    if (originInput.trim().length >= 3) {
+                      setOriginSuggestionsOpen(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    window.setTimeout(
+                      () => setOriginSuggestionsOpen(false),
+                      120,
+                    );
+                  }}
+                  className="h-9 rounded-lg bg-white/90 text-xs"
+                  autoComplete="off"
+                />
+                {originSuggestionsOpen && originInput.trim().length >= 3 && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border border-cyan-100 bg-white py-1 text-sm shadow-xl">
+                    {originSuggesting ? (
+                      <div className="px-3 py-2 text-xs text-slate-500">
+                        Đang tìm gợi ý...
                       </div>
-                    ))}
+                    ) : originSuggestions.length > 0 ? (
+                      originSuggestions.map((suggestion) => (
+                        <button
+                          key={`${suggestion.ref_id}-${suggestion.lat}-${suggestion.lng}`}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => void applyOriginSuggestion(suggestion)}
+                          className="block w-full px-3 py-2 text-left hover:bg-cyan-50"
+                        >
+                          <span className="block truncate font-medium text-slate-800">
+                            {suggestion.name || suggestion.display}
+                          </span>
+                          <span className="mt-0.5 block truncate text-xs text-slate-500">
+                            {suggestion.address || suggestion.display}
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-slate-500">
+                        Không có gợi ý phù hợp.
+                      </div>
+                    )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={originResolving || !originInput.trim()}
+                  className="h-9 whitespace-nowrap rounded-lg text-xs"
+                >
+                  {originResolving ? "Đang tìm..." : "Đặt vị trí"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRefreshCustomerLocation}
+                  disabled={locatingCustomer}
+                  className="h-9 gap-1.5 whitespace-nowrap rounded-lg bg-white/80 text-xs"
+                >
+                  <Navigation className="h-3.5 w-3.5" />
+                  {locatingCustomer ? "Đang lấy..." : "Hiện tại"}
+                </Button>
+              </div>
+            </form>
           </div>
 
-          {showMap && (
-            <div className="lg:col-span-6">
-              <Card className="overflow-hidden lg:sticky lg:top-6">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl">Bản đồ</CardTitle>
-                      <CardDescription>
-                        {selectedMerchant
-                          ? `Đang xem: ${selectedMerchant.name}`
-                          : "Click vào quán để xem đường đi"}
-                      </CardDescription>
-                    </div>
-
-                    {selectedMerchantId && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleClearRoute}
-                        className="gap-1 text-muted-foreground"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                        Xoá
-                      </Button>
-                    )}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:thin]">
+            {geocodeCandidates.length > 0 && (
+              <div className="rounded-lg border border-cyan-100 bg-white/95 p-3 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Gợi ý địa điểm
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Chọn vị trí đúng nhất với ý bạn
+                    </p>
                   </div>
-
-                  <form
-                    onSubmit={handleOriginSubmit}
-                    className="mt-3 flex flex-col gap-2 sm:flex-row"
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setGeocodeCandidates([])}
+                    className="h-8 rounded-lg text-xs"
                   >
-                    <div className="relative flex-1">
-                      <Input
-                        value={originInput}
-                        onChange={(e) => {
-                          setOriginInput(e.target.value);
-                          setAppliedOriginInput("");
-                          setOriginSuggestionsOpen(true);
-                        }}
-                        placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
-                        onFocus={() => {
-                          if (originInput.trim().length >= 3) {
-                            setOriginSuggestionsOpen(true);
-                          }
-                        }}
-                        onBlur={() => {
-                          window.setTimeout(
-                            () => setOriginSuggestionsOpen(false),
-                            120,
-                          );
-                        }}
-                        className="h-9 text-xs"
-                        autoComplete="off"
-                      />
-                      {originSuggestionsOpen &&
-                        originInput.trim().length >= 3 && (
-                          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-cyan-100 bg-white py-1 text-sm shadow-lg">
-                            {originSuggesting ? (
-                              <div className="px-3 py-2 text-xs text-slate-500">
-                                Đang tìm gợi ý...
-                              </div>
-                            ) : originSuggestions.length > 0 ? (
-                              originSuggestions.map((suggestion) => (
-                                <button
-                                  key={`${suggestion.ref_id}-${suggestion.lat}-${suggestion.lng}`}
-                                  type="button"
-                                  onMouseDown={(event) =>
-                                    event.preventDefault()
-                                  }
-                                  onClick={() =>
-                                    void applyOriginSuggestion(suggestion)
-                                  }
-                                  className="block w-full px-3 py-2 text-left hover:bg-cyan-50"
-                                >
-                                  <span className="block truncate font-medium text-slate-800">
-                                    {suggestion.name || suggestion.display}
-                                  </span>
-                                  <span className="mt-0.5 block truncate text-xs text-slate-500">
-                                    {suggestion.address || suggestion.display}
-                                  </span>
-                                </button>
-                              ))
-                            ) : (
-                              <div className="px-3 py-2 text-xs text-slate-500">
-                                Không có gợi ý phù hợp.
-                              </div>
-                            )}
-                          </div>
-                        )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={originResolving || !originInput.trim()}
-                        className="h-9 whitespace-nowrap text-xs"
+                    Đóng
+                  </Button>
+                </div>
+
+                <ul className="mt-2 space-y-1">
+                  {geocodeCandidates.map((c) => {
+                    const distM = Math.round(
+                      distanceKm(
+                        {
+                          latitude:
+                            candidateLocation?.latitude ?? coords.latitude,
+                          longitude:
+                            candidateLocation?.longitude ?? coords.longitude,
+                        },
+                        { lat: c.lat, lng: c.lng },
+                      ) * 1000,
+                    );
+
+                    return (
+                      <li
+                        key={c.ref_id}
+                        className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 hover:bg-slate-50"
                       >
-                        {originResolving ? "Đang tìm..." : "Đặt vị trí"}
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={handleRefreshCustomerLocation}
-                        disabled={locatingCustomer}
-                        className="h-9 gap-1.5 whitespace-nowrap text-xs"
-                      >
-                        <Navigation className="h-3.5 w-3.5" />
-                        {locatingCustomer ? "Đang lấy..." : "Hiện tại"}
-                      </Button>
-                    </div>
-                  </form>
-
-                  {/* Geocode candidates (proximity-biased) */}
-                  {geocodeCandidates.length > 0 && (
-                    <div className="mt-2">
-                      <Card className="border">
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="text-sm">
-                                Gợi ý địa điểm
-                              </CardTitle>
-                              <CardDescription className="text-xs">
-                                Chọn vị trí đúng nhất với ý bạn
-                              </CardDescription>
-                            </div>
-                            <div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setGeocodeCandidates([])}
-                              >
-                                Đóng
-                              </Button>
-                            </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium">
+                            {c.display || c.name}
                           </div>
-                        </CardHeader>
-                        <CardContent className="p-2">
-                          <ul className="space-y-1">
-                            {geocodeCandidates.map((c) => {
-                              const distM = Math.round(
-                                distanceKm(
-                                  {
-                                    latitude:
-                                      candidateLocation?.latitude ??
-                                      coords.latitude,
-                                    longitude:
-                                      candidateLocation?.longitude ??
-                                      coords.longitude,
-                                  },
-                                  { lat: c.lat, lng: c.lng },
-                                ) * 1000,
-                              );
-                              return (
-                                <li
-                                  key={c.ref_id}
-                                  className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-slate-50"
-                                >
-                                  <div className="flex-1">
-                                    <div className="text-sm font-medium">
-                                      {c.display || c.name}
-                                    </div>
-                                    <div className="text-xs text-slate-500">
-                                      {c.address} • ~{distM}m
-                                    </div>
-                                  </div>
-                                  <div className="ml-2">
-                                    <Button
-                                      size="sm"
-                                      onClick={() =>
-                                        handleSelectGeocodeCandidate(c)
-                                      }
-                                    >
-                                      Chọn
-                                    </Button>
-                                  </div>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-
-                  {/* Candidate confirmation UI */}
-                  {candidateLocation && (
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className="flex-1 rounded-md border p-3 text-sm bg-white">
-                        <div className="font-semibold">Vị trí đề xuất</div>
-                        <div className="text-xs text-slate-500">
-                          {candidateLocation.latitude.toFixed(6)},{" "}
-                          {candidateLocation.longitude.toFixed(6)}{" "}
-                          {candidateAccuracy ? `(±${candidateAccuracy}m)` : ""}
+                          <div className="truncate text-xs text-slate-500">
+                            {c.address} • ~{distM}m
+                          </div>
                         </div>
-                        <div className="mt-2 text-xs text-slate-600">
-                          Kéo chấm trên bản đồ để điều chỉnh vị trí, sau đó bấm
-                          "Xác nhận vị trí".
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
                         <Button
+                          type="button"
                           size="sm"
-                          onClick={handleConfirmCandidate}
-                          className="h-9"
+                          onClick={() => handleSelectGeocodeCandidate(c)}
+                          className="h-8 rounded-lg text-xs"
                         >
-                          Xác nhận vị trí
+                          Chọn
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancelCandidate}
-                          className="h-9"
-                        >
-                          Huỷ
-                        </Button>
-                      </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {candidateLocation && (
+              <div className="mt-3 rounded-lg border border-cyan-100 bg-white/95 p-3 text-sm shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold">Vị trí đề xuất</div>
+                    <div className="text-xs text-slate-500">
+                      {candidateLocation.latitude.toFixed(6)},{" "}
+                      {candidateLocation.longitude.toFixed(6)}{" "}
+                      {candidateAccuracy ? `(±${candidateAccuracy}m)` : ""}
                     </div>
-                  )}
-
-                  {/* Route info card */}
-                  {routeResult && (
-                    <div className="mt-2 flex flex-wrap items-center gap-3 rounded-xl bg-cyan-50 px-4 py-3 dark:bg-cyan-950/50">
-                      <div className="flex items-center gap-1.5 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
-                        <Route className="h-4 w-4" />
-                        {metersToKm(routeResult.distance)}
-                      </div>
-                      <div className="h-4 w-px bg-cyan-200 dark:bg-cyan-700" />
-                      <div className="flex items-center gap-1.5 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
-                        <Clock className="h-4 w-4" />
-                        {secondsToText(routeResult.duration)}
-                      </div>
+                    <div className="mt-2 text-xs text-slate-600">
+                      Kéo chấm trên bản đồ để điều chỉnh vị trí, sau đó bấm
+                      "Xác nhận vị trí".
                     </div>
-                  )}
+                  </div>
 
-                  {routeResult && (routeResult.steps?.length ?? 0) > 0 && (
-                    <div className="mt-2 max-h-48 overflow-y-auto rounded-xl bg-white px-4 py-3 text-sm shadow-sm">
-                      <div className="mb-2 font-semibold text-slate-800">
-                        Hướng dẫn đường đi
-                      </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleConfirmCandidate}
+                      className="h-9 rounded-lg text-xs"
+                    >
+                      Xác nhận
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleCancelCandidate}
+                      className="h-9 rounded-lg text-xs"
+                    >
+                      Huỷ
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                      <ol className="space-y-2">
-                        {routeResult.steps!.map((step, index) => (
-                          <li
-                            key={`${step.instruction}-${index}`}
-                            className="flex gap-2"
-                          >
-                            <span className="font-semibold text-cyan-600">
-                              {index + 1}.
-                            </span>
-                            <span>
-                              {step.instruction}
-                              <span className="ml-1 text-xs text-slate-500">
-                                ({metersToKm(step.distance)})
-                              </span>
-                            </span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
+            {routeResult && (
+              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg bg-cyan-50 px-4 py-3">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-cyan-700">
+                  <Route className="h-4 w-4" />
+                  {metersToKm(routeResult.distance)}
+                </div>
+                <div className="h-4 w-px bg-cyan-200" />
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-cyan-700">
+                  <Clock className="h-4 w-4" />
+                  {secondsToText(routeResult.duration)}
+                </div>
+              </div>
+            )}
 
-                  <div className="mt-2 grid gap-1 rounded-xl bg-slate-50 px-4 py-2 text-[11px] font-medium text-slate-500">
-                    <span>
-                      Bạn:{" "}
-                      {hasCustomerLocation
-                        ? `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}${
-                            locationAccuracy !== null
-                              ? ` (±${locationAccuracy}m)`
-                              : ""
-                          }${locationMode === "manual" ? " (nhập tay)" : ""}`
-                        : "chưa lấy được vị trí hiện tại"}
-                    </span>
-                    {selectedMerchant && (
-                      <span>
-                        Quán:{" "}
-                        {visibleDestinationCoords
-                          ? `${visibleDestinationCoords.lat.toFixed(6)}, ${visibleDestinationCoords.lng.toFixed(6)}${
-                              selectedMerchantCoords ? "" : " (geocode)"
-                            }`
-                          : "chưa có tọa độ từ BE, FE sẽ thử lấy theo địa chỉ"}
+            {routeResult && (routeResult.steps?.length ?? 0) > 0 && (
+              <div className="mt-3 max-h-48 overflow-y-auto rounded-lg bg-white/95 px-4 py-3 text-sm shadow-sm [scrollbar-width:thin]">
+                <div className="mb-2 font-semibold text-slate-800">
+                  Hướng dẫn đường đi
+                </div>
+
+                <ol className="space-y-2">
+                  {routeResult.steps!.map((step, index) => (
+                    <li
+                      key={`${step.instruction}-${index}`}
+                      className="flex gap-2"
+                    >
+                      <span className="font-semibold text-cyan-600">
+                        {index + 1}.
                       </span>
-                    )}
-                  </div>
-                </CardHeader>
+                      <span>
+                        {step.instruction}
+                        <span className="ml-1 text-xs text-slate-500">
+                          ({metersToKm(step.distance)})
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
-                <CardContent className="p-0">
-                  <div className="h-130 w-full lg:h-[calc(100vh-190px)] lg:min-h-155">
-                    <div className="relative h-full w-full">
-                      <NearbyMerchantsMap
-                        center={candidateLocation ?? coords}
-                        merchants={merchants}
-                        selectedMerchantId={selectedMerchantId}
-                        onSelectMerchantId={handleSelectMerchantId}
-                        routeCoordinates={routeResult?.coordinates}
-                        onLocateCustomer={handleRefreshCustomerLocation}
-                        locateLoading={locatingCustomer}
-                        editableUserMarker={!!candidateLocation}
-                        onUserMarkerDrag={handleCandidateDrag}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="mt-3 grid gap-1 break-words rounded-lg bg-slate-50 px-4 py-2 text-[11px] font-medium text-slate-500">
+              <span>
+                Bạn:{" "}
+                {hasCustomerLocation
+                  ? `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}${
+                      locationAccuracy !== null ? ` (±${locationAccuracy}m)` : ""
+                    }${locationMode === "manual" ? " (nhập tay)" : ""}`
+                  : "chưa lấy được vị trí hiện tại"}
+              </span>
+              {selectedMerchant && (
+                <span>
+                  Quán:{" "}
+                  {visibleDestinationCoords
+                    ? `${visibleDestinationCoords.lat.toFixed(6)}, ${visibleDestinationCoords.lng.toFixed(6)}${
+                        selectedMerchantCoords ? "" : " (geocode)"
+                      }`
+                    : "chưa có tọa độ từ BE, FE sẽ thử lấy theo địa chỉ"}
+                </span>
+              )}
             </div>
-          )}
-        </div>
+            </div>
+          </section>
+        )}
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[linear-gradient(180deg,#edfafa_0%,#f7fbfc_34%,#ffffff_100%)] text-slate-950">
+      <header className="border-b border-white/80 bg-white/75 shadow-sm shadow-cyan-950/5 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+          <div>
+            <h1 className="text-3xl font-black">UGem</h1>
+            <p className="text-sm font-medium text-slate-500">
+              Khám phá các quán ăn gần bạn
+            </p>
+          </div>
+
+          <UserAccountMenu fallbackName="Customer" />
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 pb-10 pt-5">
+        <section className="rounded-lg border border-white/80 bg-white/90 p-4 shadow-xl shadow-cyan-950/10 backdrop-blur-xl">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-slate-950">
+                Hôm nay ăn gì?
+              </h2>
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                Tìm món ngon quanh vị trí của bạn
+              </p>
+            </div>
+
+            <span className="w-fit rounded-md border border-cyan-100 bg-cyan-50 px-3 py-1.5 text-sm font-black text-cyan-800">
+              {merchantCountText}
+            </span>
+          </div>
+
+          {renderServiceModeTabs("mt-4")}
+
+          <form onSubmit={handleSearch} className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Tìm quán, món ăn..."
+              className="h-12 rounded-lg border-slate-200 bg-white text-sm shadow-sm"
+            />
+            <Button
+              type="submit"
+              className="h-12 gap-2 rounded-lg px-6 shadow-md shadow-cyan-950/10"
+              disabled={loading}
+            >
+              <Search className="h-4 w-4" />
+              Tìm
+            </Button>
+          </form>
+        </section>
+
+        {locationError && (
+          <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800 shadow-sm">
+            {locationError}
+          </div>
+        )}
+
+        <section className="mt-6">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black">
+                Quán gần bạn
+              </h2>
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                {merchantCountText} quanh vị trí hiện tại
+              </p>
+            </div>
+
+            <span className="rounded-md border border-amber-100 bg-amber-50 px-3 py-1.5 text-xs font-black uppercase text-amber-700">
+              Giao nhanh
+            </span>
+          </div>
+
+          {renderMerchantListContent(false)}
+        </section>
+      </main>
     </div>
   );
 }
