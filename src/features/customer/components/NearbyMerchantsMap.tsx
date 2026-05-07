@@ -126,7 +126,7 @@ export default function NearbyMerchantsMap({
     });
 
     return [userMarker, ...merchantMarkers];
-  }, [center.latitude, center.longitude, merchants]);
+  }, [center.latitude, center.longitude, editableUserMarker, merchants]);
 
   return (
     <div className="relative h-full w-full">

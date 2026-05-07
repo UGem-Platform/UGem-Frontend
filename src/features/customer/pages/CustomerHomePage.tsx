@@ -20,11 +20,10 @@ import { getNearbyMerchants } from "../services/merchantService";
 import type { Merchant } from "../types";
 import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";
 import {
-  geocodeAddress,
   type GeocodeResult,
   metersToKm,
   secondsToText,
-  type GeocodeResult,
+  searchGeocodeAddress,
 } from "@/shared/services/vietmapService";
 
 type Coords = { latitude: number; longitude: number };
@@ -43,9 +42,7 @@ const DEFAULT_COORDS: Coords = {
   longitude: 106.660172,
 };
 
-const GOOD_LOCATION_ACCURACY_METERS = 100; // Browser GPS typically has 50-150m accuracy
-const LOCATION_SAMPLE_TIMEOUT_MS = 8_000; // Reduce to 8s - if no good accuracy by then, accept best available
-const MIN_ACCEPTABLE_ACCURACY_METERS = 2000; // Very loose: accept even poor accuracy, just warn user. Desktop IP-based is 500m-5km off anyway
+const LOCATION_SAMPLE_TIMEOUT_MS = 10_000;
 
 function resolveLocation(): Promise<LocationResult> {
   return new Promise((resolve) => {
@@ -94,28 +91,14 @@ function resolveLocation(): Promise<LocationResult> {
 
     watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const accuracy = Math.round(position.coords.accuracy);
-        const isGood = accuracy <= GOOD_LOCATION_ACCURACY_METERS;
-        const isAcceptable = accuracy <= MIN_ACCEPTABLE_ACCURACY_METERS;
-
-        console.debug(
-          `[resolveLocation] Got position: lat=${position.coords.latitude.toFixed(6)}, lng=${position.coords.longitude.toFixed(6)}, accuracy=${accuracy}m ${isGood ? "✅GOOD" : isAcceptable ? "⚠️OK" : "❌POOR"}`,
-        );
-
         if (
           !bestPosition ||
           position.coords.accuracy < bestPosition.coords.accuracy
         ) {
           bestPosition = position;
-          console.debug(
-            "[resolveLocation] ⬆️ New best position (better accuracy)",
-          );
         }
 
-        if (position.coords.accuracy <= GOOD_LOCATION_ACCURACY_METERS) {
-          console.debug("[resolveLocation] ✅ Accuracy good enough, finishing");
-          finish();
-        }
+        finish();
       },
       (error) => {
         lastError = error;
@@ -222,6 +205,17 @@ function isGeocodedDistanceReasonable(
   return Math.abs(actualDistance - expectedDistance) <= toleranceKm;
 }
 
+async function searchOriginSuggestions(
+  text: string,
+  coords: Coords,
+  size: number,
+) {
+  return searchGeocodeAddress(text, {
+    proximity: { lat: coords.latitude, lng: coords.longitude },
+    size,
+  });
+}
+
 export default function CustomerHomePage() {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -242,15 +236,6 @@ export default function CustomerHomePage() {
     [],
   );
   const [locatingCustomer, setLocatingCustomer] = useState(false);
-  const RECENT_ORIGINS_KEY = "ugem:recent_origins";
-  const [recentOrigins, setRecentOrigins] = useState<string[]>(() => {
-    try {
-      const raw = localStorage.getItem(RECENT_ORIGINS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
   const [coords, setCoords] = useState<Coords>(DEFAULT_COORDS);
   // Candidate location (from geolocation) pending user confirmation
   const [candidateLocation, setCandidateLocation] = useState<Coords | null>(
@@ -259,9 +244,6 @@ export default function CustomerHomePage() {
   const [candidateAccuracy, setCandidateAccuracy] = useState<number | null>(
     null,
   );
-  const isMobile =
-    typeof window !== "undefined" &&
-    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
   const [showMap, setShowMap] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(min-width: 1024px)").matches;
@@ -353,10 +335,7 @@ export default function CustomerHomePage() {
       setOriginSuggesting(true);
 
       try {
-        const results = await geocodeAddress(text, {
-          proximity: { lat: coords.latitude, lng: coords.longitude },
-          size: 6,
-        });
+        const results = await searchOriginSuggestions(text, coords, 6);
 
         if (!active) return;
 
@@ -380,11 +359,19 @@ export default function CustomerHomePage() {
       active = false;
       clearTimeout(timeoutId);
     };
-  }, [appliedOriginInput, coords.latitude, coords.longitude, originInput]);
+  }, [appliedOriginInput, coords, originInput]);
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    const initialize = async () => {
       const result = await resolveLocation();
+      if (cancelled) return;
+
+      setOriginInput("");
+      setAppliedOriginInput("");
+      setOriginSuggestions([]);
+      setOriginSuggestionsOpen(false);
       setCoords(result.coords);
       setHasCustomerLocation(!result.usedDefault);
       setLocationMode(result.usedDefault ? "default" : "browser");
@@ -395,94 +382,26 @@ export default function CustomerHomePage() {
       );
 
       if (result.usedDefault) {
-        setLocationError(`${getLocationErrorMessage(result)} Đang dùng vị trí mặc định.`);
+        setLocationError(getLocationErrorMessage(result));
       } else if (result.accuracy && result.accuracy > 150) {
         setLocationError(
           `Vị trí hiện tại chưa thật chính xác (~${Math.round(
             result.accuracy,
           )}m). Nếu thấy sai, hãy bật GPS/Location Services rồi tải lại trang.`,
         );
-        try {
-          const result = await resolveLocation();
-          console.debug(
-            "[CustomerHomePage init] mobile resolveLocation result:",
-            result,
-          );
-          if (!result.usedDefault) {
-            // Apply directly on mobile for convenience
-            await applyCustomerOrigin(
-              result.coords,
-              "browser",
-              result.accuracy,
-            );
-            setLocationError("");
-            await loadMerchants("", result.coords);
-            return;
-          }
-        } catch (e) {
-          console.warn("Mobile resolveLocation failed", e);
-        }
+      } else {
+        setLocationError("");
       }
 
-      // Fallback/default behavior for desktop and failed mobile resolve
-      console.debug(
-        "[CustomerHomePage init] Using default coords, user should input address",
-      );
-      setCoords(defaultCoords);
-      setHasCustomerLocation(false);
-      setLocationMode("default");
-      setLocationAccuracy(null);
-      setLocationError(
-        "⚠️ Vui lòng nhập địa chỉ của bạn để tìm quán gần nhất. Ví dụ: BS10B Vinhomes Grand Park, TP.HCM",
-      );
+      await loadMerchants("", result.coords);
+    };
 
-      await loadMerchants("", defaultCoords);
-    })();
-  }, [loadMerchants, applyCustomerOrigin, isMobile]);
+    void initialize();
 
-  useEffect(() => {
-    if (!isMobile) return;
-
-    if (locationMode === "manual") return;
-    if (!navigator.geolocation) return;
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const nextCoords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        const nextAccuracy = Math.round(position.coords.accuracy);
-
-        setHasCustomerLocation(true);
-        setLocationAccuracy(nextAccuracy);
-        setCoords((prev) => {
-          const movedMeters =
-            distanceKm(prev, {
-              lat: nextCoords.latitude,
-              lng: nextCoords.longitude,
-            }) * 1000;
-
-          return movedMeters >= 5 ? nextCoords : prev;
-        });
-
-        if (nextAccuracy > 150) {
-          setLocationError(
-            `Vị trí hiện tại chưa thật chính xác (~${nextAccuracy}m). Nếu thấy sai, hãy bật GPS/Location Services rồi tải lại trang.`,
-          );
-        } else {
-          setLocationError("");
-        }
-      },
-      () => undefined,
-      {
-        enableHighAccuracy: true,
-        maximumAge: 5_000,
-      },
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [isMobile, locationMode]);
+    return () => {
+      cancelled = true;
+    };
+  }, [loadMerchants]);
 
   // ── Tự động tính route khi chọn quán ─────────────────────────
   useEffect(() => {
@@ -512,7 +431,7 @@ export default function CustomerHomePage() {
 
       if (!merchantCoords && selectedMerchant.address?.trim()) {
         try {
-          const results = await geocodeAddress(selectedMerchant.address, {
+          const results = await searchGeocodeAddress(selectedMerchant.address, {
             proximity: { lat: coords.latitude, lng: coords.longitude },
             size: 5,
           });
@@ -664,10 +583,18 @@ export default function CustomerHomePage() {
         "manual",
         null,
       );
+      setCandidateLocation(null);
+      setCandidateAccuracy(null);
+      setGeocodeCandidates([]);
       notify.success("Đã đặt vị trí xuất phát.");
     } finally {
       setOriginResolving(false);
     }
+  }
+
+  async function handleSelectGeocodeCandidate(candidate: GeocodeResult) {
+    setGeocodeCandidates([]);
+    await applyOriginSuggestion(candidate);
   }
 
   async function handleOriginSubmit(e: React.FormEvent) {
@@ -677,18 +604,9 @@ export default function CustomerHomePage() {
 
     setOriginResolving(true);
     try {
-      // Use proximity bias centered on the current map candidate (if any)
-      const proximity = {
-        lat: candidateLocation?.latitude ?? coords.latitude,
-        lng: candidateLocation?.longitude ?? coords.longitude,
-      };
-
-      const results = await geocodeAddress(text, {
-        size: 6,
-        proximity,
-      });
-
-      if (!results || results.length === 0) {
+      const results = await searchOriginSuggestions(text, coords, 5);
+      const first = results[0];
+      if (!first) {
         notify.error("Không tìm được vị trí bạn nhập.");
         return;
       }
@@ -699,13 +617,14 @@ export default function CustomerHomePage() {
       setOriginSuggestionsOpen(false);
       setLocationError("");
       await applyCustomerOrigin(
-        { latitude: item.lat, longitude: item.lng },
+        { latitude: first.lat, longitude: first.lng },
         "manual",
         null,
       );
       setGeocodeCandidates([]);
-      setOriginInput("");
-      notify.success("Đã đặt vị trí từ gợi ý");
+      setCandidateLocation(null);
+      setCandidateAccuracy(null);
+      notify.success("Đã đặt vị trí xuất phát.");
     } catch (e) {
       console.error(e);
       notify.error("Không thể đặt vị trí từ gợi ý");
@@ -743,6 +662,7 @@ export default function CustomerHomePage() {
 
   function handleCandidateDrag(lat: number, lng: number) {
     setCandidateLocation({ latitude: lat, longitude: lng });
+    setCandidateAccuracy(null);
   }
 
   function handleSelectMerchantId(id: string) {
@@ -915,28 +835,28 @@ export default function CustomerHomePage() {
                     className="mt-3 flex flex-col gap-2 sm:flex-row"
                   >
                     <div className="relative flex-1">
-                    <Input
-                      value={originInput}
-                      onChange={(e) => {
-                        setOriginInput(e.target.value);
-                        setAppliedOriginInput("");
-                        setOriginSuggestionsOpen(true);
-                      }}
-                      placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
-                      onFocus={() => {
-                        if (originInput.trim().length >= 3) {
+                      <Input
+                        value={originInput}
+                        onChange={(e) => {
+                          setOriginInput(e.target.value);
+                          setAppliedOriginInput("");
                           setOriginSuggestionsOpen(true);
-                        }
-                      }}
-                      onBlur={() => {
-                        window.setTimeout(
-                          () => setOriginSuggestionsOpen(false),
-                          120,
-                        );
-                      }}
-                      className="h-9 text-xs"
-                      autoComplete="off"
-                    />
+                        }}
+                        placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
+                        onFocus={() => {
+                          if (originInput.trim().length >= 3) {
+                            setOriginSuggestionsOpen(true);
+                          }
+                        }}
+                        onBlur={() => {
+                          window.setTimeout(
+                            () => setOriginSuggestionsOpen(false),
+                            120,
+                          );
+                        }}
+                        className="h-9 text-xs"
+                        autoComplete="off"
+                      />
                       {originSuggestionsOpen &&
                         originInput.trim().length >= 3 && (
                           <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-cyan-100 bg-white py-1 text-sm shadow-lg">

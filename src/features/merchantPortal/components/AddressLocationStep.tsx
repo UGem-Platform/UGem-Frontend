@@ -9,8 +9,8 @@ import * as vietmapgl from "@vietmap/vietmap-gl-js/dist/vietmap-gl";
 import "@vietmap/vietmap-gl-js/dist/vietmap-gl.css";
 import {
   type GeocodeResult,
-  geocodeAddress as vietmapGeocodeAddress,
   reverseGeocode as vietmapReverseGeocode,
+  searchGeocodeAddress as vietmapSearchGeocodeAddress,
   HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
   VIETMAP_API_KEY,
@@ -390,7 +390,7 @@ export function AddressLocationStep({
           return undefined;
         })();
 
-        const results = await vietmapGeocodeAddress(query, {
+        const results = await vietmapSearchGeocodeAddress(query, {
           proximity: proximity ?? null,
           size: 10,
         });

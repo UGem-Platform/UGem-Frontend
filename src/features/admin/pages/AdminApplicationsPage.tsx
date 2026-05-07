@@ -169,6 +169,9 @@ type ApplicationsPageProps = {
   fallbackName?: string;
   canReview?: boolean;
   secondaryAction?: ReactNode;
+  initialTab?: ApplicationTab;
+  showTabs?: boolean;
+  embedded?: boolean;
 };
 
 type ApplicationTab = "pending" | "reviewed";
@@ -180,8 +183,12 @@ export default function AdminApplicationsPage({
   fallbackName = "Staff",
   canReview = true,
   secondaryAction,
+  initialTab = "pending",
+  showTabs = true,
+  embedded = false,
 }: ApplicationsPageProps) {
-  const [activeTab, setActiveTab] = useState<ApplicationTab>("pending");
+  const [selectedTab, setSelectedTab] = useState<ApplicationTab>(initialTab);
+  const activeTab = showTabs ? selectedTab : initialTab;
 
   const {
     data: applications = [],
@@ -257,8 +264,14 @@ export default function AdminApplicationsPage({
   }, [isError, error]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5 text-slate-950">
-      <div className="mx-auto max-w-6xl">
+    <div
+      className={
+        embedded
+          ? "text-slate-950"
+          : "min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5 text-slate-950"
+      }
+    >
+      <div className={embedded ? "w-full" : "mx-auto max-w-6xl"}>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold">{title}</h1>
@@ -320,38 +333,41 @@ export default function AdminApplicationsPage({
                     Danh sách hồ sơ merchant
                   </h2>
                   <p className="text-sm text-slate-500">
-                    Chuyển tab để xem hồ sơ đang chờ Staff nhận xử lý hoặc hồ sơ
-                    đã duyệt.
+                    {showTabs
+                      ? "Chuyển tab để xem hồ sơ đang chờ Staff nhận xử lý hoặc hồ sơ đã duyệt."
+                      : "Theo dõi nhóm hồ sơ đang chọn từ sidebar bên trái."}
                   </p>
                 </div>
-                <div className="inline-flex rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600">
-                  {tabItems.map((item) => {
-                    const isActive = activeTab === item.key;
+                {showTabs ? (
+                  <div className="inline-flex rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600">
+                    {tabItems.map((item) => {
+                      const isActive = activeTab === item.key;
 
-                    return (
-                      <button
-                        key={item.key}
-                        onClick={() => setActiveTab(item.key)}
-                        className={`rounded-full px-4 py-2 transition-colors ${
-                          isActive
-                            ? "bg-cyan-600 text-white shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        {item.label}
-                        <span
-                          className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => setSelectedTab(item.key)}
+                          className={`rounded-full px-4 py-2 transition-colors ${
                             isActive
-                              ? "bg-white/20 text-white"
-                              : "bg-white text-slate-500"
+                              ? "bg-cyan-600 text-white shadow-sm"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
                         >
-                          {item.count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                          {item.label}
+                          <span
+                            className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${
+                              isActive
+                                ? "bg-white/20 text-white"
+                                : "bg-white text-slate-500"
+                            }`}
+                          >
+                            {item.count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">

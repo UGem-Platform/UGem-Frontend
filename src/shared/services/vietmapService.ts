@@ -34,25 +34,21 @@ export {
 };
 
 // Debug: print masked runtime env info in development to help troubleshooting
-if ((import.meta as any).env && (import.meta as any).env.DEV) {
+if (import.meta.env.DEV) {
   try {
     const mask = (s: string) => (s ? `${s.slice(0, 6)}…` : "(empty)");
-    // eslint-disable-next-line no-console
     console.debug("[vietmapService] VIETMAP_API_KEY:", mask(VIETMAP_API_KEY));
-    // eslint-disable-next-line no-console
     console.debug("[vietmapService] VIETMAP_TILE_KEY:", mask(VIETMAP_TILE_KEY));
-    // eslint-disable-next-line no-console
     console.debug(
       "[vietmapService] VIETMAP_SERVICE_KEY:",
       mask(VIETMAP_SERVICE_KEY),
     );
-    // eslint-disable-next-line no-console
     console.debug(
       "[vietmapService] HAS_VIETMAP_KEY, HAS_VIETMAP_SERVICE_KEY:",
       HAS_VIETMAP_KEY,
       HAS_VIETMAP_SERVICE_KEY,
     );
-  } catch (e) {
+  } catch {
     /* ignore */
   }
 }
@@ -185,6 +181,26 @@ export async function geocodeAddress(
   }
 
   return results;
+}
+
+export async function searchGeocodeAddress(
+  text: string,
+  opts: GeocodeOptions = {},
+): Promise<GeocodeResult[]> {
+  const query = text.trim();
+  if (!query) return [];
+
+  if (opts.proximity) {
+    const proxiedResults = await geocodeAddress(query, opts);
+    if (proxiedResults.length > 0) {
+      return proxiedResults;
+    }
+  }
+
+  const fallbackOptions = opts.proximity
+    ? { ...opts, proximity: undefined }
+    : opts;
+  return geocodeAddress(query, fallbackOptions);
 }
 
 async function getPlaceByRefId(
