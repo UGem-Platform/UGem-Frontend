@@ -338,7 +338,7 @@ export default function MerchantDetailPage() {
                       key={`${item.label}-${item.value}`}
                       className="inline-flex items-center rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-xs font-bold text-cyan-800"
                     >
-                      {item.label}: {item.value}
+                      {item.value}
                     </span>
                   ))}
                 </div>

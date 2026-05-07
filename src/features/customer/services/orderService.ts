@@ -32,7 +32,9 @@ export async function getCustomerOrders() {
   const res = await api.get<
     ApiResponse<CustomerOrderSummary[]> | CustomerOrderSummary[]
   >("/orders/mine");
-  return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  const orders = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+
+  return orders.map(normalizeCustomerOrder);
 }
 
 function unwrapApiResponse<T>(payload: T | ApiResponse<T>): T {
@@ -46,6 +48,64 @@ function unwrapApiResponse<T>(payload: T | ApiResponse<T>): T {
   }
 
   return payload as T;
+}
+
+type RawCustomerOrderSummary = CustomerOrderSummary & {
+  id?: string | number;
+  Id?: string | number;
+  OrderId?: string | number;
+  orderID?: string | number;
+  OrderID?: string | number;
+  order_id?: string | number;
+  orderNo?: string | number;
+  orderNumber?: string | number;
+};
+
+export function getCustomerOrderId(
+  order?: Partial<RawCustomerOrderSummary> | null,
+) {
+  return normalizeOrderId(
+    order?.orderId ??
+      order?.id ??
+      order?.Id ??
+      order?.OrderId ??
+      order?.orderID ??
+      order?.OrderID ??
+      order?.order_id ??
+      order?.orderNo ??
+      order?.orderNumber,
+  );
+}
+
+function normalizeCustomerOrder(
+  order: RawCustomerOrderSummary,
+): CustomerOrderSummary {
+  const orderId = getCustomerOrderId(order);
+
+  if (orderId == null) {
+    console.warn("[orders/mine] Missing order id in customer order summary", {
+      keys: Object.keys(order),
+      order,
+    });
+  }
+
+  return {
+    ...order,
+    id: orderId,
+    orderId,
+  };
+}
+
+function normalizeOrderId(value: unknown) {
+  if (value == null) return undefined;
+
+  const normalized = String(value).trim();
+
+  if (!normalized || normalized === "00000000-0000-0000-0000-000000000000") {
+    return undefined;
+  }
+
+  return normalized;
 }
 
 export async function getCustomerOrderDetail(orderId: string) {
