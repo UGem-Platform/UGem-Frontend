@@ -180,6 +180,30 @@ async function getMerchantDetailSafe(id: string) {
   }
 }
 
+export async function findMerchantByFoodId(foodId: string) {
+  const merchants = await getMapMerchants({
+    MinLongitude: -180,
+    MaxLongitude: 180,
+    MinLatitude: -90,
+    MaxLatitude: 90,
+    ZoomLevel: 20,
+  });
+
+  const details = await Promise.all(
+    merchants.map((merchant) => getMerchantDetailSafe(merchant.id)),
+  );
+
+  return (
+    details
+      .filter((item): item is MerchantDetail => item !== null)
+      .find((merchant) =>
+        (merchant.menu ?? merchant.foods ?? []).some(
+          (food) => food.id === foodId || food.foodId === foodId,
+        ),
+      ) ?? null
+  );
+}
+
 export async function getNearbyMerchants(params: {
   latitude: number;
   longitude: number;

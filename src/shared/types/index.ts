@@ -80,6 +80,7 @@ export type MerchantOrderSummary = {
 };
 
 export type CustomerOrderSummary = {
+  id?: string;
   orderId?: string;
   name: string;
   discount?: number;
@@ -91,8 +92,12 @@ export type CustomerOrderSummary = {
 };
 
 export type CustomerOrderDetailItem = {
+  id?: string;
+  orderDetailId?: string;
   orderId?: string;
   foodId: string;
+  merchantId?: string;
+  merchantName?: string;
   name?: string;
   unitPrice?: number;
   quantity?: number;

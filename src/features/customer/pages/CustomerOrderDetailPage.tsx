@@ -1,19 +1,48 @@
 import { useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Check, Star, X } from "lucide-react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   confirmNotReceived,
   confirmReceived,
   getCustomerOrderDetail,
+  getCustomerOrderId,
+  getCustomerOrders,
 } from "../services/orderService";
-import type { CustomerOrderDetailItem } from "@/shared/types";
+import type {
+  CustomerOrderDetailItem,
+  CustomerOrderSummary,
+} from "@/shared/types";
 import { notify } from "@/shared/lib/notify";
+import { getFoodById } from "@/shared/services";
+import { createReview } from "@/features/review/services";
+import { findMerchantByFoodId } from "../services/merchantService";
+
+type OrderDetailLocationState = {
+  order?: CustomerOrderSummary;
+  fallbackOrderNumber?: number;
+};
+
+const orderIdPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function CustomerOrderDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navigationState = location.state as OrderDetailLocationState | null;
+  const summaryOrder = navigationState?.order ?? null;
+  const fallbackOrderNumber = navigationState?.fallbackOrderNumber ?? null;
+  const hasRealOrderId = Boolean(id && orderIdPattern.test(id));
+  const [resolvedOrderId, setResolvedOrderId] = useState<string | null>(null);
   const [items, setItems] = useState<CustomerOrderDetailItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<string | null>(null);
+  const [merchantId, setMerchantId] = useState<string | null>(null);
+  const [merchantName, setMerchantName] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewContent, setReviewContent] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -22,12 +51,79 @@ export default function CustomerOrderDetailPage() {
       if (!id) return;
 
       setLoading(true);
+      setResolvedOrderId(null);
 
       try {
-        const data = await getCustomerOrderDetail(id);
+        let effectiveOrderId = id;
+        let matchingSummaryOrder = summaryOrder;
+
+        if (!hasRealOrderId) {
+          const orders = await getCustomerOrders().catch(() => []);
+          const refreshedSummaryOrder = summaryOrder
+            ? orders.find((order) => matchesSummaryOrder(order, summaryOrder))
+            : orders[0];
+
+          matchingSummaryOrder =
+            refreshedSummaryOrder ?? summaryOrder ?? matchingSummaryOrder;
+          effectiveOrderId = getCustomerOrderId(matchingSummaryOrder) || "";
+
+          if (!effectiveOrderId) {
+            if (active) {
+              setItems([]);
+              setOrderStatus(matchingSummaryOrder?.status ?? null);
+              setMerchantId(null);
+              setMerchantName(matchingSummaryOrder?.name || "");
+            }
+
+            return;
+          }
+
+          if (active) {
+            setResolvedOrderId(effectiveOrderId);
+
+            navigate(`/customer/orders/${effectiveOrderId}${location.hash}`, {
+              replace: true,
+              state: {
+                order: matchingSummaryOrder ?? summaryOrder ?? undefined,
+                fallbackOrderNumber,
+              },
+            });
+          }
+        }
+
+        const [data, orders] = await Promise.all([
+          getCustomerOrderDetail(effectiveOrderId),
+          getCustomerOrders().catch(() => []),
+        ]);
 
         if (active) {
           setItems(data ?? []);
+          setOrderStatus(
+            orders.find((order) => getCustomerOrderId(order) === effectiveOrderId)
+              ?.status ??
+              matchingSummaryOrder?.status ??
+              null,
+          );
+        }
+
+        const firstItem = data?.[0];
+        const firstFoodId = firstItem?.foodId;
+
+        if (firstFoodId) {
+          const merchant = await resolveOrderMerchant(firstItem).catch(
+            (error) => {
+              console.error(error);
+              return null;
+            },
+          );
+
+          if (active) {
+            setMerchantId(merchant?.id ?? null);
+            setMerchantName(merchant?.name ?? "");
+          }
+        } else if (active) {
+          setMerchantId(null);
+          setMerchantName("");
         }
       } catch (error) {
         console.error(error);
@@ -44,15 +140,79 @@ export default function CustomerOrderDetailPage() {
     return () => {
       active = false;
     };
+  }, [
+    fallbackOrderNumber,
+    hasRealOrderId,
+    id,
+    location.hash,
+    navigate,
+    summaryOrder,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (window.location.hash !== "#review-section") return;
+
+    const timer = window.setTimeout(() => {
+      document.getElementById("review-section")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [id]);
 
+  async function handleSubmitReview() {
+    const orderId = hasRealOrderId ? id : resolvedOrderId;
+
+    if (!orderId || !merchantId) {
+      notify.error("Không xác định được merchant để đánh giá.");
+      return;
+    }
+
+    if (!isCompleted) {
+      notify.error("Chỉ có thể đánh giá khi đơn hàng đã hoàn tất.");
+      return;
+    }
+
+    if (!reviewContent.trim()) {
+      notify.error("Vui lòng nhập nội dung đánh giá.");
+      return;
+    }
+
+    setSubmittingReview(true);
+
+    try {
+      await createReview({
+        merchantId,
+        orderId,
+        rating: reviewRating,
+        content: reviewContent.trim(),
+      });
+
+      notify.success("Đã gửi đánh giá.");
+      setReviewContent("");
+      setReviewRating(5);
+    } catch (error) {
+      console.error(error);
+      notify.error("Gửi đánh giá thất bại.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
   async function handleConfirmReceived() {
-    if (!id) return;
+    const orderId = hasRealOrderId ? id : resolvedOrderId;
+
+    if (!orderId) return;
 
     setUpdatingStatus(true);
 
     try {
-      await confirmReceived(id);
+      await confirmReceived(orderId);
+      setOrderStatus("Completed");
       notify.success("Đã xác nhận đã nhận hàng.");
     } catch (error) {
       console.error(error);
@@ -63,12 +223,15 @@ export default function CustomerOrderDetailPage() {
   }
 
   async function handleConfirmNotReceived() {
-    if (!id) return;
+    const orderId = hasRealOrderId ? id : resolvedOrderId;
+
+    if (!orderId) return;
 
     setUpdatingStatus(true);
 
     try {
-      await confirmNotReceived(id);
+      await confirmNotReceived(orderId);
+      setOrderStatus("NotReceived");
       notify.success("Đã báo chưa nhận hàng.");
     } catch (error) {
       console.error(error);
@@ -78,43 +241,184 @@ export default function CustomerOrderDetailPage() {
     }
   }
 
-  const total = items.reduce((sum, item) => {
+  function handleBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/customer/orders");
+  }
+
+  const itemsTotal = items.reduce((sum, item) => {
     return sum + Number(item.unitPrice || 0) * Number(item.quantity || 0);
   }, 0);
+  const total =
+    itemsTotal > 0 ? itemsTotal : Number(summaryOrder?.finalPrice || 0);
+  const title = summaryOrder?.name || `Đơn #${fallbackOrderNumber ?? id}`;
+  const effectiveOrderId = hasRealOrderId ? id : resolvedOrderId;
+  const displayOrderStatus = orderStatus ?? summaryOrder?.status ?? null;
+  const isCompleted = displayOrderStatus?.toLowerCase() === "completed";
+  const isNotReceived = displayOrderStatus?.toLowerCase() === "notreceived";
 
   if (loading) return <div className="p-5">Đang tải...</div>;
 
   return (
     <div className="min-h-screen bg-cyan-50 px-4 py-5">
       <div className="mx-auto max-w-3xl">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="mb-4 inline-flex items-center rounded-xl border border-white/70 bg-white/85 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur transition hover:-translate-y-px hover:bg-white"
+        >
+          Back
+        </button>
+
         <div className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
-          <h1 className="text-2xl font-bold">Đơn #{id}</h1>
+          <h1 className="text-2xl font-bold">{title}</h1>
 
           <p className="mt-3 text-xl font-bold text-cyan-700">
             {total.toLocaleString("vi-VN")}đ
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => void handleConfirmReceived()}
-              disabled={updatingStatus}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              <Check size={16} />
-              Đã nhận hàng
-            </button>
+          {summaryOrder && (
+            <div className="mt-3 space-y-1 text-sm text-slate-500">
+              <p>Trạng thái: {displayOrderStatus ?? summaryOrder.status}</p>
+              <p>
+                Ngày đặt:{" "}
+                {new Date(summaryOrder.orderedAt).toLocaleString("vi-VN")}
+              </p>
+              {summaryOrder.deliveryAddress && (
+                <p>Địa chỉ: {summaryOrder.deliveryAddress}</p>
+              )}
+              {summaryOrder.notes && <p>Ghi chú: {summaryOrder.notes}</p>}
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => void handleConfirmNotReceived()}
-              disabled={updatingStatus}
-              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+          {effectiveOrderId && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void handleConfirmReceived()}
+                disabled={updatingStatus || isCompleted}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                <Check size={16} />
+                Đã nhận hàng
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleConfirmNotReceived()}
+                disabled={updatingStatus || isCompleted || isNotReceived}
+                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+              >
+                <X size={16} />
+                Chưa nhận hàng
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div
+          id="review-section"
+          className="mt-5 rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Đánh giá quán</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {merchantId
+                  ? `Gửi nhận xét cho ${merchantName || "merchant này"}.`
+                  : "Chưa xác định được merchant từ đơn hàng này."}
+              </p>
+            </div>
+
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                isCompleted
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-amber-50 text-amber-700"
+              }`}
             >
-              <X size={16} />
-              Chưa nhận hàng
-            </button>
+              Trạng thái: {displayOrderStatus || "Đang tải"}
+            </span>
           </div>
+
+          {!effectiveOrderId ? (
+            <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              Chưa ghép được mã đơn thật từ dữ liệu danh sách, nên trang này chỉ
+              hiển thị thông tin tóm tắt.
+            </p>
+          ) : !isCompleted ? (
+            <p className="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Bạn chỉ có thể gửi đánh giá sau khi đơn hàng đã được xác nhận hoàn
+              tất.
+            </p>
+          ) : merchantId ? (
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium text-slate-700">
+                  Chọn số sao
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from({ length: 5 }).map((_, index) => {
+                    const value = index + 1;
+                    const active = value <= reviewRating;
+
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setReviewRating(value)}
+                        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${
+                          active
+                            ? "border-amber-300 bg-amber-50 text-amber-500"
+                            : "border-slate-200 bg-white text-slate-300 hover:border-amber-200 hover:text-amber-400"
+                        }`}
+                        aria-label={`Chọn ${value} sao`}
+                      >
+                        <Star
+                          size={18}
+                          className={active ? "fill-amber-400" : ""}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="review-content"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Nội dung đánh giá
+                </label>
+                <textarea
+                  id="review-content"
+                  value={reviewContent}
+                  onChange={(e) => setReviewContent(e.target.value)}
+                  placeholder="Chia sẻ cảm nhận của bạn về quán..."
+                  className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void handleSubmitReview()}
+                disabled={submittingReview}
+                className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Star size={16} className="fill-white" />
+                {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+              </button>
+            </div>
+          ) : (
+            <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              Không lấy được merchant của đơn này, nên chưa thể tạo đánh giá.
+            </p>
+          )}
         </div>
 
         <div className="mt-5 rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
@@ -137,10 +441,83 @@ export default function CustomerOrderDetailPage() {
           ))}
 
           {items.length === 0 && (
-            <p className="text-slate-500">Không có món nào trong đơn.</p>
+            <p className="text-slate-500">
+              {effectiveOrderId
+                ? "Không có món nào trong đơn."
+                : "Backend chưa trả mã đơn nên chưa tải được danh sách món."}
+            </p>
           )}
         </div>
       </div>
     </div>
   );
+}
+
+function matchesSummaryOrder(
+  candidate: CustomerOrderSummary,
+  reference: CustomerOrderSummary | null,
+) {
+  if (!reference) return true;
+
+  return (
+    normalizeString(candidate.name) === normalizeString(reference.name) &&
+    normalizeString(candidate.status) === normalizeString(reference.status) &&
+    normalizeString(candidate.deliveryAddress) ===
+      normalizeString(reference.deliveryAddress) &&
+    normalizeString(candidate.notes) === normalizeString(reference.notes) &&
+    normalizeDateString(candidate.orderedAt) ===
+      normalizeDateString(reference.orderedAt) &&
+    normalizeNumber(candidate.finalPrice) ===
+      normalizeNumber(reference.finalPrice)
+  );
+}
+
+function normalizeString(value?: string | null) {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function normalizeNumber(value?: number | null) {
+  return Number(value ?? 0).toFixed(2);
+}
+
+function normalizeDateString(value?: string | null) {
+  const timestamp = value ? Date.parse(value) : Number.NaN;
+
+  return Number.isNaN(timestamp) ? "" : new Date(timestamp).toISOString();
+}
+
+async function resolveOrderMerchant(item?: CustomerOrderDetailItem | null) {
+  if (!item?.foodId) return null;
+
+  if (item.merchantId) {
+    return {
+      id: item.merchantId,
+      name: item.merchantName || "",
+    };
+  }
+
+  try {
+    const food = await getFoodById(item.foodId);
+
+    if (food?.merchantId) {
+      return {
+        id: food.merchantId,
+        name: food.name || item.merchantName || "",
+      };
+    }
+  } catch (error) {
+    console.warn("[order-detail] Could not resolve merchant from food API", {
+      foodId: item.foodId,
+      error,
+    });
+  }
+
+  const merchant = await findMerchantByFoodId(item.foodId);
+
+  if (!merchant?.id) return null;
+
+  return {
+    id: merchant.id,
+    name: merchant.name || item.merchantName || "",
+  };
 }

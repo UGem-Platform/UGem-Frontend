@@ -18,6 +18,7 @@ export type Merchant = {
 
 export type MerchantMenuItem = {
   id: string;
+  foodId?: string;
   name: string;
   description?: string;
   price: number;
