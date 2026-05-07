@@ -8,6 +8,8 @@ import {
 } from "../services";
 import type { MerchantOrderSummary } from "@/shared/types";
 import { notify } from "@/shared/lib/notify";
+import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
+import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 
 export default function MerchantOrdersPage() {
   const [orders, setOrders] = useState<MerchantOrderSummary[]>([]);
@@ -111,9 +113,21 @@ export default function MerchantOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="mb-5 text-2xl font-bold">Đơn hàng của quán</h1>
+    <main className="merchant-portal-layout">
+      <MerchantSidebar />
+
+      <section className="merchant-main">
+        <MerchantHeader />
+
+        <div className="merchant-content">
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold text-slate-950">
+            Đơn hàng của quán
+          </h1>
+          <p className="text-sm text-slate-500">
+            Theo dõi, duyệt đơn và tạo QR check-in cho khách hàng.
+          </p>
+        </div>
 
         {loading ? (
           <p>Đang tải...</p>
@@ -126,7 +140,7 @@ export default function MerchantOrdersPage() {
               return (
                 <div
                   key={order.orderId}
-                  className="rounded-2xl border border-white/70 bg-white/85 p-4 shadow-sm backdrop-blur"
+                  className="rounded-lg border border-white/70 bg-white/90 p-4 shadow-lg shadow-slate-950/5 backdrop-blur transition hover:-translate-y-px hover:shadow-xl"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
@@ -159,7 +173,7 @@ export default function MerchantOrdersPage() {
                       type="button"
                       onClick={() => void handleAcceptOrder(order.orderId)}
                       disabled={isBusy}
-                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                     >
                       <Check size={16} />
                       Chấp nhận
@@ -169,7 +183,7 @@ export default function MerchantOrdersPage() {
                       type="button"
                       onClick={() => void handleRejectOrder(order.orderId)}
                       disabled={isBusy}
-                      className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
                     >
                       <X size={16} />
                       Từ chối
@@ -179,7 +193,7 @@ export default function MerchantOrdersPage() {
                       type="button"
                       onClick={() => void handleGenerateQr(order.orderId)}
                       disabled={isBusy}
-                      className="inline-flex items-center gap-2 rounded-xl border border-cyan-200 px-3 py-2 text-sm font-medium text-cyan-700 hover:bg-cyan-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:opacity-50"
                     >
                       <QrCode size={16} />
                       QR check-in
@@ -187,7 +201,7 @@ export default function MerchantOrdersPage() {
                   </div>
 
                   {qrUrl ? (
-                    <div className="mt-4 inline-flex rounded-xl border border-slate-100 bg-white p-3">
+                    <div className="mt-4 inline-flex rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
                       <img
                         src={qrUrl}
                         alt={`QR check-in ${order.orderId}`}
@@ -204,7 +218,8 @@ export default function MerchantOrdersPage() {
             )}
           </div>
         )}
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 }

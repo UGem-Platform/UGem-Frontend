@@ -1,8 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  LockKeyhole,
+  Mail,
+  Phone,
+  ShoppingBag,
+  Store,
+  UserRound,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+
 import HeroCarousel from "../components/HeroCarousel";
 import { Logo } from "./Logo";
 import { Button } from "@/shared/components/ui/button";
@@ -25,30 +35,11 @@ const HERO_IMAGES = [
   "https://adormusic.s3.us-east-2.amazonaws.com/wp-content/uploads/2023/07/22045644/mi-quang-ba-mua-5-1024x1024.jpeg",
 ];
 
-const CAPTIONS = [
-  {
-    title: "Hidden Gem miền Bắc",
-    subtitle: "Phở Gánh Hàng Chiếu • Hà Nội",
-  },
-  {
-    title: "Hương vị miền Trung",
-    subtitle: "Bún Bò Huế O Xuân • TP.HCM",
-  },
-  {
-    title: "Quán ngon miền Nam",
-    subtitle: "Cơm Tấm Ba Ghiền • TP.HCM",
-  },
-  {
-    title: "Đặc sản miền Trung",
-    subtitle: "Mì Quảng Bà Mua • Đà Nẵng",
-  },
-];
-
 export function RegisterPage() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [slide, setSlide] = useState(0);
+  const [, setSlide] = useState(0);
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
@@ -89,226 +80,250 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="grid min-h-screen grid-cols-1 bg-gradient-to-br from-cyan-50 via-sky-50 to-amber-50 lg:grid-cols-[1.2fr_0.8fr]">
-      <section className="relative min-h-[48vh] lg:min-h-screen">
-        <HeroCarousel images={HERO_IMAGES} onChange={setSlide} />
+    <main className="relative grid min-h-screen grid-cols-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] lg:grid-cols-[1.18fr_0.82fr]">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-        <div className="absolute bottom-6 left-6 z-30 max-w-sm rounded-2xl border border-white/30 bg-white/88 p-4 shadow-xl backdrop-blur-lg">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-100 text-lg">
-              🥗
-            </span>
-            <div>
-              <strong className="block text-sm text-slate-900">
-                {CAPTIONS[slide]?.title}
-              </strong>
-              <small className="text-xs text-slate-600">
-                {CAPTIONS[slide]?.subtitle}
-              </small>
-            </div>
-          </div>
-        </div>
+      <section className="relative min-h-[52vh] p-3 lg:min-h-screen lg:p-4">
+        <HeroCarousel images={HERO_IMAGES} onChange={setSlide} />
       </section>
 
-      <section className="flex min-h-screen items-center justify-center px-6 py-10">
+      <section className="relative flex min-h-screen items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          <div className="rounded-3xl bg-white/85 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
-            <Logo />
+          <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-8 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
+            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl" />
 
-            <div className="mt-6 space-y-2">
-              <h1 className="text-2xl font-bold text-slate-900">
-                Tạo tài khoản
-              </h1>
-              <p className="text-sm text-slate-600">
-                Chọn vai trò Customer hoặc Merchant để bắt đầu.
+            <div className="relative">
+              <Logo />
+
+              <div className="mt-7">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
+                  Create UGem Account
+                </div>
+
+                <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+                  Tạo tài khoản
+                </h1>
+
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  Chọn vai trò Customer hoặc Merchant để bắt đầu khám phá quán
+                  ngon địa phương và mở rộng kinh doanh trên UGem.
+                </p>
+              </div>
+
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="mt-7 space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="group relative">
+                            <UserRound className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-700" />
+                            <Input
+                              placeholder="Họ và tên"
+                              autoComplete="name"
+                              className="h-12 rounded-2xl border-white/70 bg-white/85 pl-12 text-base font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 transition-all placeholder:text-slate-400 focus-visible:border-cyan-500 focus-visible:ring-4 focus-visible:ring-cyan-500/15"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="group relative">
+                            <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-700" />
+                            <Input
+                              type="email"
+                              placeholder="Email"
+                              autoComplete="email"
+                              className="h-12 rounded-2xl border-white/70 bg-white/85 pl-12 text-base font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 transition-all placeholder:text-slate-400 focus-visible:border-cyan-500 focus-visible:ring-4 focus-visible:ring-cyan-500/15"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="group relative">
+                            <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-700" />
+                            <Input
+                              placeholder="Số điện thoại"
+                              autoComplete="tel"
+                              className="h-12 rounded-2xl border-white/70 bg-white/85 pl-12 text-base font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 transition-all placeholder:text-slate-400 focus-visible:border-cyan-500 focus-visible:ring-4 focus-visible:ring-cyan-500/15"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="group relative">
+                            <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-700" />
+                            <Input
+                              type="password"
+                              placeholder="Mật khẩu"
+                              autoComplete="new-password"
+                              className="h-12 rounded-2xl border-white/70 bg-white/85 pl-12 text-base font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 transition-all placeholder:text-slate-400 focus-visible:border-cyan-500 focus-visible:ring-4 focus-visible:ring-cyan-500/15"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="grid grid-cols-2 gap-3">
+                          <label
+                            className={`group cursor-pointer rounded-2xl border p-4 shadow-sm ring-1 transition-all ${
+                              field.value === "Customer"
+                                ? "border-cyan-200 bg-cyan-50 text-cyan-900 ring-cyan-100"
+                                : "border-white/70 bg-white/80 text-slate-700 ring-slate-950/5 hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/60"
+                            }`}
+                            aria-label="Khách hàng"
+                          >
+                            <input
+                              type="radio"
+                              value="Customer"
+                              className="hidden"
+                              checked={field.value === "Customer"}
+                              onChange={() => field.onChange("Customer")}
+                            />
+
+                            <div className="text-center">
+                              <div
+                                className={`mx-auto grid h-11 w-11 place-items-center rounded-2xl ${
+                                  field.value === "Customer"
+                                    ? "bg-cyan-600 text-white"
+                                    : "bg-slate-100 text-slate-500 group-hover:bg-cyan-100 group-hover:text-cyan-700"
+                                }`}
+                              >
+                                <ShoppingBag className="h-5 w-5" />
+                              </div>
+
+                              <div className="mt-3 text-sm font-black">
+                                Khách hàng
+                              </div>
+
+                              <div className="mt-0.5 text-xs font-semibold text-slate-500">
+                                Tìm và đặt món
+                              </div>
+                            </div>
+                          </label>
+
+                          <label
+                            className={`group cursor-pointer rounded-2xl border p-4 shadow-sm ring-1 transition-all ${
+                              field.value === "Merchant"
+                                ? "border-cyan-200 bg-cyan-50 text-cyan-900 ring-cyan-100"
+                                : "border-white/70 bg-white/80 text-slate-700 ring-slate-950/5 hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/60"
+                            }`}
+                            aria-label="Shop/Chủ quán"
+                          >
+                            <input
+                              type="radio"
+                              value="Merchant"
+                              className="hidden"
+                              checked={field.value === "Merchant"}
+                              onChange={() => field.onChange("Merchant")}
+                            />
+
+                            <div className="text-center">
+                              <div
+                                className={`mx-auto grid h-11 w-11 place-items-center rounded-2xl ${
+                                  field.value === "Merchant"
+                                    ? "bg-cyan-600 text-white"
+                                    : "bg-slate-100 text-slate-500 group-hover:bg-cyan-100 group-hover:text-cyan-700"
+                                }`}
+                              >
+                                <Store className="h-5 w-5" />
+                              </div>
+
+                              <div className="mt-3 text-sm font-black">
+                                Shop/Chủ quán
+                              </div>
+
+                              <div className="mt-0.5 text-xs font-semibold text-slate-500">
+                                Đăng ký bán hàng
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+
+                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {apiError && (
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50/85 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm ring-1 ring-rose-100">
+                      {apiError}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="h-12 w-full rounded-2xl bg-cyan-700 text-base font-black text-white shadow-lg shadow-cyan-900/20 transition-all hover:-translate-y-0.5 hover:bg-cyan-800 hover:shadow-xl hover:shadow-cyan-900/25 disabled:translate-y-0 disabled:opacity-70"
+                  >
+                    {submitting && (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    )}
+                    {submitting ? "Đang đăng ký..." : "Đăng ký"}
+                  </Button>
+                </form>
+              </Form>
+
+              <p className="mt-5 text-center text-sm text-slate-600">
+                Đã có tài khoản?{" "}
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-1 font-black text-cyan-700 transition hover:text-cyan-800"
+                >
+                  Đăng nhập
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </p>
             </div>
-
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="mt-6 space-y-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <UserRound className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            placeholder="Họ và tên"
-                            autoComplete="name"
-                            className="h-12 rounded-2xl pl-12"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-sm font-medium text-red-600" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            type="email"
-                            placeholder="Email"
-                            autoComplete="email"
-                            className="h-12 rounded-2xl pl-12"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-sm font-medium text-red-600" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            placeholder="Số điện thoại"
-                            autoComplete="tel"
-                            className="h-12 rounded-2xl pl-12"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-sm font-medium text-red-600" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            type="password"
-                            placeholder="Mật khẩu"
-                            autoComplete="new-password"
-                            className="h-12 rounded-2xl pl-12"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-sm font-medium text-red-600" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label
-                          className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${
-                            field.value === "Customer"
-                              ? "border-cyan-600 bg-cyan-50"
-                              : "border-slate-200 hover:border-cyan-300"
-                          }`}
-                          aria-label="Khách hàng"
-                        >
-                          <input
-                            type="radio"
-                            value="Customer"
-                            className="hidden"
-                            checked={field.value === "Customer"}
-                            onChange={() => field.onChange("Customer")}
-                          />
-                          <div className="text-center">
-                            <div className="text-2xl">🛒</div>
-                            <div className="mt-1 text-sm font-semibold text-slate-900">
-                              Khách hàng
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              Tìm và đặt món
-                            </div>
-                          </div>
-                        </label>
-                        <label
-                          className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${
-                            field.value === "Merchant"
-                              ? "border-cyan-600 bg-cyan-50"
-                              : "border-slate-200 hover:border-cyan-300"
-                          }`}
-                          aria-label="Shop/Chủ quán"
-                        >
-                          <input
-                            type="radio"
-                            value="Merchant"
-                            className="hidden"
-                            checked={field.value === "Merchant"}
-                            onChange={() => field.onChange("Merchant")}
-                          />
-                          <div className="text-center">
-                            <div className="text-2xl">🏪</div>
-                            <div className="mt-1 text-sm font-semibold text-slate-900">
-                              Shop/Chủ quán
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              Đăng ký bán hàng
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                      <FormMessage className="text-sm font-medium text-red-600" />
-                    </FormItem>
-                  )}
-                />
-
-                {apiError && (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-                    {apiError}
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="h-12 w-full rounded-2xl bg-cyan-700 text-base font-semibold text-white hover:bg-cyan-800 disabled:opacity-70"
-                >
-                  {submitting && (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  )}
-                  {submitting ? "Đang đăng ký..." : "Đăng ký"}
-                </Button>
-              </form>
-            </Form>
-
-            <p className="mt-4 text-center text-sm text-slate-600">
-              Đã có tài khoản?{" "}
-              <Link
-                to="/login"
-                className="font-medium text-cyan-700 hover:underline"
-              >
-                Đăng nhập
-              </Link>
-            </p>
           </div>
 
-          <p className="mt-4 text-center text-xs text-slate-500">
-            Bằng cách tiếp tục, bạn đồng ý điều khoản & chính sách
+          <p className="mt-5 text-center text-xs font-medium leading-6 text-slate-500">
+            Bằng cách tiếp tục, bạn đồng ý điều khoản & chính sách của UGem.
           </p>
         </div>
       </section>

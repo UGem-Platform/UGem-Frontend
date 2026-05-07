@@ -66,17 +66,24 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
-      <div className="mx-auto max-w-3xl">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-6 text-slate-950">
+      <div className="mx-auto max-w-4xl">
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Bell className="w-6 h-6 text-cyan-600" />
-            <h1 className="text-2xl font-bold">Thông báo</h1>
+            <span className="grid h-11 w-11 place-items-center rounded-lg bg-cyan-50 text-cyan-700 shadow-sm">
+              <Bell className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-2xl font-bold">Thông báo</h1>
+              <p className="text-sm text-slate-500">
+                Cập nhật mới nhất từ hệ thống UGem.
+              </p>
+            </div>
           </div>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-px hover:bg-cyan-700 disabled:translate-y-0 disabled:opacity-50"
           >
             <RefreshCw className="w-4 h-4" />
             {refreshing ? "Đang tải..." : "Làm mới"}
@@ -84,7 +91,7 @@ export default function NotificationsPage() {
         </div>
 
         {loading ? (
-          <div className="rounded-lg bg-white p-8 text-center shadow-sm">
+          <div className="rounded-lg border border-white/70 bg-white/90 p-8 text-center shadow-lg shadow-slate-950/5 backdrop-blur">
             <p className="text-gray-500">Đang tải thông báo...</p>
           </div>
         ) : (
@@ -92,7 +99,7 @@ export default function NotificationsPage() {
             {notifications.map((item) => (
               <div
                 key={item.id}
-                className={`rounded-lg p-4 shadow-sm ${getNotificationStyles(item.type)}`}
+                className={`rounded-lg p-4 shadow-lg shadow-slate-950/5 ${getNotificationStyles(item.type)}`}
               >
                 <p className="font-semibold text-gray-800">
                   {item.title || item.message || "Thông báo"}
@@ -111,7 +118,7 @@ export default function NotificationsPage() {
             ))}
 
             {notifications.length === 0 && (
-              <div className="rounded-lg bg-white p-8 text-center shadow-sm">
+              <div className="rounded-lg border border-white/70 bg-white/90 p-8 text-center shadow-lg shadow-slate-950/5 backdrop-blur">
                 <Bell className="mx-auto mb-3 w-12 h-12 text-gray-300" />
                 <p className="text-gray-500">Chưa có thông báo nào.</p>
               </div>

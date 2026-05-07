@@ -13,9 +13,14 @@ export default function ReviewsPage() {
   const { data: reviews = [], isLoading, isError, error } = useReviews(merchantId);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
+    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-6 text-slate-950">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-5 text-2xl font-bold">Đánh giá</h1>
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold">Đánh giá</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Tổng hợp phản hồi từ khách hàng cho merchant đang chọn.
+          </p>
+        </div>
 
         {!merchantId ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -36,7 +41,7 @@ export default function ReviewsPage() {
               reviews.map((review: Review, idx: number) => (
                 <div
                   key={review.id || idx}
-                  className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur"
+                  className="rounded-lg border border-white/70 bg-white/90 p-5 shadow-lg shadow-slate-950/5 backdrop-blur transition hover:-translate-y-px hover:shadow-xl"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">

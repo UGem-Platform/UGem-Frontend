@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getAffiliateLinks } from "../services";
 import type { AffiliateLink } from "../services";
+import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
+import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 
 export default function AffiliateLinkPage() {
   const [links, setLinks] = useState<AffiliateLink[]>([]);
@@ -25,18 +27,30 @@ export default function AffiliateLinkPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5">
-      <div className="mx-auto max-w-5xl">
-        <h1 className="mb-5 text-2xl font-bold">Liên kết Affiliate</h1>
+    <main className="merchant-portal-layout">
+      <MerchantSidebar />
+
+      <section className="merchant-main">
+        <MerchantHeader />
+
+        <div className="merchant-content">
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold text-slate-950">
+            Liên kết Affiliate
+          </h1>
+          <p className="text-sm text-slate-500">
+            Theo dõi các liên kết đang được gắn với tài khoản merchant.
+          </p>
+        </div>
 
         {loading ? (
           <p>Đang tải...</p>
         ) : error ? (
           <p className="text-red-600">Lỗi: {error}</p>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-sm backdrop-blur">
+          <div className="overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-lg shadow-slate-950/5 backdrop-blur">
             <table className="w-full">
-              <thead className="bg-cyan-50 text-left text-sm">
+              <thead className="bg-cyan-50/90 text-left text-sm text-slate-700">
                 <tr>
                   <th className="p-4">Tên</th>
                   <th className="p-4">URL</th>
@@ -48,14 +62,17 @@ export default function AffiliateLinkPage() {
               <tbody>
                 {links.length > 0 ? (
                   links.map((link: AffiliateLink, idx: number) => (
-                    <tr key={link.id || idx} className="border-t">
+                    <tr
+                      key={link.id || idx}
+                      className="border-t border-slate-100 transition hover:bg-cyan-50/60"
+                    >
                       <td className="p-4">{link.name || "N/A"}</td>
                       <td className="p-4">
                         <a
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-cyan-700 truncate max-w-xs inline-block"
+                          className="inline-block max-w-xs truncate font-medium text-cyan-700 hover:underline"
                         >
                           {link.url || "N/A"}
                         </a>
@@ -77,7 +94,8 @@ export default function AffiliateLinkPage() {
             </table>
           </div>
         )}
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 }
