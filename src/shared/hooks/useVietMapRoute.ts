@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState } from "react";
 import {
-  geocodeAddress,
   getOsrmRoute,
   getRoute,
   type GeocodeResult,
   type LngLat,
   type RouteResult,
+  searchGeocodeAddress,
 } from "@/shared/services/vietmapService";
 
 type RouteVehicle = "car" | "bike" | "foot" | "motorcycle";
@@ -22,7 +22,7 @@ export function useVietMapRoute() {
     setLoading(true);
     setError(null);
     try {
-      const results = await geocodeAddress(text);
+      const results = await searchGeocodeAddress(text);
       setGeocodeResults(results);
       return results;
     } catch (e) {

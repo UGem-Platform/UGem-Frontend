@@ -4,6 +4,7 @@ import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
 import StaffApplicationDetailPage from "@/features/admin/pages/StaffApplicationDetailPage";
 import StaffApplicationsPage from "@/features/admin/pages/StaffApplicationsPage";
 import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
+import StaffUserProfilePage from "@/features/admin/pages/StaffUserProfilePage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
 import { LoginPage, RegisterPage } from "@/features/auth";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
@@ -157,10 +158,38 @@ const routers = createBrowserRouter([
         ),
       },
       {
+        path: "/staff",
+        element: <Navigate to="/staff/dashboard" replace />,
+      },
+      {
+        path: "/staff/dashboard",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/staff/applications",
         element: (
           <ProtectedRoute allowedRoles={["Staff"]}>
-            <StaffApplicationsPage />
+            <StaffApplicationsPage tab="pending" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/staff/applications/pending",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffApplicationsPage tab="pending" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/staff/applications/approved",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffApplicationsPage tab="reviewed" />
           </ProtectedRoute>
         ),
       },
@@ -176,7 +205,7 @@ const routers = createBrowserRouter([
         path: "/staff/profile",
         element: (
           <ProtectedRoute allowedRoles={["Staff"]}>
-            <StaffProfilePage />
+            <StaffUserProfilePage />
           </ProtectedRoute>
         ),
       },

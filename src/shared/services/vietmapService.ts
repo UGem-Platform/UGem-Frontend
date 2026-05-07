@@ -94,7 +94,10 @@ export async function geocodeAddress(
   url.searchParams.set("text", text);
   url.searchParams.set("size", String(size));
   if (opts.proximity) {
-    url.searchParams.set("focus", `${opts.proximity.lat},${opts.proximity.lng}`);
+    url.searchParams.set(
+      "focus",
+      `${opts.proximity.lat},${opts.proximity.lng}`,
+    );
   }
 
   const res = await fetch(url.toString());
@@ -131,9 +134,7 @@ export async function geocodeAddress(
           getText(r.name) ||
           getText(r.address),
         address:
-          getText(place?.address) ||
-          getText(r.address) ||
-          getText(r.display),
+          getText(place?.address) || getText(r.address) || getText(r.display),
         lat: hasDirectCoords ? directLat : Number(place?.lat ?? Number.NaN),
         lng: hasDirectCoords ? directLng : Number(place?.lng ?? Number.NaN),
       };
@@ -154,6 +155,26 @@ export async function geocodeAddress(
   }
 
   return results;
+}
+
+export async function searchGeocodeAddress(
+  text: string,
+  opts: GeocodeOptions = {},
+): Promise<GeocodeResult[]> {
+  const query = text.trim();
+  if (!query) return [];
+
+  if (opts.proximity) {
+    const proxiedResults = await geocodeAddress(query, opts);
+    if (proxiedResults.length > 0) {
+      return proxiedResults;
+    }
+  }
+
+  const fallbackOptions = opts.proximity
+    ? { ...opts, proximity: undefined }
+    : opts;
+  return geocodeAddress(query, fallbackOptions);
 }
 
 async function getPlaceByRefId(
@@ -328,10 +349,13 @@ function formatOsrmInstruction(step: OsrmStep) {
   if (type === "arrive") return "Đến nơi";
   if (type === "depart") return road ? `Bắt đầu đi theo ${road}` : "Bắt đầu";
   if (type === "turn") {
-    if (modifier.includes("left")) return road ? `Rẽ trái vào ${road}` : "Rẽ trái";
-    if (modifier.includes("right")) return road ? `Rẽ phải vào ${road}` : "Rẽ phải";
+    if (modifier.includes("left"))
+      return road ? `Rẽ trái vào ${road}` : "Rẽ trái";
+    if (modifier.includes("right"))
+      return road ? `Rẽ phải vào ${road}` : "Rẽ phải";
   }
-  if (type === "roundabout") return road ? `Vào vòng xoay theo ${road}` : "Vào vòng xoay";
+  if (type === "roundabout")
+    return road ? `Vào vòng xoay theo ${road}` : "Vào vòng xoay";
   if (type === "merge") return road ? `Nhập làn vào ${road}` : "Nhập làn";
 
   return road ? `Đi tiếp theo ${road}` : "Đi tiếp";
@@ -368,7 +392,9 @@ export async function getOsrmRoute(
     .map((item) => Object.values(item).map(Number))
     .filter(
       (item): item is [number, number] =>
-        item.length >= 2 && Number.isFinite(item[0]) && Number.isFinite(item[1]),
+        item.length >= 2 &&
+        Number.isFinite(item[0]) &&
+        Number.isFinite(item[1]),
     )
     .map(([lng, lat]) => [lng, lat] as [number, number]);
 

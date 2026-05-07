@@ -81,15 +81,34 @@ function createMarkerElement(
     el.innerHTML = `
       <div style="
         position:relative;
-        width:20px;height:20px;
+        width:42px;height:48px;
+        cursor:pointer;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:flex-start;
       ">
         <div style="
-          width:20px;height:20px;
+          margin-bottom:4px;
+          padding:2px 6px;
+          border-radius:999px;
+          background:${bg};
+          color:white;
+          font-size:10px;
+          font-weight:700;
+          line-height:1;
+          box-shadow:0 2px 8px rgba(0,0,0,0.25);
+          white-space:nowrap;
+        ">Bạn</div>
+        <div style="
+          width:18px;height:18px;
           background:${bg};
           border:3px solid white;
-          border-radius:50%;
-          box-shadow:0 0 0 4px ${bg}55;
+          border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);
+          box-shadow:0 0 0 4px ${bg}55, 0 3px 10px rgba(0,0,0,0.25);
           animation:vmUserPulse 2s ease-in-out infinite;
+          margin-top:2px;
         "></div>
       </div>
       <style>

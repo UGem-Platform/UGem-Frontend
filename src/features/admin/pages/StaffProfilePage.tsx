@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import {
-  ArrowLeft,
   BadgeCheck,
   Clock3,
   FileText,
@@ -10,13 +9,12 @@ import {
   TrendingUp,
   UserRound,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "@/features/auth";
 import { UserAccountMenu } from "@/shared/components";
-import { Button } from "@/shared/components/ui/button";
 import { useStaffApplications } from "../hooks/useApplications";
 import { notify } from "@/shared/lib/notify";
 import { getUserProfile, type UserProfile } from "@/shared/services";
+import { StaffShell } from "../components/StaffShell";
 
 function formatDate(value?: string | number | null, fallback = "-") {
   if (!value) return fallback;
@@ -70,7 +68,6 @@ function getStatusMeta(status?: string) {
 }
 
 export default function StaffProfilePage() {
-  const navigate = useNavigate();
   const currentUser = getCurrentUser();
   const {
     data: applications = [],
@@ -175,28 +172,17 @@ export default function StaffProfilePage() {
   const roleLabel = profile?.role || currentUser?.Role || "Staff";
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-slate-50 to-amber-50 px-4 py-5 text-slate-950">
+    <StaffShell activeItem="dashboard">
       <div className="mx-auto max-w-6xl">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">Staff KPI Dashboard</h1>
+            <h1 className="text-2xl font-bold">Dashboard KPI Staff</h1>
             <p className="mt-1 text-sm text-slate-600">
               Theo dõi khối lượng hồ sơ, tốc độ xử lý và hiệu quả duyệt hồ sơ.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/staff/applications")}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Quay lại job
-            </Button>
-            <UserAccountMenu fallbackName="Staff" />
-          </div>
+          <UserAccountMenu fallbackName="Staff" />
         </div>
 
         {isError ? (
@@ -435,7 +421,7 @@ export default function StaffProfilePage() {
           </div>
         </div>
       </div>
-    </div>
+    </StaffShell>
   );
 }
 

@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Map as MapIcon,
-  Navigation,
-  X,
-  Clock,
-  Route,
-} from "lucide-react";
+import { Map as MapIcon, Navigation, X, Clock, Route } from "lucide-react";
 import { notify } from "@/shared/lib/notify";
 
 import { cn } from "@/lib/utils";
@@ -26,10 +20,10 @@ import { getNearbyMerchants } from "../services/merchantService";
 import type { Merchant } from "../types";
 import { useVietMapRoute } from "@/shared/hooks/useVietMapRoute";
 import {
-  geocodeAddress,
   type GeocodeResult,
   metersToKm,
   secondsToText,
+  searchGeocodeAddress,
 } from "@/shared/services/vietmapService";
 
 type Coords = { latitude: number; longitude: number };
@@ -48,7 +42,6 @@ const DEFAULT_COORDS: Coords = {
   longitude: 106.660172,
 };
 
-const GOOD_LOCATION_ACCURACY_METERS = 60;
 const LOCATION_SAMPLE_TIMEOUT_MS = 10_000;
 
 function resolveLocation(): Promise<LocationResult> {
@@ -99,9 +92,7 @@ function resolveLocation(): Promise<LocationResult> {
           bestPosition = position;
         }
 
-        if (position.coords.accuracy <= GOOD_LOCATION_ACCURACY_METERS) {
-          finish();
-        }
+        finish();
       },
       (error) => {
         lastError = error;
@@ -163,12 +154,7 @@ function getMerchantCoords(
   const record = merchant as MerchantRecord;
 
   const lat = getNumberField(record, ["latitude", "lat", "Latitude", "Lat"]);
-  const lng = getNumberField(record, [
-    "longitude",
-    "lng",
-    "Longitude",
-    "Lng",
-  ]);
+  const lng = getNumberField(record, ["longitude", "lng", "Longitude", "Lng"]);
 
   if (lat === null || lng === null) return null;
 
@@ -204,6 +190,17 @@ function isGeocodedDistanceReasonable(
   const expectedDistance = Math.max(merchant.distance, 0);
   const toleranceKm = Math.max(1.5, expectedDistance * 2 + 0.5);
   return Math.abs(actualDistance - expectedDistance) <= toleranceKm;
+}
+
+async function searchOriginSuggestions(
+  text: string,
+  coords: Coords,
+  size: number,
+) {
+  return searchGeocodeAddress(text, {
+    proximity: { lat: coords.latitude, lng: coords.longitude },
+    size,
+  });
 }
 
 export default function CustomerHomePage() {
@@ -315,10 +312,7 @@ export default function CustomerHomePage() {
       setOriginSuggesting(true);
 
       try {
-        const results = await geocodeAddress(text, {
-          proximity: { lat: coords.latitude, lng: coords.longitude },
-          size: 6,
-        });
+        const results = await searchOriginSuggestions(text, coords, 6);
 
         if (!active) return;
 
@@ -342,11 +336,19 @@ export default function CustomerHomePage() {
       active = false;
       clearTimeout(timeoutId);
     };
-  }, [appliedOriginInput, coords.latitude, coords.longitude, originInput]);
+  }, [appliedOriginInput, coords, originInput]);
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    const initialize = async () => {
       const result = await resolveLocation();
+      if (cancelled) return;
+
+      setOriginInput("");
+      setAppliedOriginInput("");
+      setOriginSuggestions([]);
+      setOriginSuggestionsOpen(false);
       setCoords(result.coords);
       setHasCustomerLocation(!result.usedDefault);
       setLocationMode(result.usedDefault ? "default" : "browser");
@@ -357,7 +359,7 @@ export default function CustomerHomePage() {
       );
 
       if (result.usedDefault) {
-        setLocationError(`${getLocationErrorMessage(result)} Đang dùng vị trí mặc định.`);
+        setLocationError(getLocationErrorMessage(result));
       } else if (result.accuracy && result.accuracy > 150) {
         setLocationError(
           `Vị trí hiện tại chưa thật chính xác (~${Math.round(
@@ -369,50 +371,14 @@ export default function CustomerHomePage() {
       }
 
       await loadMerchants("", result.coords);
-    })();
+    };
+
+    void initialize();
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadMerchants]);
-
-  useEffect(() => {
-    if (locationMode === "manual") return;
-    if (!navigator.geolocation) return;
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const nextCoords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        const nextAccuracy = Math.round(position.coords.accuracy);
-
-        setHasCustomerLocation(true);
-        setLocationAccuracy(nextAccuracy);
-        setCoords((prev) => {
-          const movedMeters =
-            distanceKm(prev, {
-              lat: nextCoords.latitude,
-              lng: nextCoords.longitude,
-            }) * 1000;
-
-          return movedMeters >= 5 ? nextCoords : prev;
-        });
-
-        if (nextAccuracy > 150) {
-          setLocationError(
-            `Vị trí hiện tại chưa thật chính xác (~${nextAccuracy}m). Nếu thấy sai, hãy bật GPS/Location Services rồi tải lại trang.`,
-          );
-        } else {
-          setLocationError("");
-        }
-      },
-      () => undefined,
-      {
-        enableHighAccuracy: true,
-        maximumAge: 5_000,
-      },
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [locationMode]);
 
   // ── Tự động tính route khi chọn quán ─────────────────────────
   useEffect(() => {
@@ -432,7 +398,9 @@ export default function CustomerHomePage() {
 
       if (!hasCustomerLocation) {
         setRouteLoadingMerchantId(null);
-        notify.error("Hãy bật quyền vị trí để tính đường đi từ chỗ bạn đang đứng.");
+        notify.error(
+          "Hãy bật quyền vị trí để tính đường đi từ chỗ bạn đang đứng.",
+        );
         return;
       }
 
@@ -440,16 +408,14 @@ export default function CustomerHomePage() {
 
       if (!merchantCoords && selectedMerchant.address?.trim()) {
         try {
-          const results = await geocodeAddress(selectedMerchant.address, {
+          const results = await searchGeocodeAddress(selectedMerchant.address, {
             proximity: { lat: coords.latitude, lng: coords.longitude },
             size: 5,
           });
           const candidates = results
             .map((item) => ({ lat: item.lat, lng: item.lng }))
             .filter(
-              (item) =>
-                Number.isFinite(item.lat) &&
-                Number.isFinite(item.lng),
+              (item) => Number.isFinite(item.lat) && Number.isFinite(item.lng),
             );
           const candidate =
             candidates.find((item) =>
@@ -573,9 +539,7 @@ export default function CustomerHomePage() {
 
     setOriginResolving(true);
     try {
-      const results = await geocodeAddress(text, {
-        size: 5,
-      });
+      const results = await searchOriginSuggestions(text, coords, 5);
       const first = results[0];
       if (!first) {
         notify.error("Không tìm được vị trí bạn nhập.");
@@ -631,14 +595,14 @@ export default function CustomerHomePage() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <UserAccountMenu fallbackName="Customer" />
             <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowMap((v) => !v)}
-            aria-pressed={showMap}
-            className="gap-2"
-          >
-            <MapIcon />
-            {showMap ? "Ẩn bản đồ" : "Bản đồ"}
+              type="button"
+              variant="outline"
+              onClick={() => setShowMap((v) => !v)}
+              aria-pressed={showMap}
+              className="gap-2"
+            >
+              <MapIcon />
+              {showMap ? "Ẩn bản đồ" : "Bản đồ"}
             </Button>
           </div>
         </div>
@@ -774,28 +738,28 @@ export default function CustomerHomePage() {
                     className="mt-3 flex flex-col gap-2 sm:flex-row"
                   >
                     <div className="relative flex-1">
-                    <Input
-                      value={originInput}
-                      onChange={(e) => {
-                        setOriginInput(e.target.value);
-                        setAppliedOriginInput("");
-                        setOriginSuggestionsOpen(true);
-                      }}
-                      placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
-                      onFocus={() => {
-                        if (originInput.trim().length >= 3) {
+                      <Input
+                        value={originInput}
+                        onChange={(e) => {
+                          setOriginInput(e.target.value);
+                          setAppliedOriginInput("");
                           setOriginSuggestionsOpen(true);
-                        }
-                      }}
-                      onBlur={() => {
-                        window.setTimeout(
-                          () => setOriginSuggestionsOpen(false),
-                          120,
-                        );
-                      }}
-                      className="h-9 text-xs"
-                      autoComplete="off"
-                    />
+                        }}
+                        placeholder="Nhập vị trí của bạn, VD: BS10B Vinhomes Grand Park"
+                        onFocus={() => {
+                          if (originInput.trim().length >= 3) {
+                            setOriginSuggestionsOpen(true);
+                          }
+                        }}
+                        onBlur={() => {
+                          window.setTimeout(
+                            () => setOriginSuggestionsOpen(false),
+                            120,
+                          );
+                        }}
+                        className="h-9 text-xs"
+                        autoComplete="off"
+                      />
                       {originSuggestionsOpen &&
                         originInput.trim().length >= 3 && (
                           <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-cyan-100 bg-white py-1 text-sm shadow-lg">

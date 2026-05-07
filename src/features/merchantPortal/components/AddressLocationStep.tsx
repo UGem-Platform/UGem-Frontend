@@ -9,8 +9,8 @@ import * as vietmapgl from "@vietmap/vietmap-gl-js/dist/vietmap-gl";
 import "@vietmap/vietmap-gl-js/dist/vietmap-gl.css";
 import {
   type GeocodeResult,
-  geocodeAddress as vietmapGeocodeAddress,
   reverseGeocode as vietmapReverseGeocode,
+  searchGeocodeAddress as vietmapSearchGeocodeAddress,
   VIETMAP_STYLE_URL,
   HAS_VIETMAP_KEY,
   HAS_VIETMAP_SERVICE_KEY,
@@ -145,7 +145,9 @@ export function AddressLocationStep({
       if (!isValidVietnamCoords(lat, lng)) {
         console.warn("commitCoordinates: invalid", { lat, lng });
         setGeocodeStatus("error");
-        setLocationError("Toạ độ không hợp lệ. Hãy chọn vị trí nằm trong Việt Nam.");
+        setLocationError(
+          "Toạ độ không hợp lệ. Hãy chọn vị trí nằm trong Việt Nam.",
+        );
         return;
       }
 
@@ -219,7 +221,9 @@ export function AddressLocationStep({
       setLocating(false);
 
       if (!bestPosition) {
-        setLocationError("Không lấy được vị trí hiện tại. Kiểm tra quyền truy cập vị trí của trình duyệt.");
+        setLocationError(
+          "Không lấy được vị trí hiện tại. Kiểm tra quyền truy cập vị trí của trình duyệt.",
+        );
         setGeocodeStatus("error");
         return;
       }
@@ -286,10 +290,7 @@ export function AddressLocationStep({
       },
     );
 
-    locateTimeoutRef.current = setTimeout(
-      finish,
-      LOCATION_SAMPLE_TIMEOUT_MS,
-    );
+    locateTimeoutRef.current = setTimeout(finish, LOCATION_SAMPLE_TIMEOUT_MS);
   }, [applyCoordinates, clearLocationWatch]);
 
   useEffect(() => {
@@ -387,7 +388,7 @@ export function AddressLocationStep({
           return undefined;
         })();
 
-        const results = await vietmapGeocodeAddress(query, {
+        const results = await vietmapSearchGeocodeAddress(query, {
           proximity: proximity ?? null,
           size: 10,
         });
