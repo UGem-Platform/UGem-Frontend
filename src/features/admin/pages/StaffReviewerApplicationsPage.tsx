@@ -147,7 +147,7 @@ export default function StaffReviewerApplicationsPage() {
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-700 shadow-sm">
               Reviewer Applications
             </div>
-            <h1 className="break-words text-3xl font-black tracking-tight text-slate-950">
+            <h1 className="wrap-break-word text-3xl font-black tracking-tight text-slate-950">
               Đơn đăng ký Reviewer
             </h1>
             <p className="mt-1 text-sm leading-6 text-slate-600">
@@ -286,7 +286,7 @@ function ReviewerAppCard({
   const isProcessing = processing === id;
 
   return (
-    <div className="relative overflow-hidden rounded-[24px] border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl">
+    <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl">
       <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-violet-300/10 blur-2xl" />
 
       <div className="relative flex flex-wrap items-start justify-between gap-3">

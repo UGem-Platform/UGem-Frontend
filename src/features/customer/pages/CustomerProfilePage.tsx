@@ -56,8 +56,7 @@ export default function CustomerProfilePage() {
     youtubeUrl: "",
     otherSocialUrl: "",
   });
-  const [isSubmittingReviewerApp, setIsSubmittingReviewerApp] =
-    useState(false);
+  const [isSubmittingReviewerApp, setIsSubmittingReviewerApp] = useState(false);
 
   const displayName =
     profile?.fullName || profile?.name || currentUser?.Name || "Customer";
@@ -231,7 +230,7 @@ export default function CustomerProfilePage() {
                 Customer Profile
               </div>
 
-              <h2 className="break-words text-3xl font-black tracking-tight text-slate-950">
+              <h2 className="wrap-break-word text-3xl font-black tracking-tight text-slate-950">
                 Profile Customer
               </h2>
 

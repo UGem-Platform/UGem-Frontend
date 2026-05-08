@@ -116,13 +116,6 @@ function getMerchantPopupHtml(merchant: Merchant) {
   `;
 }
 
-function formatDistance(distanceKm: number) {
-  if (distanceKm < 0.001) return "Ngay gần bạn";
-  if (distanceKm < 1) return `${Math.max(1, Math.round(distanceKm * 1000))} m`;
-  if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
-  return `${Math.round(distanceKm)} km`;
-}
-
 function getNumberField(record: MerchantRecord, keys: string[]) {
   for (const key of keys) {
     const value = record[key];
