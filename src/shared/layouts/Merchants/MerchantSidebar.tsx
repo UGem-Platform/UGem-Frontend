@@ -1,10 +1,9 @@
 import { NavLink } from "react-router-dom";
 import {
   BarChart3,
-  HelpCircle,
   Home,
   Megaphone,
-  Settings,
+  UserRound,
   Store,
   Timer,
 } from "lucide-react";
@@ -37,6 +36,11 @@ const menuItems = [
     icon: BarChart3,
     path: "/merchant/view-statistics",
   },
+  {
+    label: "Profile",
+    icon: UserRound,
+    path: "/merchant/profile",
+  },
 ];
 
 export function MerchantSidebar() {
@@ -45,12 +49,12 @@ export function MerchantSidebar() {
     user?.Role === "Customer"
       ? [
           {
-            label: "Gá»­i há»“ sÆ¡ quÃ¡n",
+            label: "Gửi hồ sơ quán",
             icon: Store,
             path: "/merchant/application/create",
           },
           {
-            label: "Tráº¡ng thÃ¡i xÃ©t duyá»‡t",
+            label: "Trạng thái xét duyệt",
             icon: Timer,
             path: "/merchant/application/status",
           },
@@ -78,18 +82,6 @@ export function MerchantSidebar() {
           </NavLink>
         ))}
       </nav>
-
-      <div className="merchant-sidebar-bottom">
-        <button type="button">
-          <Settings size={18} />
-          <span>Cài đặt</span>
-        </button>
-
-        <button type="button">
-          <HelpCircle size={18} />
-          <span>Trợ giúp</span>
-        </button>
-      </div>
     </aside>
   );
 }

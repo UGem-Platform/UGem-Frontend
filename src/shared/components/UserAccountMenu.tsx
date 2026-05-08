@@ -114,6 +114,21 @@ export function UserAccountMenu({
         </Button>
       ) : null}
 
+      {user?.Role === "Customer" ? (
+        <Button
+          asChild
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 text-xs"
+        >
+          <Link to="/customer/profile">
+            <UserRound className="h-3.5 w-3.5" />
+            Profile
+          </Link>
+        </Button>
+      ) : null}
+
       <Button
         type="button"
         variant="outline"

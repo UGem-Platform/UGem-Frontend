@@ -41,3 +41,21 @@ export async function createStaff(payload: unknown) {
   const res = await api.post<ApiResponse<null>>("/staff", payload);
   return res.data;
 }
+
+export async function acceptReviewerApplication(applicationId: string) {
+  const res = await api.post<ApiResponse<null>>("/staff/accept", {
+    id: applicationId,
+  });
+  return res.data;
+}
+
+export async function rejectReviewerApplication(
+  applicationId: string,
+  reason: string,
+) {
+  const res = await api.post<ApiResponse<null>>("/staff/reject", {
+    Id: applicationId,
+    reason,
+  });
+  return res.data;
+}

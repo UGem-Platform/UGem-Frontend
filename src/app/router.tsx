@@ -1,6 +1,7 @@
 import AdminJobDetailPage from "@/features/admin/pages/AdminJobDetailPage";
 import AdminJobsPage from "@/features/admin/pages/AdminJobsPage";
 import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
+import StaffReviewerApplicationsPage from "@/features/admin/pages/StaffReviewerApplicationsPage";
 import StaffApplicationDetailPage from "@/features/admin/pages/StaffApplicationDetailPage";
 import StaffApplicationsPage from "@/features/admin/pages/StaffApplicationsPage";
 import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
@@ -10,6 +11,7 @@ import { LoginPage, RegisterPage } from "@/features/auth";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
 import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDetailPage";
 import CustomerOrdersPage from "@/features/customer/pages/CustomerOrdersPage";
+import CustomerProfilePage from "@/features/customer/pages/CustomerProfilePage";
 import MerchantDetailPage from "@/features/customer/pages/MerchantDetailPage";
 import WishlistPage from "@/features/customer/pages/WishlistPage";
 import {
@@ -22,6 +24,7 @@ import {
   MerchantViewStatisticsPage,
 } from "@/features/merchantPortal";
 import MerchantOrdersPage from "@/features/merchantPortal/pages/MerchantOrdersPage";
+import MerchantProfilePage from "@/features/merchantPortal/pages/MerchantProfilePage";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import ReviewsPage from "@/features/review/pages/ReviewsPage";
 import VietMapDemoPage from "@/shared/pages/VietMapDemoPage";
@@ -58,6 +61,14 @@ const routers = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["Customer"]}>
             <CustomerHomePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/customer/profile",
+        element: (
+          <ProtectedRoute allowedRoles={["Customer"]}>
+            <CustomerProfilePage />
           </ProtectedRoute>
         ),
       },
@@ -106,6 +117,14 @@ const routers = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["Merchant"]}>
             <MerchantRestaurantPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/merchant/profile",
+        element: (
+          <ProtectedRoute allowedRoles={["Merchant"]}>
+            <MerchantProfilePage />
           </ProtectedRoute>
         ),
       },
@@ -206,6 +225,14 @@ const routers = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["Staff"]}>
             <StaffUserProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/staff/reviewer-applications",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffReviewerApplicationsPage />
           </ProtectedRoute>
         ),
       },

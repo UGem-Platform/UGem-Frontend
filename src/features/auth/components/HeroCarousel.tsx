@@ -65,7 +65,6 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
         group relative h-full min-h-[52vh] w-full overflow-hidden
         rounded-[32px] bg-slate-950
         shadow-2xl shadow-cyan-950/25
-        lg:min-h-screen
       "
       aria-live="polite"
     >
@@ -143,8 +142,6 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
               text-white backdrop-blur-xl
               transition-all duration-300
               hover:scale-105 hover:bg-white/20
-              group-hover:grid
-              lg:grid
             "
           >
             <ChevronLeft className="h-5 w-5" />
@@ -161,8 +158,6 @@ export function HeroCarousel({ images, intervalMs = 5000, onChange }: Props) {
               text-white backdrop-blur-xl
               transition-all duration-300
               hover:scale-105 hover:bg-white/20
-              group-hover:grid
-              lg:grid
             "
           >
             <ChevronRight className="h-5 w-5" />

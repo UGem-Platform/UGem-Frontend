@@ -330,7 +330,7 @@ export default function AdminApplicationDetailPage({
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-      <div className="relative mx-auto max-w-6xl">
+      <div className="relative w-full">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
