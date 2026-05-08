@@ -8,6 +8,7 @@ export {
   saveAuthToken,
   getAccessToken,
   getCurrentUser,
+  updateStoredUser,
   clearAuth,
 } from "./store";
 

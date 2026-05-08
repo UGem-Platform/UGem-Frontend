@@ -34,6 +34,19 @@ export function getCurrentUser(): JwtPayload | null {
   }
 }
 
+export function updateStoredUser(payload: Partial<JwtPayload>) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return null;
+
+  const nextUser = {
+    ...currentUser,
+    ...payload,
+  };
+
+  localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+  return nextUser;
+}
+
 export function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);

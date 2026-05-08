@@ -22,6 +22,7 @@ import {
   type UserProfile,
 } from "@/shared/services";
 import {
+  createReviewerApplication,
   getMyReviewerApplication,
   type ReviewerApplication,
 } from "@/features/review/services";
@@ -47,6 +48,16 @@ export default function CustomerProfilePage() {
   const [reviewerApp, setReviewerApp] = useState<ReviewerApplication | null>(
     null,
   );
+  const [reviewerForm, setReviewerForm] = useState({
+    motivation: "",
+    experience: "",
+    facebookUrl: "",
+    tiktokUrl: "",
+    youtubeUrl: "",
+    otherSocialUrl: "",
+  });
+  const [isSubmittingReviewerApp, setIsSubmittingReviewerApp] =
+    useState(false);
 
   const displayName =
     profile?.fullName || profile?.name || currentUser?.Name || "Customer";
@@ -146,6 +157,54 @@ export default function CustomerProfilePage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleReviewerApplicationSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    const motivation = reviewerForm.motivation.trim();
+    const socialLinks = [
+      reviewerForm.facebookUrl,
+      reviewerForm.tiktokUrl,
+      reviewerForm.youtubeUrl,
+      reviewerForm.otherSocialUrl,
+    ].map((value) => value.trim());
+
+    if (!motivation) {
+      notify.error("Vui lòng nhập động lực đăng ký Reviewer.");
+      return;
+    }
+
+    if (!socialLinks.some(Boolean)) {
+      notify.error("Vui lòng thêm ít nhất một liên kết mạng xã hội.");
+      return;
+    }
+
+    setIsSubmittingReviewerApp(true);
+
+    try {
+      await createReviewerApplication({
+        motivation,
+        experience: reviewerForm.experience.trim() || undefined,
+        facebookUrl: reviewerForm.facebookUrl.trim() || undefined,
+        tiktokUrl: reviewerForm.tiktokUrl.trim() || undefined,
+        youtubeUrl: reviewerForm.youtubeUrl.trim() || undefined,
+        otherSocialUrl: reviewerForm.otherSocialUrl.trim() || undefined,
+      });
+
+      const nextApplication = await getMyReviewerApplication();
+      setReviewerApp(nextApplication);
+      notify.success("Đã gửi đơn đăng ký Reviewer.");
+    } catch (error) {
+      console.error(error);
+      notify.error("Gửi đơn Reviewer thất bại.", {
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsSubmittingReviewerApp(false);
     }
   }
 
@@ -360,6 +419,119 @@ export default function CustomerProfilePage() {
                 )}
               </section>
             )}
+
+            {!reviewerApp && (
+              <section className="relative col-span-full overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-violet-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+                <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
+                <div className="relative mb-5 flex items-start gap-4">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xl font-black text-slate-950">
+                      Đăng ký làm Reviewer
+                    </h3>
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                      Gửi hồ sơ để đội ngũ xét duyệt vai trò Reviewer.
+                    </p>
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={handleReviewerApplicationSubmit}
+                  className="relative grid gap-4 md:grid-cols-2"
+                >
+                  <label className="block md:col-span-2">
+                    <span className="text-sm font-black text-slate-800">
+                      Động lực *
+                    </span>
+                    <textarea
+                      value={reviewerForm.motivation}
+                      onChange={(event) =>
+                        setReviewerForm((prev) => ({
+                          ...prev,
+                          motivation: event.target.value,
+                        }))
+                      }
+                      className="mt-2 min-h-28 w-full rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15"
+                      placeholder="Vì sao bạn muốn trở thành Reviewer?"
+                      disabled={isSubmittingReviewerApp}
+                    />
+                  </label>
+
+                  <ReviewerInput
+                    label="Kinh nghiệm"
+                    value={reviewerForm.experience}
+                    onChange={(value) =>
+                      setReviewerForm((prev) => ({
+                        ...prev,
+                        experience: value,
+                      }))
+                    }
+                    disabled={isSubmittingReviewerApp}
+                  />
+                  <ReviewerInput
+                    label="Facebook URL"
+                    value={reviewerForm.facebookUrl}
+                    onChange={(value) =>
+                      setReviewerForm((prev) => ({
+                        ...prev,
+                        facebookUrl: value,
+                      }))
+                    }
+                    disabled={isSubmittingReviewerApp}
+                  />
+                  <ReviewerInput
+                    label="TikTok URL"
+                    value={reviewerForm.tiktokUrl}
+                    onChange={(value) =>
+                      setReviewerForm((prev) => ({
+                        ...prev,
+                        tiktokUrl: value,
+                      }))
+                    }
+                    disabled={isSubmittingReviewerApp}
+                  />
+                  <ReviewerInput
+                    label="YouTube URL"
+                    value={reviewerForm.youtubeUrl}
+                    onChange={(value) =>
+                      setReviewerForm((prev) => ({
+                        ...prev,
+                        youtubeUrl: value,
+                      }))
+                    }
+                    disabled={isSubmittingReviewerApp}
+                  />
+                  <ReviewerInput
+                    label="Link khác"
+                    value={reviewerForm.otherSocialUrl}
+                    onChange={(value) =>
+                      setReviewerForm((prev) => ({
+                        ...prev,
+                        otherSocialUrl: value,
+                      }))
+                    }
+                    disabled={isSubmittingReviewerApp}
+                  />
+
+                  <div className="flex items-end md:justify-end">
+                    <Button
+                      type="submit"
+                      disabled={isSubmittingReviewerApp}
+                      className="h-12 rounded-2xl bg-violet-600 px-5 font-black text-white shadow-lg shadow-violet-900/15 hover:bg-violet-700"
+                    >
+                      {isSubmittingReviewerApp ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4" />
+                      )}
+                      Gửi hồ sơ
+                    </Button>
+                  </div>
+                </form>
+              </section>
+            )}
           </div>
         </div>
       </main>
@@ -395,9 +567,34 @@ function ProfileInfoRow({
   );
 }
 
+function ReviewerInput({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="text-sm font-black text-slate-800">{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 text-sm font-semibold text-slate-950 shadow-sm ring-1 ring-slate-950/5 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15"
+        placeholder={label}
+        disabled={disabled}
+      />
+    </label>
+  );
+}
+
 function ReviewerStatusBadge({ status }: { status?: string }) {
   const v = status?.toLowerCase();
-  if (v === "accepted" || v === "approved") {
+  if (v === "accept" || v === "accepted" || v === "approved") {
     return (
       <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700 shadow-sm">
         <ShieldCheck className="h-3.5 w-3.5" />

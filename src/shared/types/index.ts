@@ -20,6 +20,7 @@ export type JwtPayload = {
   Role?: UserRole;
   CustomerId?: string;
   MerchantId?: string;
+  AvatarUrl?: string | null;
   exp?: number;
 };
 

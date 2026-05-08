@@ -1,5 +1,6 @@
 import { api } from "@/lib/axios";
 import type { CreateFoodPayload, CreateFoodResponse, Food } from "../types";
+import { getMyMerchantDetail } from "../services";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -13,9 +14,27 @@ export async function createFood(payload: CreateFoodPayload) {
 }
 
 export async function getFoods() {
-  const { data } = await api.get<ApiResponse<Food[]> | Food[]>("/foods");
+  try {
+    const { data } = await api.get<ApiResponse<Food[]> | Food[]>("/foods");
+    const foods = Array.isArray(data) ? data : (data.data ?? []);
 
-  return Array.isArray(data) ? data : (data.data ?? []);
+    if (foods.length > 0) {
+      return foods;
+    }
+  } catch {
+    // The current backend exposes GET /foods but returns an empty response.
+  }
+
+  const merchant = await getMyMerchantDetail();
+  return (merchant?.menu ?? merchant?.foods ?? []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    imageUrl: item.imageUrl,
+    categoryDetail: item.categoryDetail,
+    isAvailable: true,
+  }));
 }
 
 export async function getFoodById(id: string) {

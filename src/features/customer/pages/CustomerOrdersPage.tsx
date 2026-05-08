@@ -12,6 +12,12 @@ export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
   const [loading, setLoading] = useState(false);
 
+  function getOrderSortTime(order: CustomerOrderSummary) {
+    const parsedTime = new Date(order.orderedAt).getTime();
+
+    return Number.isFinite(parsedTime) ? parsedTime : 0;
+  }
+
   useEffect(() => {
     let active = true;
 
@@ -22,7 +28,11 @@ export default function CustomerOrdersPage() {
         const data = await getCustomerOrders();
 
         if (active) {
-          setOrders(data ?? []);
+          const sortedOrders = [...(data ?? [])].sort(
+            (left, right) => getOrderSortTime(right) - getOrderSortTime(left),
+          );
+
+          setOrders(sortedOrders);
         }
       } catch (error) {
         console.error(error);
@@ -139,19 +149,8 @@ export default function CustomerOrdersPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-2 sm:col-span-2">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleViewDetail(order, index + 1);
-                        }}
-                        className="inline-flex min-w-36 items-center justify-center rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2.5 text-sm font-semibold text-cyan-700 transition hover:border-cyan-300 hover:bg-cyan-100 hover:text-cyan-800"
-                      >
-                        Xem chi tiết đơn
-                      </button>
-
-                      {detailPath && isCompleted && (
+                    {detailPath && isCompleted && (
+                      <div className="flex flex-wrap gap-2 pt-2 sm:col-span-2">
                         <button
                           type="button"
                           onClick={(event) => {
@@ -162,8 +161,8 @@ export default function CustomerOrdersPage() {
                         >
                           Đánh giá
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

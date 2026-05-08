@@ -2,11 +2,13 @@ export type Merchant = {
   id: string;
   name?: string;
   description?: string;
+  priceRange?: string;
   email?: string;
   phone?: string;
   address?: string;
   logoUrl?: string;
   rating?: number;
+  underratedScore?: number;
   distance?: number;
   latitude?: number;
   longitude?: number;
