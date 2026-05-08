@@ -162,6 +162,9 @@ export async function getMerchantCheckInQr(orderId: string) {
 export type UpdateMerchantPayload = {
   merchantName?: string;
   merchantDescription?: string;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
   email?: string;
   phone?: string;
   address?: string;

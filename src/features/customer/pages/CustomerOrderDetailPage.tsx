@@ -13,8 +13,11 @@ import type {
   CustomerOrderSummary,
 } from "@/shared/types";
 import { notify } from "@/shared/lib/notify";
-import { getFoodById } from "@/shared/services";
-import { createReview } from "@/features/review/services";
+import {
+  createReview,
+  getReviewsByMerchantId,
+  type Review,
+} from "@/features/review/services";
 import { findMerchantByFoodId } from "../services/merchantService";
 
 type OrderDetailLocationState = {
@@ -24,6 +27,28 @@ type OrderDetailLocationState = {
 
 const orderIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function getCustomerConfirmMessage(status?: string | null) {
+  const normalizedStatus = status?.toLowerCase();
+
+  if (!normalizedStatus || normalizedStatus === "pending") {
+    return "Đơn đang chờ Merchant xác nhận. Sau khi quán chấp nhận đơn, bạn mới có thể xác nhận nhận hàng.";
+  }
+
+  if (normalizedStatus === "rejected") {
+    return "Đơn đã bị Merchant từ chối nên không thể xác nhận nhận hàng.";
+  }
+
+  if (normalizedStatus === "completed") {
+    return "Bạn đã xác nhận nhận hàng cho đơn này.";
+  }
+
+  if (normalizedStatus === "notreceived") {
+    return "Bạn đã báo chưa nhận hàng cho đơn này.";
+  }
+
+  return "Bạn chỉ có thể xác nhận đơn sau khi Merchant chấp nhận đơn hàng.";
+}
 
 export default function CustomerOrderDetailPage() {
   const { id } = useParams();
@@ -40,6 +65,7 @@ export default function CustomerOrderDetailPage() {
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [merchantId, setMerchantId] = useState<string | null>(null);
   const [merchantName, setMerchantName] = useState("");
+  const [hasReviewed, setHasReviewed] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -99,8 +125,9 @@ export default function CustomerOrderDetailPage() {
         if (active) {
           setItems(data ?? []);
           setOrderStatus(
-            orders.find((order) => getCustomerOrderId(order) === effectiveOrderId)
-              ?.status ??
+            orders.find(
+              (order) => getCustomerOrderId(order) === effectiveOrderId,
+            )?.status ??
               matchingSummaryOrder?.status ??
               null,
           );
@@ -121,9 +148,28 @@ export default function CustomerOrderDetailPage() {
             setMerchantId(merchant?.id ?? null);
             setMerchantName(merchant?.name ?? "");
           }
+
+          if (merchant?.id && effectiveOrderId) {
+            const merchantReviews = await getReviewsByMerchantId(
+              merchant.id,
+            ).catch(() => []);
+
+            if (active) {
+              const existingReview = merchantReviews.find((review: Review) => {
+                const reviewOrderId = review.orderId || review.oderId;
+
+                return (
+                  normalizeReviewOrderId(reviewOrderId) === effectiveOrderId
+                );
+              });
+
+              setHasReviewed(Boolean(existingReview));
+            }
+          }
         } else if (active) {
           setMerchantId(null);
           setMerchantName("");
+          setHasReviewed(false);
         }
       } catch (error) {
         console.error(error);
@@ -172,6 +218,11 @@ export default function CustomerOrderDetailPage() {
       return;
     }
 
+    if (hasReviewed) {
+      notify.error("Đơn hàng này đã được đánh giá rồi.");
+      return;
+    }
+
     if (!isCompleted) {
       notify.error("Chỉ có thể đánh giá khi đơn hàng đã hoàn tất.");
       return;
@@ -195,6 +246,7 @@ export default function CustomerOrderDetailPage() {
       notify.success("Đã gửi đánh giá.");
       setReviewContent("");
       setReviewRating(5);
+      setHasReviewed(true);
     } catch (error) {
       console.error(error);
       notify.error("Gửi đánh giá thất bại.");
@@ -207,6 +259,13 @@ export default function CustomerOrderDetailPage() {
     const orderId = hasRealOrderId ? id : resolvedOrderId;
 
     if (!orderId) return;
+
+    if (!isAccepted) {
+      notify.error(
+        "Merchant cần xác nhận đơn trước khi bạn xác nhận nhận hàng.",
+      );
+      return;
+    }
 
     setUpdatingStatus(true);
 
@@ -226,6 +285,13 @@ export default function CustomerOrderDetailPage() {
     const orderId = hasRealOrderId ? id : resolvedOrderId;
 
     if (!orderId) return;
+
+    if (!isAccepted) {
+      notify.error(
+        "Merchant cần xác nhận đơn trước khi bạn báo chưa nhận hàng.",
+      );
+      return;
+    }
 
     setUpdatingStatus(true);
 
@@ -250,6 +316,10 @@ export default function CustomerOrderDetailPage() {
     navigate("/customer/orders");
   }
 
+  function handleRefresh() {
+    window.location.reload();
+  }
+
   const itemsTotal = items.reduce((sum, item) => {
     return sum + Number(item.unitPrice || 0) * Number(item.quantity || 0);
   }, 0);
@@ -258,8 +328,11 @@ export default function CustomerOrderDetailPage() {
   const title = summaryOrder?.name || `Đơn #${fallbackOrderNumber ?? id}`;
   const effectiveOrderId = hasRealOrderId ? id : resolvedOrderId;
   const displayOrderStatus = orderStatus ?? summaryOrder?.status ?? null;
-  const isCompleted = displayOrderStatus?.toLowerCase() === "completed";
-  const isNotReceived = displayOrderStatus?.toLowerCase() === "notreceived";
+  const normalizedOrderStatus = displayOrderStatus?.trim().toLowerCase();
+  const isAccepted = normalizedOrderStatus === "accepted";
+  const isCompleted = normalizedOrderStatus === "completed";
+  const isNotReceived = normalizedOrderStatus === "notreceived";
+  const reviewLocked = hasReviewed || submittingReview;
 
   if (loading) return <div className="p-5">Đang tải...</div>;
 
@@ -272,6 +345,14 @@ export default function CustomerOrderDetailPage() {
           className="mb-4 inline-flex items-center rounded-xl border border-white/70 bg-white/85 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur transition hover:-translate-y-px hover:bg-white"
         >
           Back
+        </button>
+
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="mb-4 ml-2 inline-flex items-center rounded-xl border border-cyan-200 bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:-translate-y-px hover:bg-cyan-700"
+        >
+          Refresh
         </button>
 
         <div className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
@@ -295,7 +376,7 @@ export default function CustomerOrderDetailPage() {
             </div>
           )}
 
-          {effectiveOrderId && (
+          {effectiveOrderId && isAccepted ? (
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -317,7 +398,11 @@ export default function CustomerOrderDetailPage() {
                 Chưa nhận hàng
               </button>
             </div>
-          )}
+          ) : effectiveOrderId ? (
+            <div className="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+              {getCustomerConfirmMessage(displayOrderStatus)}
+            </div>
+          ) : null}
         </div>
 
         <div
@@ -355,6 +440,10 @@ export default function CustomerOrderDetailPage() {
               Bạn chỉ có thể gửi đánh giá sau khi đơn hàng đã được xác nhận hoàn
               tất.
             </p>
+          ) : hasReviewed ? (
+            <p className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              Đơn hàng này đã được đánh giá rồi, mỗi đơn chỉ đánh giá một lần.
+            </p>
           ) : merchantId ? (
             <div className="mt-4 space-y-4">
               <div>
@@ -371,6 +460,7 @@ export default function CustomerOrderDetailPage() {
                         key={value}
                         type="button"
                         onClick={() => setReviewRating(value)}
+                        disabled={reviewLocked}
                         className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${
                           active
                             ? "border-amber-300 bg-amber-50 text-amber-500"
@@ -400,6 +490,7 @@ export default function CustomerOrderDetailPage() {
                   value={reviewContent}
                   onChange={(e) => setReviewContent(e.target.value)}
                   placeholder="Chia sẻ cảm nhận của bạn về quán..."
+                  disabled={reviewLocked}
                   className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
                 />
               </div>
@@ -407,11 +498,15 @@ export default function CustomerOrderDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleSubmitReview()}
-                disabled={submittingReview}
+                disabled={reviewLocked}
                 className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Star size={16} className="fill-white" />
-                {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+                {hasReviewed
+                  ? "Đã đánh giá"
+                  : submittingReview
+                    ? "Đang gửi..."
+                    : "Gửi đánh giá"}
               </button>
             </div>
           ) : (
@@ -451,6 +546,10 @@ export default function CustomerOrderDetailPage() {
       </div>
     </div>
   );
+}
+
+function normalizeReviewOrderId(value?: string | null) {
+  return value?.trim().toLowerCase() ?? "";
 }
 
 function matchesSummaryOrder(
@@ -494,22 +593,6 @@ async function resolveOrderMerchant(item?: CustomerOrderDetailItem | null) {
       id: item.merchantId,
       name: item.merchantName || "",
     };
-  }
-
-  try {
-    const food = await getFoodById(item.foodId);
-
-    if (food?.merchantId) {
-      return {
-        id: food.merchantId,
-        name: food.name || item.merchantName || "",
-      };
-    }
-  } catch (error) {
-    console.warn("[order-detail] Could not resolve merchant from food API", {
-      foodId: item.foodId,
-      error,
-    });
   }
 
   const merchant = await findMerchantByFoodId(item.foodId);

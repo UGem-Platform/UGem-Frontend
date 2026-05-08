@@ -4,6 +4,39 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { Merchant } from "../types";
 
+const DESCRIPTION_META_LABELS = [
+  "Địa chỉ",
+  "Loại hình quán",
+  "Loại món chính",
+  "Khoảng giá trung bình",
+];
+
+function formatRating(value: number) {
+  return value.toFixed(2);
+}
+
+function getMerchantDescriptionPreview(description?: string) {
+  const lines = (description || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const isMetaLine = (line: string) =>
+    DESCRIPTION_META_LABELS.some((label) =>
+      line.toLowerCase().startsWith(`${label.toLowerCase()}:`),
+    );
+
+  const isUiMarkerLine = (line: string) =>
+    line.toLowerCase().includes("thông tin ui bổ sung");
+
+  const summary = lines
+    .filter((line) => !isMetaLine(line) && !isUiMarkerLine(line))
+    .join(" ")
+    .trim();
+
+  return { summary };
+}
+
 type Props = {
   merchant: Merchant;
   selected?: boolean;
@@ -18,6 +51,14 @@ function formatDistance(distanceKm: number) {
 
 export default function MerchantCard({ merchant, selected = false }: Props) {
   const name = merchant.name || "Unnamed merchant";
+  const descriptionPreview = getMerchantDescriptionPreview(
+    merchant.description,
+  );
+  const underratedScore =
+    typeof merchant.underratedScore === "number" &&
+    Number.isFinite(merchant.underratedScore)
+      ? merchant.underratedScore
+      : null;
   const image =
     merchant.logoUrl?.trim() ||
     merchant.menu?.find((item) => item.imageUrl?.trim())?.imageUrl?.trim() ||
@@ -88,16 +129,20 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
           </div>
 
           {merchant.description && (
-            <p className="mt-1 line-clamp-2 text-sm font-medium leading-6 text-slate-500">
-              {merchant.description}
-            </p>
+            <div className="mt-1 space-y-1">
+              {descriptionPreview.summary && (
+                <p className="line-clamp-2 text-sm font-medium leading-6 text-slate-500">
+                  {descriptionPreview.summary}
+                </p>
+              )}
+            </div>
           )}
 
           <div className="mt-3 flex flex-wrap gap-2 text-xs font-black">
             {typeof merchant.rating === "number" && (
               <span className="inline-flex items-center gap-1 rounded-md border border-amber-100 bg-amber-50 px-2.5 py-1.5 text-amber-700 shadow-sm">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                {merchant.rating}
+                {formatRating(merchant.rating)}
               </span>
             )}
 
@@ -107,6 +152,8 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
                   {formatDistance(merchant.distance)}
                 </span>
               )}
+
+            {underratedScore !== null && null}
           </div>
 
           {merchant.address && (

@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { getCurrentUser } from "@/features/auth";
 import type { Merchant, MerchantDetail } from "../types";
 
 type ApiResponse<T> = {
@@ -19,6 +20,10 @@ type MerchantListApiPayload =
   | MerchantListResponse
   | ApiResponse<MerchantListResponse>;
 type MerchantRecord = Record<string, unknown>;
+type RankedMerchant = {
+  merchant: Merchant;
+  sourceIndex: number;
+};
 const MAX_NEARBY_DISTANCE_KM = 15;
 
 function unwrapApiData<T>(payload: T | ApiResponse<T>): T {
@@ -94,6 +99,43 @@ function getMerchantCoords(
   return { lat, lng };
 }
 
+function getUnderratedScore(merchant?: Merchant | null) {
+  if (!merchant) return null;
+
+  return getNumberField(merchant as MerchantRecord, [
+    "underratedScore",
+    "UnderratedScore",
+    "us",
+    "US",
+  ]);
+}
+
+function getDistanceValue(merchant: Merchant) {
+  return typeof merchant.distance === "number" && Number.isFinite(merchant.distance)
+    ? merchant.distance
+    : Number.POSITIVE_INFINITY;
+}
+
+function compareNearbyMerchantRank(a: RankedMerchant, b: RankedMerchant) {
+  const scoreA = getUnderratedScore(a.merchant);
+  const scoreB = getUnderratedScore(b.merchant);
+
+  if (scoreA !== null || scoreB !== null) {
+    const byUnderrated =
+      (scoreB ?? Number.NEGATIVE_INFINITY) -
+      (scoreA ?? Number.NEGATIVE_INFINITY);
+
+    if (byUnderrated !== 0) return byUnderrated;
+
+    const distanceA = getDistanceValue(a.merchant);
+    const distanceB = getDistanceValue(b.merchant);
+
+    if (distanceA !== distanceB) return distanceA - distanceB;
+  }
+
+  return a.sourceIndex - b.sourceIndex;
+}
+
 function calculateDistanceKm(
   userLat: number,
   userLng: number,
@@ -150,6 +192,8 @@ function mergeMerchantData(
   detail?: MerchantDetail | null,
 ): Merchant {
   const description = detail?.description || summary.description;
+  const underratedScore =
+    getUnderratedScore(summary) ?? getUnderratedScore(detail);
 
   return {
     ...detail,
@@ -168,6 +212,7 @@ function mergeMerchantData(
     lat: summary.lat ?? detail?.lat,
     lng: summary.lng ?? detail?.lng,
     rating: summary.rating ?? detail?.rating,
+    underratedScore: underratedScore ?? undefined,
     distance: summary.distance ?? detail?.distance,
   };
 }
@@ -208,12 +253,15 @@ export async function getNearbyMerchants(params: {
   latitude: number;
   longitude: number;
   keyword?: string;
+  categoryId?: string;
 }) {
+  const usesCategory = Boolean(params.categoryId);
   const res = await api.request<MerchantListApiPayload>({
     method: "get",
-    url: "/merchants",
+    url: usesCategory ? "/merchants/by-category" : "/merchants",
     params: {
       SearchTerm: params.keyword,
+      CategoryId: params.categoryId,
       PageIndex: 1,
       PageSize: 100,
       Latitude: params.latitude,
@@ -233,31 +281,29 @@ export async function getNearbyMerchants(params: {
   );
 
   return ids
-    .map((id) => mergeMerchantData(summaryById.get(id)!, detailById.get(id)))
-    .filter((merchant) =>
+    .map((id, sourceIndex) => ({
+      merchant: mergeMerchantData(summaryById.get(id)!, detailById.get(id)),
+      sourceIndex,
+    }))
+    .filter(({ merchant }) =>
       merchantMatchesKeyword(merchant, params.keyword ?? ""),
     )
-    .map((merchant) =>
-      attachClientDistance(merchant, params.latitude, params.longitude),
-    )
+    .map(({ merchant, sourceIndex }) => ({
+      merchant: attachClientDistance(
+        merchant,
+        params.latitude,
+        params.longitude,
+      ),
+      sourceIndex,
+    }))
     .filter(
-      (merchant) =>
+      ({ merchant }) =>
         typeof merchant.distance === "number" &&
         Number.isFinite(merchant.distance) &&
         merchant.distance <= MAX_NEARBY_DISTANCE_KM,
     )
-    .sort((a, b) => {
-      const distanceA =
-        typeof a.distance === "number" && Number.isFinite(a.distance)
-          ? a.distance
-          : Number.POSITIVE_INFINITY;
-      const distanceB =
-        typeof b.distance === "number" && Number.isFinite(b.distance)
-          ? b.distance
-          : Number.POSITIVE_INFINITY;
-
-      return distanceA - distanceB;
-    });
+    .sort(compareNearbyMerchantRank)
+    .map(({ merchant }) => merchant);
 }
 
 export async function getMerchantDetail(id: string): Promise<MerchantDetail> {
@@ -298,7 +344,8 @@ export async function getMerchantsByCategory(payload: unknown) {
 }
 
 export async function getMerchantMe() {
-  throw new Error(
-    "Backend contract hiện tại chưa public endpoint lấy merchant hiện tại.",
-  );
+  const merchantId = getCurrentUser()?.MerchantId;
+  if (!merchantId) return null;
+
+  return getMerchantDetail(merchantId);
 }

@@ -99,6 +99,7 @@ export type Food = {
   merchantId?: string;
   isAvailable?: boolean;
   categoryIds?: string[];
+  categoryDetail?: string[];
 };
 
 export type CreateFoodPayload = {

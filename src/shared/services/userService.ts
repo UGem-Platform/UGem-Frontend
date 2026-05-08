@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import type { ApiResponse } from "@/shared/types";
-import { getCurrentUser } from "@/features/auth";
+import { getCurrentUser, updateStoredUser } from "@/features/auth";
 
 export type UserProfile = {
   id?: string;
@@ -60,6 +60,7 @@ export async function getUserProfile() {
     fullName: user?.Name,
     email: user?.Email,
     role: role,
+    avatarUrl: user?.AvatarUrl,
   };
 }
 
@@ -68,15 +69,20 @@ export async function updateUserProfile(payload: {
   avatarUrl?: string;
 }) {
   const user = getCurrentUser();
-  const role = user?.Role;
 
-  if (role !== "Customer") {
+  if (String(user?.Role) === "__unsupported__") {
+
     throw new Error("Cập nhật hồ sơ hiện chỉ hỗ trợ tài khoản Customer.");
   }
 
   const { data } = await api.patch<ApiResponse<null>>("/user/profile", {
     fullName: payload.fullName,
     avatarUrl: payload.avatarUrl,
+  });
+
+  updateStoredUser({
+    Name: payload.fullName?.trim() || user?.Name,
+    AvatarUrl: payload.avatarUrl,
   });
 
   return data;

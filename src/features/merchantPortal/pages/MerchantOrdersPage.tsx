@@ -11,6 +11,28 @@ import { notify } from "@/shared/lib/notify";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 
+function getOrderStatusKey(status?: string | null) {
+  return status?.trim().toLowerCase() ?? "";
+}
+
+function getLockedOrderMessage(status?: string | null) {
+  const statusKey = getOrderStatusKey(status);
+
+  if (statusKey === "accepted") {
+    return "Đơn đã được chấp nhận, chờ khách xác nhận nhận hàng.";
+  }
+
+  if (statusKey === "completed") {
+    return "Đơn đã hoàn tất, không thể duyệt lại.";
+  }
+
+  if (statusKey === "rejected") {
+    return "Đơn đã bị từ chối, không thể duyệt lại.";
+  }
+
+  return "Chỉ có thể duyệt đơn đang ở trạng thái Pending.";
+}
+
 export default function MerchantOrdersPage() {
   const [orders, setOrders] = useState<MerchantOrderSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,7 +74,13 @@ export default function MerchantOrdersPage() {
     };
   }, []);
 
-  async function handleAcceptOrder(orderId: string) {
+  async function handleAcceptOrder(order: MerchantOrderSummary) {
+    if (getOrderStatusKey(order.status) !== "pending") {
+      notify.error(getLockedOrderMessage(order.status));
+      return;
+    }
+
+    const { orderId } = order;
     setActionOrderId(orderId);
 
     try {
@@ -67,13 +95,19 @@ export default function MerchantOrdersPage() {
     }
   }
 
-  async function handleRejectOrder(orderId: string) {
+  async function handleRejectOrder(order: MerchantOrderSummary) {
+    if (getOrderStatusKey(order.status) !== "pending") {
+      notify.error(getLockedOrderMessage(order.status));
+      return;
+    }
+
     const reason = window.prompt("Lý do từ chối đơn hàng")?.trim();
 
     if (!reason) {
       return;
     }
 
+    const { orderId } = order;
     setActionOrderId(orderId);
 
     try {
@@ -136,6 +170,10 @@ export default function MerchantOrdersPage() {
             {orders.map((order) => {
               const isBusy = actionOrderId === order.orderId;
               const qrUrl = qrUrls[order.orderId];
+              const orderStatus = getOrderStatusKey(order.status);
+              const isPending = orderStatus === "pending";
+              const canGenerateQr =
+                orderStatus === "accepted" || orderStatus === "completed";
 
               return (
                 <div
@@ -168,36 +206,46 @@ export default function MerchantOrdersPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void handleAcceptOrder(order.orderId)}
-                      disabled={isBusy}
-                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
-                    >
-                      <Check size={16} />
-                      Chấp nhận
-                    </button>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {isPending ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => void handleAcceptOrder(order)}
+                          disabled={isBusy}
+                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          <Check size={16} />
+                          Chấp nhận
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => void handleRejectOrder(order.orderId)}
-                      disabled={isBusy}
-                      className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
-                    >
-                      <X size={16} />
-                      Từ chối
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleRejectOrder(order)}
+                          disabled={isBusy}
+                          className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
+                        >
+                          <X size={16} />
+                          Từ chối
+                        </button>
+                      </>
+                    ) : (
+                      <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600">
+                        {getLockedOrderMessage(order.status)}
+                      </span>
+                    )}
 
-                    <button
-                      type="button"
-                      onClick={() => void handleGenerateQr(order.orderId)}
-                      disabled={isBusy}
-                      className="inline-flex items-center gap-2 rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:opacity-50"
-                    >
-                      <QrCode size={16} />
-                      QR check-in
-                    </button>
+                    {canGenerateQr && (
+                      <button
+                        type="button"
+                        onClick={() => void handleGenerateQr(order.orderId)}
+                        disabled={isBusy}
+                        className="inline-flex items-center gap-2 rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:opacity-50"
+                      >
+                        <QrCode size={16} />
+                        QR check-in
+                      </button>
+                    )}
                   </div>
 
                   {qrUrl ? (

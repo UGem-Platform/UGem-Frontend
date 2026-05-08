@@ -26,13 +26,6 @@ type MerchantRecord = Record<string, unknown>;
 
 const USER_MARKER_ID = "__user-location";
 
-function formatDistance(distanceKm: number) {
-  if (distanceKm < 0.001) return "Ngay gần bạn";
-  if (distanceKm < 1) return `${Math.max(1, Math.round(distanceKm * 1000))} m`;
-  if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
-  return `${Math.round(distanceKm)} km`;
-}
-
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -40,6 +33,94 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatRating(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "Chưa có";
+
+  return value.toFixed(2);
+}
+
+function getUnderratedScore(merchant?: Merchant | null) {
+  if (!merchant) return null;
+
+  const record = merchant as MerchantRecord;
+  const raw = record.underratedScore ?? record.underrated_score ?? record.US;
+
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+
+  if (typeof raw === "string") {
+    const parsed = Number(raw.trim());
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  return null;
+}
+
+function getMerchantScale(score: number | null) {
+  if (score === null) return 1;
+
+  const clamped = Math.max(0, Math.min(100, score));
+  return 1.05 + (clamped / 100) * 0.35;
+}
+
+function shouldUseFlame(score: number | null) {
+  return score !== null && score >= 80;
+}
+
+function extractDescriptionField(
+  description: string | undefined,
+  label: string,
+) {
+  if (!description) return "";
+
+  const prefix = `${label}:`;
+
+  return (
+    description
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line) => line.toLowerCase().startsWith(prefix.toLowerCase()))
+      ?.slice(prefix.length)
+      .trim() ?? ""
+  );
+}
+
+function getMerchantCuisineLabel(merchant: Merchant) {
+  const fromDescription = extractDescriptionField(
+    merchant.description,
+    "Loại món chính",
+  );
+
+  if (fromDescription) return fromDescription;
+
+  const menuCategories = merchant.menu
+    ?.flatMap((item) => item.categoryDetail ?? [])
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return menuCategories?.length ? menuCategories.join(", ") : "Chưa cập nhật";
+}
+
+function getMerchantPopupHtml(merchant: Merchant) {
+  const name = escapeHtml(merchant.name || "Unnamed merchant");
+  const ratingText = formatRating(merchant.rating);
+  const cuisine = escapeHtml(getMerchantCuisineLabel(merchant));
+
+  return `
+    <div style="min-width:180px;max-width:220px;padding:2px 0">
+      <div style="font-weight:800;font-size:14px;line-height:1.3;color:#0f172a">${name}</div>
+      <div style="margin-top:4px;color:#0f766e;font-size:12px;font-weight:700">Review: ${ratingText}</div>
+      <div style="margin-top:4px;color:#475569;font-size:12px"><strong>Loại món:</strong> ${cuisine}</div>
+    </div>
+  `;
+}
+
+function formatDistance(distanceKm: number) {
+  if (distanceKm < 0.001) return "Ngay gần bạn";
+  if (distanceKm < 1) return `${Math.max(1, Math.round(distanceKm * 1000))} m`;
+  if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
+  return `${Math.round(distanceKm)} km`;
 }
 
 function getNumberField(record: MerchantRecord, keys: string[]) {
@@ -97,30 +178,16 @@ export default function NearbyMerchantsMap({
       const coords = getMerchantCoords(merchant);
       if (!coords) return [];
 
-      const name = escapeHtml(merchant.name || "Unnamed merchant");
-      const distanceText =
-        typeof merchant.distance === "number" &&
-        Number.isFinite(merchant.distance)
-          ? `<div style="color:#6b7280;font-size:12px;margin-top:2px">${formatDistance(merchant.distance)}</div>`
-          : "";
-      const addressText = merchant.address
-        ? `<div style="font-size:12px;color:#374151;margin-top:3px">${escapeHtml(merchant.address)}</div>`
-        : "";
-
+      const score = getUnderratedScore(merchant);
       return [
         {
           id: merchant.id,
           lat: coords.lat,
           lng: coords.lng,
           type: "restaurant" as const,
-          popupHtml: `
-            <div style="min-width:150px;padding:2px 0">
-              <div style="font-weight:700;font-size:14px">${name}</div>
-              ${distanceText}
-              ${addressText}
-              <div style="margin-top:6px;font-size:11px;color:#0891b2;font-weight:700">Bấm để xem đường đi</div>
-            </div>
-          `,
+          scale: getMerchantScale(score),
+          flame: shouldUseFlame(score),
+          popupHtml: getMerchantPopupHtml(merchant),
         },
       ];
     });

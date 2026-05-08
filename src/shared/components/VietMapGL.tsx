@@ -29,6 +29,10 @@ export interface MapMarker {
   type?: "restaurant" | "charging" | "user" | "custom";
   /** Màu tuỳ chọn (override type color) */
   color?: string;
+  /** Tỷ lệ phóng to/thu nhỏ icon */
+  scale?: number;
+  /** Hiển thị hiệu ứng lửa cho marker nhà hàng */
+  flame?: boolean;
   /** Allow marker to be draggable (for user confirmation) */
   draggable?: boolean;
 }
@@ -77,9 +81,14 @@ const MARKER_ICONS: Record<string, string> = {
 function createMarkerElement(
   type: MapMarker["type"],
   color?: string,
+  scale = 1,
+  flame = false,
 ): HTMLElement {
   const el = document.createElement("div");
   const bg = color ?? MARKER_COLORS[type ?? "custom"] ?? "#8b5cf6";
+  const safeScale = Number.isFinite(scale)
+    ? Math.max(0.75, Math.min(1.9, scale))
+    : 1;
 
   if (type === "user") {
     el.innerHTML = `
@@ -129,7 +138,31 @@ function createMarkerElement(
         position:relative;
         width:36px;height:42px;
         cursor:pointer;
+        transform:scale(${safeScale});
+        transform-origin:bottom center;
       ">
+        ${
+          flame
+            ? `
+        <div style="
+          position:absolute;
+          top:-12px;
+          left:50%;
+          transform:translateX(-50%);
+          font-size:16px;
+          line-height:1;
+          filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+          animation:vmFlameBounce 1.2s ease-in-out infinite;
+        ">🔥</div>
+        <style>
+          @keyframes vmFlameBounce {
+            0%,100%{transform:translateX(-50%) translateY(0) scale(1)}
+            50%{transform:translateX(-50%) translateY(-2px) scale(1.08)}
+          }
+        </style>
+        `
+            : ""
+        }
         <div style="
           width:36px;height:36px;
           background:${bg};
@@ -333,13 +366,14 @@ export default function VietMapGL({
         if (!isValidLngLat(m.lng) || !isValidLngLat(m.lat)) continue;
         visibleCoords.push([m.lng, m.lat]);
 
-        const el = createMarkerElement(m.type, m.color);
+        const el = createMarkerElement(m.type, m.color, m.scale, m.flame);
 
         const popup = new vietmapgl.Popup({
-          offset: m.type === "user" ? 14 : 32,
+          anchor: m.type === "user" ? undefined : "bottom",
+          offset: m.type === "user" ? 14 : 18,
           closeButton: true,
           closeOnClick: false,
-          maxWidth: "260px",
+          maxWidth: m.type === "user" ? "240px" : "220px",
         }).setHTML(
           m.popupHtml ??
             `<div style="font-weight:600;font-size:13px;padding:2px 4px">${m.id}</div>`,
@@ -364,7 +398,9 @@ export default function VietMapGL({
           });
         }
 
-        el.addEventListener("click", () => {
+        el.addEventListener("click", (event) => {
+          event.stopPropagation();
+          popup.addTo(map);
           onMarkerClick?.(m.id);
         });
 

@@ -44,7 +44,7 @@ function formatDate(value?: string | null) {
 
 function StatusBadge({ status }: { status?: string }) {
   const v = status?.toLowerCase();
-  if (v === "accepted" || v === "approved") {
+  if (v === "accept" || v === "accepted" || v === "approved") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700 shadow-sm">
         <BadgeCheck className="h-3.5 w-3.5" />

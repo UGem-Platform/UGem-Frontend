@@ -29,6 +29,10 @@ export type Review = {
   rating?: number;
   imageUrl?: string | null;
   createdAt?: string;
+  customerName?: string | null;
+  CustomerName?: string | null;
+  customerAvatarUrl?: string | null;
+  CustomerAvatarUrl?: string | null;
   reviewDetails?: ReviewDetail[];
 };
 
