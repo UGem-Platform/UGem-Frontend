@@ -176,16 +176,16 @@ export function LoginPage() {
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
       {/* left */}
-      <section className="relative min-h-[52vh] p-3 lg:min-h-screen lg:p-4">
+      <section className="relative hidden min-h-[52vh] p-3 lg:block lg:h-screen lg:p-4">
         <HeroCarousel images={HERO_IMAGES} />
 
         {/* floating caption */}
       </section>
 
       {/* right */}
-      <section className="relative flex min-h-screen items-center justify-center px-6 py-10">
+      <section className="relative flex items-center justify-center overflow-hidden px-4 py-4">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-8 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-5 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
             {/* glow */}
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
 
@@ -194,19 +194,19 @@ export function LoginPage() {
             <div className="relative">
               <Logo />
 
-              <div className="mt-7">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
+              <div className="mt-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm shadow-cyan-950/5">
                   UGem Platform
                 </div>
 
-                <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+                <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
                   Khám phá quán ăn đang bị{" "}
                   <span className="bg-gradient-to-r from-cyan-700 to-sky-500 bg-clip-text text-transparent">
                     FLOP
                   </span>
                 </h1>
 
-                <p className="mt-4 text-sm leading-7 text-slate-600">
+                <p className="mt-2 text-xs leading-5 text-slate-600">
                   Những quán ngon địa phương chưa nhiều người biết đến. Tìm
                   hidden gems, mở merchant và quản lý hồ sơ trong một nền tảng
                   hiện đại.
@@ -214,7 +214,7 @@ export function LoginPage() {
               </div>
 
               {/* google */}
-              <div className="mt-7 space-y-3">
+              <div className="mt-4 space-y-2">
                 {GOOGLE_CLIENT_ID ? (
                   <div
                     className={`flex min-h-11 justify-center rounded-2xl border border-white/70 bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-950/5 ${
@@ -235,7 +235,7 @@ export function LoginPage() {
               </div>
 
               {/* divider */}
-              <div className="my-6 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+              <div className="my-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
                 <div className="h-px flex-1 bg-slate-200" />
                 Hoặc
                 <div className="h-px flex-1 bg-slate-200" />
@@ -244,23 +244,25 @@ export function LoginPage() {
               <LoginForm />
 
               {/* footer links */}
-              <div className="mt-5 space-y-2 text-center">
-                <button className="text-sm font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline">
+              <div className="mt-3 space-y-1 text-center">
+                <button className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline">
                   Quên mật khẩu?
                 </button>
 
-                <Link
-                  to="/register"
-                  className="group inline-flex items-center gap-1 text-sm font-black text-amber-700 transition hover:text-amber-800"
-                >
-                  Chưa có tài khoản? Đăng ký
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                </Link>
+                <div>
+                  <Link
+                    to="/register"
+                    className="group inline-flex items-center gap-1 text-xs font-black text-amber-700 transition hover:text-amber-800"
+                  >
+                    Chưa có tài khoản? Đăng ký
+                    <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
 
-          <p className="mt-5 text-center text-xs font-medium leading-6 text-slate-500">
+          <p className="mt-3 text-center text-[10px] font-medium leading-4 text-slate-500">
             Bằng cách tiếp tục, bạn đồng ý với điều khoản sử dụng và chính sách
             quyền riêng tư của UGem.
           </p>

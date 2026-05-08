@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ComponentType } from "react";
 import {
   BadgeCheck,
@@ -7,13 +7,9 @@ import {
   Flame,
   Hourglass,
   TrendingUp,
-  UserRound,
 } from "lucide-react";
-import { getCurrentUser } from "@/features/auth";
 import { UserAccountMenu } from "@/shared/components";
 import { useStaffApplications } from "../hooks/useApplications";
-import { notify } from "@/shared/lib/notify";
-import { getUserProfile, type UserProfile } from "@/shared/services";
 import { StaffShell } from "../components/StaffShell";
 
 function formatDate(value?: string | number | null, fallback = "-") {
@@ -68,36 +64,7 @@ function getStatusMeta(status?: string) {
 }
 
 export default function StaffProfilePage() {
-  const currentUser = getCurrentUser();
-  const {
-    data: applications = [],
-    isLoading,
-    isError,
-  } = useStaffApplications();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    const loadProfile = async () => {
-      try {
-        const data = await getUserProfile();
-        if (!active) return;
-        setProfile(data ?? null);
-      } catch (error) {
-        console.error(error);
-        if (active) {
-          notify.error("Không tải được hồ sơ Staff.");
-        }
-      }
-    };
-
-    void loadProfile();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: applications = [], isError } = useStaffApplications();
 
   const stats = useMemo(() => {
     const pending = applications.filter(
@@ -166,20 +133,15 @@ export default function StaffProfilePage() {
     };
   }, [applications]);
 
-  const displayName =
-    profile?.fullName || profile?.name || currentUser?.Name || "Staff";
-  const email = profile?.email || currentUser?.Email || "-";
-  const roleLabel = profile?.role || currentUser?.Role || "Staff";
-
   return (
     <StaffShell activeItem="dashboard">
-      <div className="relative mx-auto max-w-6xl">
+      <div className="relative w-full">
         <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
         <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
         <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
         <div className="relative">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="sticky top-4 z-30 mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white/55 p-3 backdrop-blur-xl ring-1 ring-slate-950/5">
             <div className="min-w-0">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
                 Staff KPI
@@ -203,252 +165,187 @@ export default function StaffProfilePage() {
             </div>
           ) : null}
 
-          <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-            <section className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
-              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/25 blur-2xl" />
-              <div className="absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-amber-300/25 blur-2xl" />
+          <div className="space-y-6">
+            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <KpiCard
+                title="Tổng hồ sơ"
+                value={stats.total}
+                icon={FileText}
+                tone="bg-cyan-600 text-white"
+                hint="Toàn bộ hồ sơ Staff được phép xem"
+              />
+              <KpiCard
+                title="Chờ duyệt"
+                value={stats.pending}
+                icon={Clock3}
+                tone="bg-amber-500 text-white"
+                hint="Chưa ai nhận xử lý"
+              />
+              <KpiCard
+                title="Đã xử lý"
+                value={stats.reviewed}
+                icon={BadgeCheck}
+                tone="bg-emerald-600 text-white"
+                hint="Đã duyệt hoặc từ chối"
+              />
+              <KpiCard
+                title="Tỷ lệ xử lý"
+                value={`${stats.processingRate.toFixed(0)}%`}
+                icon={TrendingUp}
+                tone="bg-slate-900 text-white"
+                hint="Reviewed / Total"
+              />
+            </section>
 
-              <div className="relative border-b border-white/70 p-6">
-                <div className="flex min-w-0 items-center gap-4">
-                  <div className="grid h-18 w-18 shrink-0 place-items-center rounded-[24px] bg-cyan-100 text-cyan-800 shadow-lg shadow-cyan-900/10 ring-1 ring-white/70">
-                    {profile?.avatarUrl ? (
-                      <img
-                        src={profile.avatarUrl}
-                        alt={displayName}
-                        className="h-18 w-18 rounded-[24px] object-cover"
-                      />
-                    ) : (
-                      <UserRound className="h-8 w-8" />
-                    )}
-                  </div>
+            <section className="grid gap-6 xl:grid-cols-3">
+              <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl xl:col-span-2">
+                <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/20 blur-2xl" />
 
-                  <div className="min-w-0">
-                    <p className="text-sm font-black text-cyan-700">Staff</p>
-                    <h2 className="truncate text-xl font-black text-slate-950">
-                      {displayName}
+                <div className="relative mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-950">
+                      KPI hiệu suất
                     </h2>
-                    <p className="truncate text-sm font-semibold text-slate-500">
-                      {email}
+                    <p className="text-sm leading-6 text-slate-500">
+                      Các chỉ số phản ánh tốc độ và chất lượng xử lý hồ sơ.
                     </p>
                   </div>
+
+                  <span className="rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-black text-cyan-700 shadow-sm">
+                    Cập nhật theo dữ liệu hiện có
+                  </span>
+                </div>
+
+                <div className="relative grid gap-3 sm:grid-cols-2">
+                  <MetricRow
+                    label="Tỷ lệ duyệt"
+                    value={`${stats.approvalRate.toFixed(0)}%`}
+                  />
+                  <MetricRow
+                    label="Hồ sơ đã duyệt"
+                    value={formatNumber(stats.approved)}
+                  />
+                  <MetricRow
+                    label="Hồ sơ từ chối"
+                    value={formatNumber(stats.rejected)}
+                  />
+                  <MetricRow
+                    label="Thời gian xử lý TB"
+                    value={formatMinutes(stats.avgProcessingMinutes)}
+                  />
+                </div>
+
+                <div className="relative mt-6 rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm ring-1 ring-slate-950/5">
+                  <p className="text-sm font-black text-slate-700">
+                    Nhận xét nhanh
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {stats.pending === 0
+                      ? "Hiện không còn hồ sơ chờ xử lý. Bạn đang ở trạng thái sạch backlog."
+                      : `Còn ${formatNumber(stats.pending)} hồ sơ chờ xử lý. Ưu tiên xử lý backlog trước để cải thiện SLA.`}
+                  </p>
                 </div>
               </div>
 
-              <div className="relative space-y-4 p-6 text-sm text-slate-700">
-                <div className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm ring-1 ring-slate-950/5">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Role
-                  </p>
-                  <p className="mt-1 text-base font-black text-slate-950">
-                    {roleLabel}
+              <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+                <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-amber-300/20 blur-2xl" />
+
+                <div className="relative">
+                  <h2 className="text-xl font-black text-slate-950">
+                    Danh sách nhanh
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Hồ sơ mới nhất đang chờ và hồ sơ vừa xử lý.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm ring-1 ring-slate-950/5">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    User ID
-                  </p>
-                  <p className="mt-1 break-all text-sm font-semibold text-slate-950">
-                    {currentUser?.UserId ||
-                      profile?.userId ||
-                      profile?.id ||
-                      "-"}
-                  </p>
-                </div>
+                <div className="relative mt-5 space-y-5">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-amber-700">
+                      Chờ duyệt gần đây
+                    </p>
 
-                <div className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm ring-1 ring-slate-950/5">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Trạng thái dữ liệu
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-950">
-                    {isLoading ? "Đang tải KPI..." : "KPI sẵn sàng"}
-                  </p>
+                    <div className="mt-2 space-y-2">
+                      {stats.recentPending.length === 0 ? (
+                        <p className="rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold text-slate-500 shadow-sm ring-1 ring-slate-950/5">
+                          Không có hồ sơ pending.
+                        </p>
+                      ) : (
+                        stats.recentPending.map((item) => {
+                          const meta = getStatusMeta(item.status);
+                          const StatusIcon = meta.icon;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-3 pr-24 shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                            >
+                              <div className="min-w-0">
+                                <p className="whitespace-normal text-[13px] font-black leading-5 text-slate-950">
+                                  {item.name || "Không tên"}
+                                </p>
+                                <p className="mt-0.5 whitespace-normal text-[11px] font-semibold leading-5 text-slate-500">
+                                  Gửi lúc {formatDate(item.createdAt)}
+                                </p>
+                              </div>
+
+                              <span
+                                className={`absolute right-2 top-2 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${meta.tone}`}
+                              >
+                                <StatusIcon className="h-3.5 w-3.5" />
+                                {meta.label}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+                      Đã xử lý gần đây
+                    </p>
+
+                    <div className="mt-2 space-y-2">
+                      {stats.recentReviewed.length === 0 ? (
+                        <p className="rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold text-slate-500 shadow-sm ring-1 ring-slate-950/5">
+                          Chưa có hồ sơ được xử lý.
+                        </p>
+                      ) : (
+                        stats.recentReviewed.map((item) => {
+                          const meta = getStatusMeta(item.status);
+                          const StatusIcon = meta.icon;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-3 pr-24 shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                            >
+                              <div className="min-w-0">
+                                <p className="whitespace-normal text-[13px] font-black leading-5 text-slate-950">
+                                  {item.name || "Không tên"}
+                                </p>
+                                <p className="mt-0.5 whitespace-normal text-[11px] font-semibold leading-5 text-slate-500">
+                                  Xử lý lúc {formatDate(item.reviewedAt)}
+                                </p>
+                              </div>
+
+                              <span
+                                className={`absolute right-2 top-2 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${meta.tone}`}
+                              >
+                                <StatusIcon className="h-3.5 w-3.5" />
+                                {meta.label}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
-
-            <div className="space-y-6">
-              <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <KpiCard
-                  title="Tổng hồ sơ"
-                  value={stats.total}
-                  icon={FileText}
-                  tone="bg-cyan-600 text-white"
-                  hint="Toàn bộ hồ sơ Staff được phép xem"
-                />
-                <KpiCard
-                  title="Chờ duyệt"
-                  value={stats.pending}
-                  icon={Clock3}
-                  tone="bg-amber-500 text-white"
-                  hint="Chưa ai nhận xử lý"
-                />
-                <KpiCard
-                  title="Đã xử lý"
-                  value={stats.reviewed}
-                  icon={BadgeCheck}
-                  tone="bg-emerald-600 text-white"
-                  hint="Đã duyệt hoặc từ chối"
-                />
-                <KpiCard
-                  title="Tỷ lệ xử lý"
-                  value={`${stats.processingRate.toFixed(0)}%`}
-                  icon={TrendingUp}
-                  tone="bg-slate-900 text-white"
-                  hint="Reviewed / Total"
-                />
-              </section>
-
-              <section className="grid gap-6 xl:grid-cols-3">
-                <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl xl:col-span-2">
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/20 blur-2xl" />
-
-                  <div className="relative mb-5 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <h2 className="text-xl font-black text-slate-950">
-                        KPI hiệu suất
-                      </h2>
-                      <p className="text-sm leading-6 text-slate-500">
-                        Các chỉ số phản ánh tốc độ và chất lượng xử lý hồ sơ.
-                      </p>
-                    </div>
-
-                    <span className="rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-black text-cyan-700 shadow-sm">
-                      Cập nhật theo dữ liệu hiện có
-                    </span>
-                  </div>
-
-                  <div className="relative grid gap-3 sm:grid-cols-2">
-                    <MetricRow
-                      label="Tỷ lệ duyệt"
-                      value={`${stats.approvalRate.toFixed(0)}%`}
-                    />
-                    <MetricRow
-                      label="Hồ sơ đã duyệt"
-                      value={formatNumber(stats.approved)}
-                    />
-                    <MetricRow
-                      label="Hồ sơ từ chối"
-                      value={formatNumber(stats.rejected)}
-                    />
-                    <MetricRow
-                      label="Thời gian xử lý TB"
-                      value={formatMinutes(stats.avgProcessingMinutes)}
-                    />
-                  </div>
-
-                  <div className="relative mt-6 rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm ring-1 ring-slate-950/5">
-                    <p className="text-sm font-black text-slate-700">
-                      Nhận xét nhanh
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {stats.pending === 0
-                        ? "Hiện không còn hồ sơ chờ xử lý. Bạn đang ở trạng thái sạch backlog."
-                        : `Còn ${formatNumber(stats.pending)} hồ sơ chờ xử lý. Ưu tiên xử lý backlog trước để cải thiện SLA.`}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-amber-300/20 blur-2xl" />
-
-                  <div className="relative">
-                    <h2 className="text-xl font-black text-slate-950">
-                      Danh sách nhanh
-                    </h2>
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
-                      Hồ sơ mới nhất đang chờ và hồ sơ vừa xử lý.
-                    </p>
-                  </div>
-
-                  <div className="relative mt-5 space-y-5">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-amber-700">
-                        Chờ duyệt gần đây
-                      </p>
-
-                      <div className="mt-2 space-y-2">
-                        {stats.recentPending.length === 0 ? (
-                          <p className="rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold text-slate-500 shadow-sm ring-1 ring-slate-950/5">
-                            Không có hồ sơ pending.
-                          </p>
-                        ) : (
-                          stats.recentPending.map((item) => {
-                            const meta = getStatusMeta(item.status);
-                            const StatusIcon = meta.icon;
-
-                            return (
-                              <div
-                                key={item.id}
-                                className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-3 pr-24 shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-lg"
-                              >
-                                <div className="min-w-0">
-                                  <p className="whitespace-normal text-[13px] font-black leading-5 text-slate-950">
-                                    {item.name || "Không tên"}
-                                  </p>
-                                  <p className="mt-0.5 whitespace-normal text-[11px] font-semibold leading-5 text-slate-500">
-                                    Gửi lúc {formatDate(item.createdAt)}
-                                  </p>
-                                </div>
-
-                                <span
-                                  className={`absolute right-2 top-2 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${meta.tone}`}
-                                >
-                                  <StatusIcon className="h-3.5 w-3.5" />
-                                  {meta.label}
-                                </span>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
-                        Đã xử lý gần đây
-                      </p>
-
-                      <div className="mt-2 space-y-2">
-                        {stats.recentReviewed.length === 0 ? (
-                          <p className="rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold text-slate-500 shadow-sm ring-1 ring-slate-950/5">
-                            Chưa có hồ sơ được xử lý.
-                          </p>
-                        ) : (
-                          stats.recentReviewed.map((item) => {
-                            const meta = getStatusMeta(item.status);
-                            const StatusIcon = meta.icon;
-
-                            return (
-                              <div
-                                key={item.id}
-                                className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-3 pr-24 shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-lg"
-                              >
-                                <div className="min-w-0">
-                                  <p className="whitespace-normal text-[13px] font-black leading-5 text-slate-950">
-                                    {item.name || "Không tên"}
-                                  </p>
-                                  <p className="mt-0.5 whitespace-normal text-[11px] font-semibold leading-5 text-slate-500">
-                                    Xử lý lúc {formatDate(item.reviewedAt)}
-                                  </p>
-                                </div>
-
-                                <span
-                                  className={`absolute right-2 top-2 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${meta.tone}`}
-                                >
-                                  <StatusIcon className="h-3.5 w-3.5" />
-                                  {meta.label}
-                                </span>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
           </div>
         </div>
       </div>

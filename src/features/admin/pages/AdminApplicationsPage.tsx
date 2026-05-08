@@ -289,19 +289,31 @@ export default function AdminApplicationsPage({
       )}
 
       <div className={embedded ? "w-full" : "relative mx-auto max-w-6xl"}>
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div
+          className={`${embedded ? "mb-3" : "mb-5"} flex flex-wrap items-center justify-between gap-3`}
+        >
           <div className="min-w-0">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
+            <div
+              className={`${embedded ? "mb-2 text-[10px] tracking-[0.15em]" : "mb-3 text-[11px] tracking-[0.18em]"} inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 font-black uppercase text-cyan-700 shadow-sm shadow-cyan-950/5`}
+            >
               Merchant Review
             </div>
 
-            <h1 className="break-words text-3xl font-black tracking-tight text-slate-950">
+            <h1
+              className={`${embedded ? "text-2xl" : "text-3xl"} break-words font-black tracking-tight text-slate-950`}
+            >
               {title}
             </h1>
 
-            <p className="mt-1 text-sm leading-6 text-slate-600">{subtitle}</p>
+            <p
+              className={`${embedded ? "mt-0.5 text-xs leading-5" : "mt-1 text-sm leading-6"} text-slate-600`}
+            >
+              {subtitle}
+            </p>
 
-            <p className="mt-1 text-xs font-semibold text-slate-500">
+            <p
+              className={`${embedded ? "mt-0.5" : "mt-1"} text-xs font-semibold text-slate-500`}
+            >
               Cập nhật lần cuối: {formatDate(dataUpdatedAt, "Chưa tải")}
             </p>
           </div>
@@ -357,7 +369,7 @@ export default function AdminApplicationsPage({
             </button>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className={embedded ? "space-y-4" : "space-y-5"}>
             <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
               <div className="relative overflow-hidden border-b border-white/70 p-5">
                 <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/25 blur-2xl" />

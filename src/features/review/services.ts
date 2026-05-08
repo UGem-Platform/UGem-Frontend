@@ -66,11 +66,10 @@ export type ReviewerApplicationPayload = {
   otherSocialUrl?: string;
 };
 
-export type UpdateReviewerApplicationPayload = Partial<
-  ReviewerApplicationPayload
-> & {
-  reviewerApplicationId: string;
-};
+export type UpdateReviewerApplicationPayload =
+  Partial<ReviewerApplicationPayload> & {
+    reviewerApplicationId: string;
+  };
 
 export async function getReviewsByMerchantId(merchantId: string) {
   const res = await api.get<ApiResponse<Review[]>>("/reviews/merchant", {
@@ -133,6 +132,27 @@ export async function createReviewerApplication(
     payload,
   );
   return res.data;
+}
+
+export type ReviewerApplication = {
+  id?: string;
+  motivation?: string;
+  experience?: string;
+  facebookUrl?: string;
+  tiktokUrl?: string;
+  youtubeUrl?: string;
+  otherSocialUrl?: string;
+  status?: string;
+  rejectionReason?: string;
+  customerId?: string;
+  createdAt?: string;
+};
+
+export async function getMyReviewerApplication() {
+  const res = await api.get<ApiResponse<ReviewerApplication>>(
+    "/reviewer-application",
+  );
+  return res.data.data ?? null;
 }
 
 export async function updateReviewerApplication(

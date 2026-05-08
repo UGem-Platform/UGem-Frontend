@@ -6,12 +6,18 @@ import {
   IdCard,
   LayoutDashboard,
   Sparkles,
+  UserCheck,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useStaffApplications } from "../hooks/useApplications";
 
-export type StaffNavItemKey = "dashboard" | "pending" | "approved" | "profile";
+export type StaffNavItemKey =
+  | "dashboard"
+  | "pending"
+  | "approved"
+  | "profile"
+  | "reviewer-applications";
 
 type StaffShellProps = {
   activeItem: StaffNavItemKey;
@@ -47,6 +53,13 @@ const staffNavItems = [
     to: "/staff/profile",
     icon: IdCard,
   },
+  {
+    key: "reviewer-applications",
+    label: "Đơn Reviewer",
+    description: "Duyệt đơn đăng ký Reviewer",
+    to: "/staff/reviewer-applications",
+    icon: UserCheck,
+  },
 ] satisfies {
   key: StaffNavItemKey;
   label: string;
@@ -69,12 +82,12 @@ export function StaffShell({ activeItem, children }: StaffShellProps) {
   const approvedCount = applications.length - pendingCount;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] text-slate-950">
+    <div className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] text-slate-950">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-      <div className="relative mx-auto grid w-full max-w-7xl gap-5 px-4 py-5 lg:grid-cols-[288px_minmax(0,1fr)] lg:gap-7 lg:py-7">
+      <div className="relative grid w-full gap-5 px-4 py-5 lg:grid-cols-[288px_minmax(0,1fr)] lg:gap-7 lg:px-6 lg:py-7">
         <aside className="min-w-0 lg:sticky lg:top-7 lg:self-start">
           <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
             <div className="relative overflow-hidden border-b border-white/70 p-5">

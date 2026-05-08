@@ -1,4 +1,6 @@
 import { clearAuth, getCurrentUser } from "../../../features/auth";
+import { Link } from "react-router-dom";
+import { UserRound } from "lucide-react";
 import { NotificationBellMenu } from "../../components/NotificationBellMenu";
 import { notify } from "../../lib/notify";
 
@@ -31,6 +33,11 @@ export function MerchantHeader() {
         <div className="merchant-avatar">
           {displayName.charAt(0).toUpperCase()}
         </div>
+
+        <Link to="/merchant/profile" className="merchant-profile-link">
+          <UserRound size={16} />
+          Profile
+        </Link>
 
         <button type="button" onClick={handleLogout}>
           Logout
