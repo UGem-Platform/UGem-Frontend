@@ -40,7 +40,7 @@ export type CreateMerchantReviewPayload = {
   merchantId: string;
   orderId: string;
   rating: number;
-  content: string;
+  content?: string;
   imageUrl?: string;
   reviewDetails?: {
     orderDetailId: string;

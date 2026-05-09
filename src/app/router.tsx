@@ -8,6 +8,7 @@ import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
 import StaffUserProfilePage from "@/features/admin/pages/StaffUserProfilePage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
 import { LoginPage, RegisterPage } from "@/features/auth";
+import CheckInPage from "@/shared/pages/CheckInPage";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
 import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDetailPage";
 import CustomerOrdersPage from "@/features/customer/pages/CustomerOrdersPage";
@@ -51,6 +52,10 @@ const routers = createBrowserRouter([
       {
         path: "/register",
         element: <RegisterPage />,
+      },
+      {
+        path: "/check-in",
+        element: <CheckInPage />,
       },
       {
         path: "/unauthorized",

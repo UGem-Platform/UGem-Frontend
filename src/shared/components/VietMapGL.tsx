@@ -73,9 +73,9 @@ const MARKER_COLORS: Record<string, string> = {
 };
 
 const MARKER_ICONS: Record<string, string> = {
-  restaurant: "🍜",
-  charging: "⚡",
-  custom: "📍",
+  restaurant: "&#127858;",
+  charging: "&#9889;",
+  custom: "&#128205;",
 };
 
 function createMarkerElement(
@@ -132,7 +132,7 @@ function createMarkerElement(
       </style>
     `;
   } else {
-    const icon = MARKER_ICONS[type ?? "custom"] ?? "📍";
+    const icon = MARKER_ICONS[type ?? "custom"] ?? "&#128205;";
     el.innerHTML = `
       <div style="
         position:relative;
@@ -153,7 +153,7 @@ function createMarkerElement(
           line-height:1;
           filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25));
           animation:vmFlameBounce 1.2s ease-in-out infinite;
-        ">🔥</div>
+        ">&#128293;</div>
         <style>
           @keyframes vmFlameBounce {
             0%,100%{transform:translateX(-50%) translateY(0) scale(1)}

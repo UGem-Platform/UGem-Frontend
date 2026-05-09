@@ -77,6 +77,9 @@ export function LoginPage() {
 
       googleButtonRef.current.innerHTML = "";
 
+      const params = new URLSearchParams(window.location.search);
+      const returnUrl = params.get("returnUrl");
+
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
 
@@ -103,6 +106,11 @@ export function LoginPage() {
 
             if (data.isNewUser && user.Role === "Customer") {
               setShowGooglePurposeDialog(true);
+              return;
+            }
+
+            if (returnUrl) {
+              navigate(returnUrl, { replace: true });
               return;
             }
 
