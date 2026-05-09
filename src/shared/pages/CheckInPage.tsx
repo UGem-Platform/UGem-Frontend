@@ -1,26 +1,44 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Loader2, RotateCcw, Utensils, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  RotateCcw,
+  Utensils,
+  XCircle,
+} from "lucide-react";
 import { getCurrentUser } from "@/features/auth";
+import { getMerchantDetail } from "@/features/customer/services/merchantService";
 import { api } from "@/lib/axios";
 
 export default function CheckInPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const orderId = searchParams.get("orderId");
+  const merchantId =
+    searchParams.get("merchantId") ?? searchParams.get("MerchantId");
+  const queryString = searchParams.toString();
+  const checkInReturnPath = queryString ? `/check-in?${queryString}` : "/check-in";
 
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [merchantName, setMerchantName] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
 
     async function verifyCheckIn() {
       try {
-        await api.post("/check-in/verify");
+        const merchant = merchantId
+          ? await getMerchantDetail(merchantId).catch(() => null)
+          : null;
+
+        await api.post("/check-in/verify", {
+          merchantId: merchantId ?? undefined,
+        });
 
         if (!active) return;
 
+        setMerchantName(merchant?.name || null);
         setMessage("Check-in thành công.");
         setStatus("success");
       } catch (error) {
@@ -35,8 +53,7 @@ export default function CheckInPage() {
 
     const user = getCurrentUser();
     if (!user) {
-      const returnPath = orderId ? `/check-in?orderId=${orderId}` : "/check-in";
-      const returnUrl = encodeURIComponent(returnPath);
+      const returnUrl = encodeURIComponent(checkInReturnPath);
       navigate(`/login?returnUrl=${returnUrl}`, { replace: true });
       return;
     }
@@ -46,7 +63,7 @@ export default function CheckInPage() {
     return () => {
       active = false;
     };
-  }, [orderId, navigate]);
+  }, [checkInReturnPath, merchantId, navigate]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.16),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ecfeff_52%,#fff7ed_100%)] px-5 py-10">
@@ -68,7 +85,9 @@ export default function CheckInPage() {
               Check-in thành công
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-slate-600">
-              Cảm ơn bạn đã ghé quán. Lượt check-in của bạn đã được ghi nhận.
+              {merchantName
+                ? `Cảm ơn bạn đã ghé ${merchantName}. Lượt check-in của bạn đã được ghi nhận.`
+                : "Cảm ơn bạn đã ghé quán. Lượt check-in của bạn đã được ghi nhận."}
             </p>
             <button
               type="button"
@@ -95,10 +114,7 @@ export default function CheckInPage() {
               type="button"
               className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-cyan-700 px-5 text-sm font-bold text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-0.5 hover:bg-cyan-800"
               onClick={() => {
-                const returnPath = orderId
-                  ? `/check-in?orderId=${orderId}`
-                  : "/check-in";
-                const returnUrl = encodeURIComponent(returnPath);
+                const returnUrl = encodeURIComponent(checkInReturnPath);
                 navigate(`/login?returnUrl=${returnUrl}`);
               }}
             >

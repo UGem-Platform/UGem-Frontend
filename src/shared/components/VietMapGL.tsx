@@ -136,7 +136,8 @@ function createMarkerElement(
     el.innerHTML = `
       <div style="
         position:relative;
-        width:36px;height:42px;
+        width:${flame ? "58px" : "36px"};
+        height:${flame ? "66px" : "42px"};
         cursor:pointer;
         transform:scale(${safeScale});
         transform-origin:bottom center;
@@ -146,30 +147,96 @@ function createMarkerElement(
             ? `
         <div style="
           position:absolute;
-          top:-12px;
-          left:50%;
-          transform:translateX(-50%);
-          font-size:16px;
-          line-height:1;
-          filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25));
-          animation:vmFlameBounce 1.2s ease-in-out infinite;
-        ">&#128293;</div>
+          inset:0;
+          pointer-events:none;
+          filter:drop-shadow(0 10px 16px rgba(249,115,22,0.32));
+          animation:vmHotMarkerFloat 2.2s ease-in-out infinite;
+        ">
+          <div style="
+            position:absolute;
+            left:50%;
+            top:4px;
+            width:44px;
+            height:48px;
+            transform:translateX(-50%);
+            border-radius:999px 999px 18px 18px;
+            background:
+              radial-gradient(circle at 50% 62%, rgba(255,255,255,0.86) 0 18%, transparent 19%),
+              radial-gradient(circle at 50% 60%, rgba(251,191,36,0.92) 0 34%, transparent 35%),
+              radial-gradient(circle at 50% 52%, rgba(249,115,22,0.72) 0 52%, transparent 54%),
+              radial-gradient(circle at 32% 42%, rgba(239,68,68,0.72) 0 20%, transparent 24%),
+              radial-gradient(circle at 70% 42%, rgba(239,68,68,0.66) 0 18%, transparent 23%);
+            opacity:0.82;
+            animation:vmFlameHalo 1.35s ease-in-out infinite;
+          "></div>
+          <div style="
+            position:absolute;
+            top:0;
+            left:15px;
+            font-size:24px;
+            line-height:1;
+            transform-origin:50% 92%;
+            animation:vmFlameTongueA 1.05s ease-in-out infinite;
+          ">&#128293;</div>
+          <div style="
+            position:absolute;
+            top:2px;
+            right:12px;
+            font-size:20px;
+            line-height:1;
+            opacity:0.9;
+            transform-origin:50% 92%;
+            animation:vmFlameTongueB 1.18s ease-in-out infinite;
+          ">&#128293;</div>
+          <div style="
+            position:absolute;
+            top:18px;
+            left:7px;
+            width:10px;
+            height:10px;
+            border-radius:999px;
+            background:#fed7aa;
+            opacity:0.75;
+            animation:vmEmber 1.5s ease-in-out infinite;
+          "></div>
+        </div>
         <style>
-          @keyframes vmFlameBounce {
-            0%,100%{transform:translateX(-50%) translateY(0) scale(1)}
-            50%{transform:translateX(-50%) translateY(-2px) scale(1.08)}
+          @keyframes vmHotMarkerFloat {
+            0%,100%{transform:translateY(0)}
+            50%{transform:translateY(-2px)}
+          }
+          @keyframes vmFlameHalo {
+            0%,100%{transform:translateX(-50%) scale(0.98); opacity:0.76}
+            45%{transform:translateX(-50%) scale(1.06); opacity:0.94}
+            72%{transform:translateX(-50%) scale(1.01); opacity:0.84}
+          }
+          @keyframes vmFlameTongueA {
+            0%,100%{transform:rotate(-7deg) scale(1)}
+            50%{transform:rotate(5deg) scale(1.12) translateY(-2px)}
+          }
+          @keyframes vmFlameTongueB {
+            0%,100%{transform:rotate(8deg) scale(0.95)}
+            55%{transform:rotate(-5deg) scale(1.08) translateY(-1px)}
+          }
+          @keyframes vmEmber {
+            0%,100%{transform:translate(0,0) scale(0.7); opacity:0.35}
+            50%{transform:translate(-2px,-7px) scale(1); opacity:0.9}
           }
         </style>
         `
             : ""
         }
         <div style="
+          position:absolute;
+          bottom:${flame ? "6px" : "0"};
+          left:50%;
+          z-index:2;
           width:36px;height:36px;
           background:${bg};
           border:2.5px solid white;
           border-radius:50% 50% 50% 0;
-          transform:rotate(-45deg);
-          box-shadow:0 3px 10px rgba(0,0,0,0.35);
+          transform:translateX(-50%) rotate(-45deg);
+          box-shadow:${flame ? "0 0 0 3px rgba(255,255,255,0.8), 0 0 22px rgba(249,115,22,0.52), 0 6px 14px rgba(0,0,0,0.32)" : "0 3px 10px rgba(0,0,0,0.35)"};
           display:flex;align-items:center;justify-content:center;
           transition:transform 0.15s ease;
         ">
@@ -179,11 +246,13 @@ function createMarkerElement(
         </div>
         <div style="
           position:absolute;bottom:0;left:50%;
+          z-index:1;
           transform:translateX(-50%);
-          width:6px;height:6px;
+          width:${flame ? "10px" : "6px"};height:${flame ? "8px" : "6px"};
           background:${bg};
           border-radius:50%;
-          opacity:0.6;
+          opacity:${flame ? "0.45" : "0.6"};
+          filter:${flame ? "blur(1px)" : "none"};
         "></div>
       </div>
     `;
