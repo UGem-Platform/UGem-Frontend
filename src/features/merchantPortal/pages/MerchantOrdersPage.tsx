@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, QrCode, X } from "lucide-react";
+import { Check, QrCode, RefreshCw, X } from "lucide-react";
 import {
   acceptOrder,
   getMerchantCheckInQr,
@@ -154,13 +154,25 @@ export default function MerchantOrdersPage() {
         <MerchantHeader />
 
         <div className="merchant-content">
-        <div className="mb-5">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <div>
           <h1 className="text-2xl font-bold text-slate-950">
             Đơn hàng của quán
           </h1>
           <p className="text-sm text-slate-500">
             Theo dõi, duyệt đơn và tạo QR check-in cho khách hàng.
           </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void loadOrders()}
+            disabled={loading}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-cyan-200 bg-white px-4 text-sm font-semibold text-cyan-700 shadow-sm transition hover:-translate-y-px hover:bg-cyan-50 disabled:cursor-wait disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
         </div>
 
         {loading ? (
