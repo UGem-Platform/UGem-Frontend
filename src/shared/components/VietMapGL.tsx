@@ -149,57 +149,76 @@ function createMarkerElement(
           position:absolute;
           inset:0;
           pointer-events:none;
-          animation:vmHotMarkerFloat 2.4s ease-in-out infinite;
+          filter:drop-shadow(0 10px 16px rgba(234,88,12,0.34));
+          animation:vmHotMarkerFloat 2.2s ease-in-out infinite;
         ">
-          <div style="
+          <svg
+            viewBox="0 0 64 70"
+            aria-hidden="true"
+            style="
             position:absolute;
             left:50%;
-            bottom:5px;
-            width:58px;
-            height:58px;
-            transform:translateX(-50%) rotate(-2deg);
-            border-radius:50%;
-            clip-path:polygon(50% 0%, 60% 18%, 72% 5%, 76% 27%, 93% 18%, 86% 43%, 100% 50%, 84% 61%, 91% 82%, 68% 76%, 58% 100%, 48% 79%, 33% 96%, 30% 73%, 7% 82%, 16% 60%, 0% 49%, 16% 39%, 8% 18%, 29% 27%, 35% 6%, 44% 22%);
-            background:
-              radial-gradient(circle at 50% 52%, rgba(255,255,255,0.92) 0 16%, transparent 17%),
-              radial-gradient(circle at 50% 54%, rgba(254,240,138,0.96) 0 33%, transparent 34%),
-              radial-gradient(circle at 50% 50%, rgba(251,146,60,0.95) 0 52%, transparent 53%),
-              conic-gradient(from 10deg, #ef4444, #fb923c, #facc15, #fb923c, #dc2626, #f97316, #ef4444);
-            box-shadow:
-              0 0 18px rgba(249,115,22,0.72),
-              0 0 34px rgba(239,68,68,0.42);
-            opacity:0.9;
-            animation:vmFlameRing 1.6s ease-in-out infinite;
-          "></div>
-          <div style="
-            position:absolute;
-            left:50%;
-            bottom:13px;
-            width:42px;
-            height:42px;
+            bottom:0;
+            width:62px;
+            height:68px;
             transform:translateX(-50%);
-            border-radius:50%;
-            background:
-              radial-gradient(circle at 50% 56%, rgba(255,255,255,0.92) 0 20%, rgba(254,240,138,0.84) 21% 40%, transparent 41%),
-              conic-gradient(from 28deg, transparent 0 8%, rgba(255,255,255,0.42) 9% 16%, transparent 17% 36%, rgba(255,255,255,0.35) 37% 44%, transparent 45% 100%);
-            filter:blur(0.2px);
-            opacity:0.78;
-            animation:vmFlameInner 1.35s ease-in-out infinite;
-          "></div>
+            overflow:visible;
+            animation:vmFlameSvg 1.55s ease-in-out infinite;
+          ">
+            <defs>
+              <radialGradient id="vmFlameGlow" cx="50%" cy="58%" r="55%">
+                <stop offset="0%" stop-color="#fff7ad" stop-opacity="0.95"/>
+                <stop offset="45%" stop-color="#fb923c" stop-opacity="0.72"/>
+                <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="vmOuterFlame" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#ef2400"/>
+                <stop offset="42%" stop-color="#f97316"/>
+                <stop offset="100%" stop-color="#b91c1c"/>
+              </linearGradient>
+              <linearGradient id="vmInnerFlame" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#fff7ad"/>
+                <stop offset="52%" stop-color="#facc15"/>
+                <stop offset="100%" stop-color="#fb923c"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="32" cy="43" rx="26" ry="22" fill="url(#vmFlameGlow)" opacity="0.82"/>
+            <path
+              d="M31 3 C41 16 54 18 55 36 C56 54 43 66 31 67 C17 66 7 56 8 41 C9 30 16 25 14 14 C21 22 24 12 31 3Z"
+              fill="url(#vmOuterFlame)"
+              opacity="0.96"
+            />
+            <path
+              d="M18 24 C13 34 6 39 10 51 C13 61 22 65 30 66 C20 56 22 47 26 39 C20 42 19 34 18 24Z"
+              fill="#ea580c"
+              opacity="0.82"
+            />
+            <path
+              d="M47 21 C57 33 61 46 52 58 C48 64 41 66 34 67 C44 56 43 48 38 38 C46 40 49 32 47 21Z"
+              fill="#f97316"
+              opacity="0.82"
+            />
+            <path
+              d="M32 17 C39 29 47 34 45 47 C43 59 35 64 31 66 C24 60 20 53 22 44 C24 35 31 31 32 17Z"
+              fill="url(#vmInnerFlame)"
+              opacity="0.96"
+            />
+            <path
+              d="M31 34 C36 41 39 46 36 55 C34 60 31 64 31 64 C27 59 25 54 26 49 C27 43 31 40 31 34Z"
+              fill="#fff7ad"
+              opacity="0.88"
+            />
+          </svg>
         </div>
         <style>
           @keyframes vmHotMarkerFloat {
             0%,100%{transform:translateY(0)}
             50%{transform:translateY(-2px)}
           }
-          @keyframes vmFlameRing {
-            0%,100%{transform:translateX(-50%) rotate(-3deg) scale(0.98); opacity:0.86}
-            45%{transform:translateX(-50%) rotate(4deg) scale(1.05); opacity:0.96}
-            72%{transform:translateX(-50%) rotate(-1deg) scale(1.01); opacity:0.9}
-          }
-          @keyframes vmFlameInner {
-            0%,100%{transform:translateX(-50%) scale(0.95); opacity:0.62}
-            50%{transform:translateX(-50%) scale(1.08); opacity:0.88}
+          @keyframes vmFlameSvg {
+            0%,100%{transform:translateX(-50%) scale(0.98) skewX(0deg); opacity:0.94}
+            45%{transform:translateX(-50%) scale(1.04) skewX(-2deg); opacity:1}
+            72%{transform:translateX(-50%) scale(1.01) skewX(1deg); opacity:0.96}
           }
         </style>
         `
