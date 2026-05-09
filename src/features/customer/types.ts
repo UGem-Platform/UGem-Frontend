@@ -8,6 +8,7 @@ export type Merchant = {
   address?: string;
   logoUrl?: string;
   rating?: number;
+  reviewCount?: number;
   underratedScore?: number;
   distance?: number;
   latitude?: number;

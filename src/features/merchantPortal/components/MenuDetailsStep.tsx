@@ -10,7 +10,11 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
 import { getCategories } from "@/shared/services/categoryService";
-import { uploadImage } from "@/shared/services/mediaService";
+import {
+  IMAGE_UPLOAD_ACCEPT,
+  uploadImage,
+  validateImageFile,
+} from "@/shared/services/mediaService";
 import type { Category } from "@/shared/types";
 
 type Props = {
@@ -67,6 +71,8 @@ export function MenuDetailsStep({
     setUploadErrorsById((previous) => ({ ...previous, [fieldId]: "" }));
 
     try {
+      validateImageFile(file);
+
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(new Error("Không thể đọc file"));
@@ -194,7 +200,7 @@ export function MenuDetailsStep({
                   id={`menu-image-upload-${field.id}`}
                   className="file-upload-input"
                   type="file"
-                  accept="image/*"
+                  accept={IMAGE_UPLOAD_ACCEPT}
                   onChange={(event) =>
                     handleUpload(index, event.target.files?.[0])
                   }

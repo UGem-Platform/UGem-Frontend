@@ -1,6 +1,10 @@
 import { api } from "@/lib/axios";
 import { getCurrentUser } from "@/features/auth";
 import type { Merchant, MerchantDetail } from "../types";
+import {
+  getDisplayUnderratedScore,
+  getRawUnderratedScore,
+} from "../utils/underratedScore";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -100,14 +104,7 @@ function getMerchantCoords(
 }
 
 function getUnderratedScore(merchant?: Merchant | null) {
-  if (!merchant) return null;
-
-  return getNumberField(merchant as MerchantRecord, [
-    "underratedScore",
-    "UnderratedScore",
-    "us",
-    "US",
-  ]);
+  return getDisplayUnderratedScore(merchant)?.score ?? null;
 }
 
 function getDistanceValue(merchant: Merchant) {
@@ -134,6 +131,35 @@ function compareNearbyMerchantRank(a: RankedMerchant, b: RankedMerchant) {
   }
 
   return a.sourceIndex - b.sourceIndex;
+}
+
+function buildUnderratedScoreLookup(merchants: Merchant[]) {
+  const lookup = new Map<string, number>();
+
+  merchants.forEach((merchant) => {
+    const score = getRawUnderratedScore(merchant);
+    if (score !== null) {
+      lookup.set(merchant.id, score);
+    }
+  });
+
+  return lookup;
+}
+
+function applyUnderratedScoreFallback(
+  merchant: Merchant,
+  scoreLookup: Map<string, number>,
+) {
+  const fallbackScore = scoreLookup.get(merchant.id);
+  if (fallbackScore === undefined) return merchant;
+
+  const currentScore = getRawUnderratedScore(merchant);
+  if (currentScore !== null && currentScore > 0) return merchant;
+
+  return {
+    ...merchant,
+    underratedScore: fallbackScore,
+  };
 }
 
 function calculateDistanceKm(
@@ -193,7 +219,7 @@ function mergeMerchantData(
 ): Merchant {
   const description = detail?.description || summary.description;
   const underratedScore =
-    getUnderratedScore(summary) ?? getUnderratedScore(detail);
+    getRawUnderratedScore(summary) ?? getRawUnderratedScore(detail);
 
   return {
     ...detail,
@@ -256,20 +282,41 @@ export async function getNearbyMerchants(params: {
   categoryId?: string;
 }) {
   const usesCategory = Boolean(params.categoryId);
-  const res = await api.request<MerchantListApiPayload>({
-    method: "get",
-    url: usesCategory ? "/merchants/by-category" : "/merchants",
-    params: {
-      SearchTerm: params.keyword,
-      CategoryId: params.categoryId,
-      PageIndex: 1,
-      PageSize: 100,
-      Latitude: params.latitude,
-      Longitude: params.longitude,
-    },
-  });
+  const [res, underratedScoreFallbacks] = await Promise.all([
+    api.request<MerchantListApiPayload>({
+      method: "get",
+      url: usesCategory ? "/merchants/by-category" : "/merchants",
+      params: {
+        SearchTerm: params.keyword,
+        CategoryId: params.categoryId,
+        PageIndex: 1,
+        PageSize: 100,
+        Latitude: params.latitude,
+        Longitude: params.longitude,
+      },
+    }),
+    usesCategory
+      ? api
+          .request<MerchantListApiPayload>({
+            method: "get",
+            url: "/merchants",
+            params: {
+              PageIndex: 1,
+              PageSize: 100,
+              Latitude: params.latitude,
+              Longitude: params.longitude,
+            },
+          })
+          .then((fallbackRes) =>
+            buildUnderratedScoreLookup(unwrapMerchantList(fallbackRes.data)),
+          )
+          .catch(() => new Map<string, number>())
+      : Promise.resolve(new Map<string, number>()),
+  ]);
 
-  const summaries = unwrapMerchantList(res.data);
+  const summaries = unwrapMerchantList(res.data).map((merchant) =>
+    applyUnderratedScoreFallback(merchant, underratedScoreFallbacks),
+  );
   const summaryById = new Map(summaries.map((item) => [item.id, item]));
   const ids = Array.from(summaryById.keys()).filter(Boolean);
 

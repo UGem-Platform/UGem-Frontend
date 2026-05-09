@@ -42,6 +42,21 @@ function getApplicationAddress(
   );
 }
 
+function getApplicationCoverImage(application: MerchantApplication) {
+  const logoUrl = application.logoUrl?.trim();
+  if (logoUrl) return logoUrl;
+
+  const menuImage = application.applicationMenus
+    ?.find((item) => item.imageUrl?.trim())
+    ?.imageUrl?.trim();
+  if (menuImage) return menuImage;
+
+  return (
+    application.applicant?.avatarUrl?.trim() ||
+    "https://images.unsplash.com/photo-1543353071-10c8ba85a904?auto=format&fit=crop&w=900&q=80"
+  );
+}
+
 function getStatusBadge(status?: string) {
   if (status === "Approved") return "Đã được duyệt";
   if (status === "Rejected") return "Bị từ chối";
@@ -223,11 +238,8 @@ export function MerchantApplicationStatusPage() {
                 <section className="application-summary-card">
                   <div className="application-cover">
                     <img
-                      src={
-                        application.applicant?.avatarUrl ||
-                        "https://images.unsplash.com/photo-1543353071-10c8ba85a904?auto=format&fit=crop&w=900&q=80"
-                      }
-                      alt=""
+                      src={getApplicationCoverImage(application)}
+                      alt={application.name}
                     />
 
                     <span>{getStatusBadge(status)}</span>

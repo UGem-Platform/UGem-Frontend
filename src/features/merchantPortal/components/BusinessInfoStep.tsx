@@ -7,7 +7,11 @@ import type {
 } from "react-hook-form";
 import { Info, Mail, Store, Tags, Utensils, Wallet, Clock, ImagePlus } from "lucide-react";
 import type { OnboardingFormValues } from "../schema";
-import { uploadImage } from "@/shared/services/mediaService";
+import {
+  IMAGE_UPLOAD_ACCEPT,
+  uploadImage,
+  validateImageFile,
+} from "@/shared/services/mediaService";
 
 type Props = Readonly<{
   register: UseFormRegister<OnboardingFormValues>;
@@ -51,6 +55,8 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
     setLogoUploadError("");
 
     try {
+      validateImageFile(file);
+
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(new Error("Không thể đọc file"));
@@ -252,7 +258,7 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
                     id="logo-image-upload"
                     className="hidden"
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_UPLOAD_ACCEPT}
                     onChange={(event) =>
                       handleLogoUpload(event.target.files?.[0])
                     }
