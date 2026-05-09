@@ -13,6 +13,9 @@ export function getRouteByRole(role?: string) {
 
 export function useLogin() {
   const navigate = useNavigate();
+  // If login page was opened with a returnUrl query param, prefer that.
+  const params = new URLSearchParams(window.location.search);
+  const returnUrl = params.get("returnUrl");
 
   return useMutation({
     mutationFn: async (payload: LoginRequest) => {
@@ -28,6 +31,16 @@ export function useLogin() {
     },
 
     onSuccess: ({ user }) => {
+      if (returnUrl) {
+        // try to navigate back to requested path
+        try {
+          navigate(returnUrl, { replace: true });
+          return;
+        } catch {
+          // fallthrough to role-based route
+        }
+      }
+
       navigate(getRouteByRole(user.Role), {
         replace: true,
       });

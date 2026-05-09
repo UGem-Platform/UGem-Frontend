@@ -25,6 +25,11 @@ type OrderDetailLocationState = {
   fallbackOrderNumber?: number;
 };
 
+type FoodReviewDraft = {
+  rating: number;
+  content: string;
+};
+
 const orderIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -68,6 +73,12 @@ export default function CustomerOrderDetailPage() {
   const [hasReviewed, setHasReviewed] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState("");
+  const [foodReviewDrafts, setFoodReviewDrafts] = useState<
+    Record<string, FoodReviewDraft>
+  >({});
+  const [activeFoodReviewId, setActiveFoodReviewId] = useState<string | null>(
+    null,
+  );
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
@@ -228,10 +239,30 @@ export default function CustomerOrderDetailPage() {
       return;
     }
 
-    if (!reviewContent.trim()) {
-      notify.error("Vui lòng nhập nội dung đánh giá.");
-      return;
-    }
+    const reviewDetails = items
+      .map((item) => {
+        const orderDetailId = getOrderDetailId(item);
+        const draft = orderDetailId ? foodReviewDrafts[orderDetailId] : null;
+
+        if (!orderDetailId || !draft || draft.rating < 1) {
+          return null;
+        }
+
+        return {
+          orderDetailId,
+          rating: draft.rating,
+          detailContent: draft.content.trim(),
+        };
+      })
+      .filter(
+        (
+          item,
+        ): item is {
+          orderDetailId: string;
+          rating: number;
+          detailContent: string;
+        } => item !== null,
+      );
 
     setSubmittingReview(true);
 
@@ -241,11 +272,14 @@ export default function CustomerOrderDetailPage() {
         orderId,
         rating: reviewRating,
         content: reviewContent.trim(),
+        reviewDetails: reviewDetails.length > 0 ? reviewDetails : undefined,
       });
 
       notify.success("Đã gửi đánh giá.");
       setReviewContent("");
       setReviewRating(5);
+      setFoodReviewDrafts({});
+      setActiveFoodReviewId(null);
       setHasReviewed(true);
     } catch (error) {
       console.error(error);
@@ -318,6 +352,29 @@ export default function CustomerOrderDetailPage() {
 
   function handleRefresh() {
     window.location.reload();
+  }
+
+  function updateFoodReviewDraft(
+    orderDetailId: string,
+    patch: Partial<FoodReviewDraft>,
+  ) {
+    setFoodReviewDrafts((current) => {
+      const previous = current[orderDetailId] ?? { rating: 0, content: "" };
+
+      return {
+        ...current,
+        [orderDetailId]: {
+          ...previous,
+          ...patch,
+        },
+      };
+    });
+  }
+
+  function toggleFoodReview(orderDetailId: string) {
+    setActiveFoodReviewId((current) =>
+      current === orderDetailId ? null : orderDetailId,
+    );
   }
 
   const itemsTotal = items.reduce((sum, item) => {
@@ -484,16 +541,129 @@ export default function CustomerOrderDetailPage() {
                   className="mb-2 block text-sm font-medium text-slate-700"
                 >
                   Nội dung đánh giá
+                  <span className="ml-1 text-xs font-normal text-slate-400">
+                    (không bắt buộc)
+                  </span>
                 </label>
                 <textarea
                   id="review-content"
                   value={reviewContent}
                   onChange={(e) => setReviewContent(e.target.value)}
-                  placeholder="Chia sẻ cảm nhận của bạn về quán..."
+                  placeholder="Chia sẻ cảm nhận của bạn về quán nếu muốn..."
                   disabled={reviewLocked}
                   className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
                 />
               </div>
+
+              {items.length > 0 && (
+                <div>
+                  <div className="mb-3">
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Đánh giá từng món
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Không bắt buộc. Món nào không chọn sao sẽ không gửi
+                      review riêng.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {items.map((item) => {
+                      const orderDetailId = getOrderDetailId(item);
+                      if (!orderDetailId) return null;
+
+                      const draft = foodReviewDrafts[orderDetailId] ?? {
+                        rating: 0,
+                        content: "",
+                      };
+                      const isOpen = activeFoodReviewId === orderDetailId;
+
+                      return (
+                        <div
+                          key={`food-review-${orderDetailId}`}
+                          className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-slate-950">
+                                {item.name || "Món ăn"}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                Số lượng: {item.quantity || 0}
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => toggleFoodReview(orderDetailId)}
+                              disabled={reviewLocked}
+                              className="rounded-xl border border-cyan-200 bg-white px-3 py-2 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:opacity-60"
+                            >
+                              {isOpen ? "Ẩn món" : "Xem món"}
+                            </button>
+                          </div>
+
+                          {draft.rating > 0 && !isOpen ? (
+                            <p className="mt-3 text-xs font-semibold text-amber-700">
+                              Đã chọn {draft.rating}/5 sao cho món này.
+                            </p>
+                          ) : null}
+
+                          {isOpen ? (
+                            <div className="mt-4 space-y-3 border-t border-slate-200 pt-4">
+                              <div className="flex flex-wrap gap-1">
+                                {Array.from({ length: 5 }).map((_, index) => {
+                                  const value = index + 1;
+                                  const active = value <= draft.rating;
+
+                                  return (
+                                    <button
+                                      key={value}
+                                      type="button"
+                                      onClick={() =>
+                                        updateFoodReviewDraft(orderDetailId, {
+                                          rating:
+                                            draft.rating === value ? 0 : value,
+                                        })
+                                      }
+                                      disabled={reviewLocked}
+                                      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${
+                                        active
+                                          ? "border-amber-300 bg-amber-50 text-amber-500"
+                                          : "border-slate-200 bg-white text-slate-300 hover:border-amber-200 hover:text-amber-400"
+                                      }`}
+                                      aria-label={`Chọn ${value} sao cho ${item.name || "món ăn"}`}
+                                    >
+                                      <Star
+                                        size={15}
+                                        className={
+                                          active ? "fill-amber-400" : ""
+                                        }
+                                      />
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <textarea
+                                value={draft.content}
+                                onChange={(event) =>
+                                  updateFoodReviewDraft(orderDetailId, {
+                                    content: event.target.value,
+                                  })
+                                }
+                                placeholder="Nhận xét riêng cho món này nếu muốn..."
+                                disabled={reviewLocked}
+                                className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <button
                 type="button"
@@ -550,6 +720,10 @@ export default function CustomerOrderDetailPage() {
 
 function normalizeReviewOrderId(value?: string | null) {
   return value?.trim().toLowerCase() ?? "";
+}
+
+function getOrderDetailId(item: CustomerOrderDetailItem) {
+  return item.orderDetailId || item.id || "";
 }
 
 function matchesSummaryOrder(

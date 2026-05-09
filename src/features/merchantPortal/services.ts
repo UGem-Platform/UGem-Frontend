@@ -151,8 +151,8 @@ export async function rejectOrder(orderId: string, reason: string) {
   return res.data;
 }
 
-export async function getMerchantCheckInQr(orderId: string) {
-  const res = await api.get<Blob>(`/merchants/generate-qr/${orderId}`, {
+export async function getMerchantCheckInQr(_orderId: string) {
+  const res = await api.get<Blob>("/check-in/generate-qr", {
     responseType: "blob",
   });
 

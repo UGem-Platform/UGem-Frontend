@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, MapPin, Sparkles, Star, Store } from "lucide-react";
+import {
+  ChevronRight,
+  Flame,
+  MapPin,
+  Sparkles,
+  Star,
+  Store,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { Merchant } from "../types";
@@ -72,6 +79,8 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
     merchant.description,
   );
   const underratedScore = getDisplayUnderratedScore(merchant);
+  const isHotUnderrated =
+    underratedScore !== null && underratedScore.percent >= 80;
   const image =
     merchant.logoUrl?.trim() ||
     merchant.menu?.find((item) => item.imageUrl?.trim())?.imageUrl?.trim() ||
@@ -127,6 +136,13 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
               Đang chọn
             </span>
           ) : null}
+
+          {isHotUnderrated ? (
+            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50/95 px-2 py-1 text-[10px] font-black uppercase text-orange-700 shadow-sm">
+              <Flame className="h-3 w-3 fill-orange-500 text-orange-500" />
+              Hot
+            </span>
+          ) : null}
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -174,7 +190,11 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
                 )}
                 title="US = Underrated Score từ BE, càng cao càng đáng thử."
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                {isHotUnderrated ? (
+                  <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
                 {`US ${underratedScore.percent}%`}
               </span>
             )}
