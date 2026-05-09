@@ -149,55 +149,42 @@ function createMarkerElement(
           position:absolute;
           inset:0;
           pointer-events:none;
-          filter:drop-shadow(0 10px 16px rgba(249,115,22,0.32));
-          animation:vmHotMarkerFloat 2.2s ease-in-out infinite;
+          animation:vmHotMarkerFloat 2.4s ease-in-out infinite;
         ">
           <div style="
             position:absolute;
             left:50%;
-            top:4px;
-            width:44px;
-            height:48px;
-            transform:translateX(-50%);
-            border-radius:999px 999px 18px 18px;
+            bottom:5px;
+            width:58px;
+            height:58px;
+            transform:translateX(-50%) rotate(-2deg);
+            border-radius:50%;
+            clip-path:polygon(50% 0%, 60% 18%, 72% 5%, 76% 27%, 93% 18%, 86% 43%, 100% 50%, 84% 61%, 91% 82%, 68% 76%, 58% 100%, 48% 79%, 33% 96%, 30% 73%, 7% 82%, 16% 60%, 0% 49%, 16% 39%, 8% 18%, 29% 27%, 35% 6%, 44% 22%);
             background:
-              radial-gradient(circle at 50% 62%, rgba(255,255,255,0.86) 0 18%, transparent 19%),
-              radial-gradient(circle at 50% 60%, rgba(251,191,36,0.92) 0 34%, transparent 35%),
-              radial-gradient(circle at 50% 52%, rgba(249,115,22,0.72) 0 52%, transparent 54%),
-              radial-gradient(circle at 32% 42%, rgba(239,68,68,0.72) 0 20%, transparent 24%),
-              radial-gradient(circle at 70% 42%, rgba(239,68,68,0.66) 0 18%, transparent 23%);
-            opacity:0.82;
-            animation:vmFlameHalo 1.35s ease-in-out infinite;
+              radial-gradient(circle at 50% 52%, rgba(255,255,255,0.92) 0 16%, transparent 17%),
+              radial-gradient(circle at 50% 54%, rgba(254,240,138,0.96) 0 33%, transparent 34%),
+              radial-gradient(circle at 50% 50%, rgba(251,146,60,0.95) 0 52%, transparent 53%),
+              conic-gradient(from 10deg, #ef4444, #fb923c, #facc15, #fb923c, #dc2626, #f97316, #ef4444);
+            box-shadow:
+              0 0 18px rgba(249,115,22,0.72),
+              0 0 34px rgba(239,68,68,0.42);
+            opacity:0.9;
+            animation:vmFlameRing 1.6s ease-in-out infinite;
           "></div>
           <div style="
             position:absolute;
-            top:0;
-            left:15px;
-            font-size:24px;
-            line-height:1;
-            transform-origin:50% 92%;
-            animation:vmFlameTongueA 1.05s ease-in-out infinite;
-          ">&#128293;</div>
-          <div style="
-            position:absolute;
-            top:2px;
-            right:12px;
-            font-size:20px;
-            line-height:1;
-            opacity:0.9;
-            transform-origin:50% 92%;
-            animation:vmFlameTongueB 1.18s ease-in-out infinite;
-          ">&#128293;</div>
-          <div style="
-            position:absolute;
-            top:18px;
-            left:7px;
-            width:10px;
-            height:10px;
-            border-radius:999px;
-            background:#fed7aa;
-            opacity:0.75;
-            animation:vmEmber 1.5s ease-in-out infinite;
+            left:50%;
+            bottom:13px;
+            width:42px;
+            height:42px;
+            transform:translateX(-50%);
+            border-radius:50%;
+            background:
+              radial-gradient(circle at 50% 56%, rgba(255,255,255,0.92) 0 20%, rgba(254,240,138,0.84) 21% 40%, transparent 41%),
+              conic-gradient(from 28deg, transparent 0 8%, rgba(255,255,255,0.42) 9% 16%, transparent 17% 36%, rgba(255,255,255,0.35) 37% 44%, transparent 45% 100%);
+            filter:blur(0.2px);
+            opacity:0.78;
+            animation:vmFlameInner 1.35s ease-in-out infinite;
           "></div>
         </div>
         <style>
@@ -205,22 +192,14 @@ function createMarkerElement(
             0%,100%{transform:translateY(0)}
             50%{transform:translateY(-2px)}
           }
-          @keyframes vmFlameHalo {
-            0%,100%{transform:translateX(-50%) scale(0.98); opacity:0.76}
-            45%{transform:translateX(-50%) scale(1.06); opacity:0.94}
-            72%{transform:translateX(-50%) scale(1.01); opacity:0.84}
+          @keyframes vmFlameRing {
+            0%,100%{transform:translateX(-50%) rotate(-3deg) scale(0.98); opacity:0.86}
+            45%{transform:translateX(-50%) rotate(4deg) scale(1.05); opacity:0.96}
+            72%{transform:translateX(-50%) rotate(-1deg) scale(1.01); opacity:0.9}
           }
-          @keyframes vmFlameTongueA {
-            0%,100%{transform:rotate(-7deg) scale(1)}
-            50%{transform:rotate(5deg) scale(1.12) translateY(-2px)}
-          }
-          @keyframes vmFlameTongueB {
-            0%,100%{transform:rotate(8deg) scale(0.95)}
-            55%{transform:rotate(-5deg) scale(1.08) translateY(-1px)}
-          }
-          @keyframes vmEmber {
-            0%,100%{transform:translate(0,0) scale(0.7); opacity:0.35}
-            50%{transform:translate(-2px,-7px) scale(1); opacity:0.9}
+          @keyframes vmFlameInner {
+            0%,100%{transform:translateX(-50%) scale(0.95); opacity:0.62}
+            50%{transform:translateX(-50%) scale(1.08); opacity:0.88}
           }
         </style>
         `
