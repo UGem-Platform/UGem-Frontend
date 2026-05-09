@@ -1395,14 +1395,16 @@
 
 .application-cover {
   position: relative;
-  height: 180px;
+  height: clamp(240px, 42vw, 420px);
   background: #e8ded4;
 }
 
 .application-cover img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
 .application-cover span {

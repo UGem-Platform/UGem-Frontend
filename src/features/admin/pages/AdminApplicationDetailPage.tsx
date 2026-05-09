@@ -502,12 +502,14 @@ export default function AdminApplicationDetailPage({
                       className="group overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-950/10"
                     >
                       {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          className="h-44 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                          loading="lazy"
-                        />
+                        <div className="aspect-video w-full bg-slate-50">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
+                            loading="lazy"
+                          />
+                        </div>
                       ) : (
                         <div className="grid h-44 place-items-center bg-slate-50 px-4 text-center text-slate-400">
                           <div>

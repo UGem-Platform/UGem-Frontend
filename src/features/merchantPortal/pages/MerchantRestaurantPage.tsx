@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Clock3, MapPin, Pencil, Phone, Save, Star, Store, X } from "lucide-react";
+import {
+  Clock3,
+  MapPin,
+  Pencil,
+  Phone,
+  Save,
+  Star,
+  Store,
+  X,
+} from "lucide-react";
 
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
@@ -29,8 +38,63 @@ function toEditForm(merchant?: MerchantDetail | null): MerchantEditForm {
     email: merchant?.email ?? "",
     phone: merchant?.phone ?? "",
     address: merchant?.address ?? "",
-    openingHours: (merchant as { openingHours?: string } | null)?.openingHours ?? "",
+    openingHours:
+      (merchant as { openingHours?: string } | null)?.openingHours ?? "",
   };
+}
+
+const DESCRIPTION_META_LABELS = [
+  "Địa chỉ",
+  "Loại hình quán",
+  "Loại món chính",
+  "Khoảng giá trung bình",
+];
+
+const DESCRIPTION_CHIP_LABELS = DESCRIPTION_META_LABELS.slice(1);
+
+function cleanDescriptionText(description?: string | null) {
+  return (description ?? "")
+    .replace(/\s*---\s*Thông tin UI bổ sung\s*---\s*/i, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function findFirstLabelIndex(value: string, labels: string[]) {
+  const normalizedValue = value.toLocaleLowerCase("vi-VN");
+  const indexes = labels
+    .map((label) => normalizedValue.indexOf(label.toLocaleLowerCase("vi-VN")))
+    .filter((index) => index >= 0);
+
+  return indexes.length ? Math.min(...indexes) : -1;
+}
+
+function getDisplayDescription(description?: string | null) {
+  const cleaned = cleanDescriptionText(description);
+  if (!cleaned) return "";
+
+  const firstMetaIndex = findFirstLabelIndex(cleaned, DESCRIPTION_META_LABELS);
+  const displayText =
+    firstMetaIndex >= 0 ? cleaned.slice(0, firstMetaIndex) : cleaned;
+
+  return displayText.replace(/\s*---\s*$/, "").trim();
+}
+
+function readDescriptionMeta(description: string, label: string) {
+  const cleaned = cleanDescriptionText(description);
+  const labelIndex = findFirstLabelIndex(cleaned, [label]);
+
+  if (labelIndex < 0) return "";
+
+  const valueStart = labelIndex + label.length;
+  const valueText = cleaned.slice(valueStart).replace(/^:?\s*/, "");
+  const nextLabelIndex = findFirstLabelIndex(
+    valueText,
+    DESCRIPTION_CHIP_LABELS.filter((item) => item !== label),
+  );
+
+  return (nextLabelIndex >= 0 ? valueText.slice(0, nextLabelIndex) : valueText)
+    .replace(/\s*---\s*$/, "")
+    .trim();
 }
 
 export function MerchantRestaurantPage() {
@@ -74,6 +138,26 @@ export function MerchantRestaurantPage() {
   }, []);
 
   const menu = merchant?.menu ?? merchant?.foods ?? [];
+  const displayDescription = getDisplayDescription(merchant?.description);
+  const descriptionMeta = merchant?.description
+    ? [
+        {
+          label: "Loại hình",
+          value: readDescriptionMeta(merchant.description, "Loại hình quán"),
+        },
+        {
+          label: "Món chính",
+          value: readDescriptionMeta(merchant.description, "Loại món chính"),
+        },
+        {
+          label: "Khoảng giá",
+          value: readDescriptionMeta(
+            merchant.description,
+            "Khoảng giá trung bình",
+          ),
+        },
+      ].filter((item) => item.value)
+    : [];
 
   async function handleUpdateMerchant(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -156,7 +240,9 @@ export function MerchantRestaurantPage() {
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Chưa lấy được hồ sơ nhà hàng. FE đang dùng MerchantId trong JWT
                 để gọi GET /api/v1/merchants/{`{id}`}; token hiện tại{" "}
-                {merchantId ? "có MerchantId nhưng BE chưa trả dữ liệu." : "chưa có MerchantId."}
+                {merchantId
+                  ? "có MerchantId nhưng BE chưa trả dữ liệu."
+                  : "chưa có MerchantId."}
               </div>
             ) : isEditing ? (
               <form
@@ -262,7 +348,9 @@ export function MerchantRestaurantPage() {
                     <InfoLine
                       icon={<Clock3 size={16} />}
                       label="Giờ mở cửa"
-                      value={(merchant as { openingHours?: string }).openingHours}
+                      value={
+                        (merchant as { openingHours?: string }).openingHours
+                      }
                     />
                     <InfoLine
                       icon={<Star size={16} />}
@@ -275,10 +363,27 @@ export function MerchantRestaurantPage() {
                     />
                   </div>
 
-                  {merchant.description ? (
-                    <p className="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-                      {merchant.description}
-                    </p>
+                  {displayDescription ? (
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                        Mô tả
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700">
+                        {displayDescription}
+                      </p>
+                      {descriptionMeta.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {descriptionMeta.map((item) => (
+                            <span
+                              key={item.label}
+                              className="rounded-full border border-cyan-100 bg-white px-3 py-1 text-xs font-bold text-cyan-800"
+                            >
+                              {item.label}: {item.value}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -344,7 +449,9 @@ function InfoLine({
         {icon}
         {label}
       </div>
-      <p className="text-sm font-semibold text-slate-800">{value || "Chưa có"}</p>
+      <p className="text-sm font-semibold text-slate-800">
+        {value || "Chưa có"}
+      </p>
     </div>
   );
 }

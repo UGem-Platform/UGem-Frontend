@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, MapPin, Star, Store } from "lucide-react";
+import { ChevronRight, MapPin, Sparkles, Star, Store } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { Merchant } from "../types";
+import { getDisplayUnderratedScore } from "../utils/underratedScore";
 
 const DESCRIPTION_META_LABELS = [
   "Địa chỉ",
@@ -49,16 +50,28 @@ function formatDistance(distanceKm: number) {
   return `${Math.round(distanceKm)} km`;
 }
 
+function getUnderratedTone(percent: number) {
+  if (percent <= 0) {
+    return "border-slate-100 bg-slate-50 text-slate-500";
+  }
+
+  if (percent >= 80) {
+    return "border-emerald-100 bg-emerald-50 text-emerald-700";
+  }
+
+  if (percent >= 50) {
+    return "border-cyan-100 bg-cyan-50 text-cyan-700";
+  }
+
+  return "border-slate-100 bg-slate-50 text-slate-600";
+}
+
 export default function MerchantCard({ merchant, selected = false }: Props) {
   const name = merchant.name || "Unnamed merchant";
   const descriptionPreview = getMerchantDescriptionPreview(
     merchant.description,
   );
-  const underratedScore =
-    typeof merchant.underratedScore === "number" &&
-    Number.isFinite(merchant.underratedScore)
-      ? merchant.underratedScore
-      : null;
+  const underratedScore = getDisplayUnderratedScore(merchant);
   const image =
     merchant.logoUrl?.trim() ||
     merchant.menu?.find((item) => item.imageUrl?.trim())?.imageUrl?.trim() ||
@@ -153,7 +166,18 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
                 </span>
               )}
 
-            {underratedScore !== null && null}
+            {underratedScore !== null && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 shadow-sm",
+                  getUnderratedTone(underratedScore.percent),
+                )}
+                title="US = Underrated Score từ BE, càng cao càng đáng thử."
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {`US ${underratedScore.percent}%`}
+              </span>
+            )}
           </div>
 
           {merchant.address && (

@@ -5,6 +5,7 @@
 import { useMemo } from "react";
 import VietMapGL, { type MapMarker } from "@/shared/components/VietMapGL";
 import type { Merchant } from "../types";
+import { getDisplayUnderratedScore } from "../utils/underratedScore";
 
 type LatLng = { latitude: number; longitude: number };
 
@@ -41,31 +42,14 @@ function formatRating(value?: number) {
   return value.toFixed(2);
 }
 
-function getUnderratedScore(merchant?: Merchant | null) {
-  if (!merchant) return null;
+function getMerchantScale(percent: number | null) {
+  if (percent === null) return 1;
 
-  const record = merchant as MerchantRecord;
-  const raw = record.underratedScore ?? record.underrated_score ?? record.US;
-
-  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-
-  if (typeof raw === "string") {
-    const parsed = Number(raw.trim());
-    if (Number.isFinite(parsed)) return parsed;
-  }
-
-  return null;
+  return 1.05 + (percent / 100) * 0.35;
 }
 
-function getMerchantScale(score: number | null) {
-  if (score === null) return 1;
-
-  const clamped = Math.max(0, Math.min(100, score));
-  return 1.05 + (clamped / 100) * 0.35;
-}
-
-function shouldUseFlame(score: number | null) {
-  return score !== null && score >= 80;
+function shouldUseFlame(percent: number | null) {
+  return percent !== null && percent >= 80;
 }
 
 function extractDescriptionField(
@@ -106,11 +90,17 @@ function getMerchantPopupHtml(merchant: Merchant) {
   const name = escapeHtml(merchant.name || "Unnamed merchant");
   const ratingText = formatRating(merchant.rating);
   const cuisine = escapeHtml(getMerchantCuisineLabel(merchant));
+  const underratedScore = getDisplayUnderratedScore(merchant);
+  const underratedHtml =
+    underratedScore !== null
+      ? `<div style="margin-top:4px;color:#047857;font-size:12px;font-weight:800">US: ${underratedScore.percent}% underrated</div>`
+      : "";
 
   return `
     <div style="min-width:180px;max-width:220px;padding:2px 0">
       <div style="font-weight:800;font-size:14px;line-height:1.3;color:#0f172a">${name}</div>
       <div style="margin-top:4px;color:#0f766e;font-size:12px;font-weight:700">Review: ${ratingText}</div>
+      ${underratedHtml}
       <div style="margin-top:4px;color:#475569;font-size:12px"><strong>Loại món:</strong> ${cuisine}</div>
     </div>
   `;
@@ -171,15 +161,17 @@ export default function NearbyMerchantsMap({
       const coords = getMerchantCoords(merchant);
       if (!coords) return [];
 
-      const score = getUnderratedScore(merchant);
+      const underratedScore = getDisplayUnderratedScore(merchant);
+      const underratedPercent =
+        underratedScore !== null ? underratedScore.percent : null;
       return [
         {
           id: merchant.id,
           lat: coords.lat,
           lng: coords.lng,
           type: "restaurant" as const,
-          scale: getMerchantScale(score),
-          flame: shouldUseFlame(score),
+          scale: getMerchantScale(underratedPercent),
+          flame: shouldUseFlame(underratedPercent),
           popupHtml: getMerchantPopupHtml(merchant),
         },
       ];
