@@ -61,4 +61,5 @@ export type ApiResponse<T> = {
 export type CreateOrderItem = {
   foodId: string;
   quantity: number;
+  notes?: string | null;
 };

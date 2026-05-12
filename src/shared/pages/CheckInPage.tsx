@@ -16,8 +16,11 @@ export default function CheckInPage() {
   const navigate = useNavigate();
   const merchantId =
     searchParams.get("merchantId") ?? searchParams.get("MerchantId");
+  const orderId = searchParams.get("orderId") ?? searchParams.get("OrderId");
   const queryString = searchParams.toString();
-  const checkInReturnPath = queryString ? `/check-in?${queryString}` : "/check-in";
+  const checkInReturnPath = queryString
+    ? `/check-in?${queryString}`
+    : "/check-in";
 
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -28,6 +31,19 @@ export default function CheckInPage() {
 
     async function verifyCheckIn() {
       try {
+        // If QR contains an orderId, send order check-in and redirect to confirm flow.
+        if (orderId) {
+          await api.post("/check-in/verify", {
+            orderId: orderId,
+          });
+
+          if (!active) return;
+
+          // Redirect customer to confirm bill page for this order
+          navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId!)}`);
+          return;
+        }
+
         const merchant = merchantId
           ? await getMerchantDetail(merchantId).catch(() => null)
           : null;

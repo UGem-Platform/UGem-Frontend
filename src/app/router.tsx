@@ -15,6 +15,7 @@ import CustomerOrdersPage from "@/features/customer/pages/CustomerOrdersPage";
 import CustomerProfilePage from "@/features/customer/pages/CustomerProfilePage";
 import MerchantDetailPage from "@/features/customer/pages/MerchantDetailPage";
 import WishlistPage from "@/features/customer/pages/WishlistPage";
+import ConfirmBillPage from "@/features/customer/pages/ConfirmBillPage";
 import {
   MerchantApplicationStatusPage,
   MerchantCampaignPage,
@@ -56,6 +57,14 @@ const routers = createBrowserRouter([
       {
         path: "/check-in",
         element: <CheckInPage />,
+      },
+      {
+        path: "/orders/confirm",
+        element: (
+          <ProtectedRoute allowedRoles={["Customer"]}>
+            <ConfirmBillPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/unauthorized",
