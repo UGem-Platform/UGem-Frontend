@@ -177,9 +177,9 @@ export async function getBill(orderId: string) {
   });
 
   // unwrap if ApiResponse
-  const payload = (res.data as any) ?? res;
+  const payload = (res.data ?? res) as unknown;
   if (payload && typeof payload === "object" && "data" in payload) {
-    return payload.data;
+    return (payload as { data: unknown }).data;
   }
 
   return payload;

@@ -151,12 +151,14 @@ export async function rejectOrder(orderId: string, reason: string) {
   return res.data;
 }
 
-export async function getMerchantCheckInQr(_orderId: string) {
-  const res = await api.get<Blob>("/check-in/generate-qr", {
-    responseType: "blob",
-  });
-
-  return URL.createObjectURL(res.data);
+export async function getMerchantCheckInQr(
+  orderId: string,
+  billAlreadyConfirmed = false,
+) {
+  const target = `https://u-gem.vercel.app/orders/confirm?orderId=${encodeURIComponent(orderId)}${
+    billAlreadyConfirmed ? "&billConfirmed=1" : ""
+  }`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(target)}`;
 }
 
 export type UpdateMerchantPayload = {
@@ -173,5 +175,20 @@ export type UpdateMerchantPayload = {
 
 export async function updateMerchant(payload: UpdateMerchantPayload) {
   const res = await api.put<ApiResponse<string | null>>("/merchants", payload);
+  return res.data;
+}
+
+export async function updateBill(
+  orderId: string,
+  payload: {
+    discount?: number;
+    items?: { foodId: string; quantity?: number; unitPrice?: number }[];
+  },
+) {
+  const body = { orderId, ...(payload ?? {}) };
+  const res = await api.patch<ApiResponse<unknown> | unknown>(
+    "/orders/bill",
+    body,
+  );
   return res.data;
 }

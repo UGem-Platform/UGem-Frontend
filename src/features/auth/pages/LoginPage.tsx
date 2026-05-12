@@ -78,7 +78,15 @@ export function LoginPage() {
       googleButtonRef.current.innerHTML = "";
 
       const params = new URLSearchParams(window.location.search);
-      const returnUrl = params.get("returnUrl");
+      const rawReturnUrl = params.get("returnUrl");
+      let returnUrl: string | null = null;
+      if (rawReturnUrl) {
+        try {
+          returnUrl = decodeURIComponent(rawReturnUrl);
+        } catch {
+          returnUrl = rawReturnUrl;
+        }
+      }
 
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
