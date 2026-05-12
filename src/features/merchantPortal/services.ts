@@ -151,6 +151,11 @@ export async function rejectOrder(orderId: string, reason: string) {
   return res.data;
 }
 
+export async function confirmCashPayment(orderId: string) {
+  const res = await api.patch(`/orders/${orderId}/cash/confirm`);
+  return res.data;
+}
+
 export async function getMerchantCheckInQr(
   orderId: string,
   billAlreadyConfirmed = false,

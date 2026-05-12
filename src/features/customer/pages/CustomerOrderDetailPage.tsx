@@ -48,6 +48,10 @@ function getCustomerConfirmMessage(status?: string | null) {
     return "Bạn đã xác nhận nhận hàng cho đơn này.";
   }
 
+  if (normalizedStatus === "cashpending") {
+    return "Bạn đã thanh toán tiền mặt. Đang chờ Merchant xác nhận để hoàn tất check-in.";
+  }
+
   if (normalizedStatus === "notreceived") {
     return "Bạn đã báo chưa nhận hàng cho đơn này.";
   }
@@ -562,8 +566,8 @@ export default function CustomerOrderDetailPage() {
                       Đánh giá từng món
                     </h3>
                     <p className="mt-1 text-xs text-slate-500">
-                      Không bắt buộc. Món nào không chọn sao sẽ không gửi
-                      review riêng.
+                      Không bắt buộc. Món nào không chọn sao sẽ không gửi review
+                      riêng.
                     </p>
                   </div>
 
