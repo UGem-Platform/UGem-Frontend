@@ -17,6 +17,7 @@ export default function CheckInPage() {
   const merchantId =
     searchParams.get("merchantId") ?? searchParams.get("MerchantId");
   const orderId = searchParams.get("orderId") ?? searchParams.get("OrderId");
+  const success = searchParams.get("success") === "1";
   const queryString = searchParams.toString();
   const checkInReturnPath = queryString
     ? `/check-in?${queryString}`
@@ -31,6 +32,14 @@ export default function CheckInPage() {
 
     async function verifyCheckIn() {
       try {
+        if (success) {
+          if (!active) return;
+
+          setMessage("Thanh toán và check-in thành công.");
+          setStatus("success");
+          return;
+        }
+
         // Order QR should open the bill confirmation flow first. Check-in/payment
         // confirmation happens after the customer accepts the bill.
         if (orderId) {
@@ -75,7 +84,7 @@ export default function CheckInPage() {
     return () => {
       active = false;
     };
-  }, [checkInReturnPath, merchantId, navigate]);
+  }, [checkInReturnPath, merchantId, navigate, success]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.16),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ecfeff_52%,#fff7ed_100%)] px-5 py-10">

@@ -20,7 +20,19 @@ function getLockedOrderMessage(status?: string | null) {
   const statusKey = getOrderStatusKey(status);
 
   if (statusKey === "accepted") {
-    return "Đơn đã được chấp nhận, chờ khách xác nhận nhận hàng.";
+    return "Đơn đã được chấp nhận, có thể tạo QR xác nhận bill.";
+  }
+
+  if (statusKey === "billconfirmed") {
+    return "Khách đã xác nhận bill, chờ khách thanh toán và hoàn tất check-in.";
+  }
+
+  if (statusKey === "billupdated") {
+    return "Bill đã được cập nhật, có thể tạo lại QR để khách xác nhận.";
+  }
+
+  if (statusKey === "billrejected") {
+    return "Khách đã từ chối bill, hãy cập nhật hóa đơn.";
   }
 
   if (statusKey === "completed") {
