@@ -15,7 +15,15 @@ export function useLogin() {
   const navigate = useNavigate();
   // If login page was opened with a returnUrl query param, prefer that.
   const params = new URLSearchParams(window.location.search);
-  const returnUrl = params.get("returnUrl");
+  const rawReturnUrl = params.get("returnUrl");
+  let returnUrl: string | null = null;
+  if (rawReturnUrl) {
+    try {
+      returnUrl = decodeURIComponent(rawReturnUrl);
+    } catch {
+      returnUrl = rawReturnUrl;
+    }
+  }
 
   return useMutation({
     mutationFn: async (payload: LoginRequest) => {

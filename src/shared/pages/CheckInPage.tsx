@@ -31,15 +31,11 @@ export default function CheckInPage() {
 
     async function verifyCheckIn() {
       try {
-        // If QR contains an orderId, send order check-in and redirect to confirm flow.
+        // Order QR should open the bill confirmation flow first. Check-in/payment
+        // confirmation happens after the customer accepts the bill.
         if (orderId) {
-          await api.post("/check-in/verify", {
-            orderId: orderId,
-          });
-
           if (!active) return;
 
-          // Redirect customer to confirm bill page for this order
           navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId!)}`);
           return;
         }
