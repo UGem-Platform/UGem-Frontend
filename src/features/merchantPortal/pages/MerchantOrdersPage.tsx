@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, QrCode, RefreshCw, X } from "lucide-react";
 import {
   acceptOrder,
+  confirmCashPayment,
   getMerchantCheckInQr,
   getMerchantOrders,
   rejectOrder,
@@ -25,6 +26,10 @@ function getLockedOrderMessage(status?: string | null) {
 
   if (statusKey === "billconfirmed") {
     return "Khách đã xác nhận bill, chờ khách thanh toán và hoàn tất check-in.";
+  }
+
+  if (statusKey === "cashpending") {
+    return "Khách đã thanh toán tiền mặt, chờ merchant xác nhận để hoàn tất check-in.";
   }
 
   if (statusKey === "billupdated") {
@@ -135,7 +140,10 @@ export default function MerchantOrdersPage() {
     }
   }
 
-  async function handleGenerateQr(orderId: string, billAlreadyConfirmed = false) {
+  async function handleGenerateQr(
+    orderId: string,
+    billAlreadyConfirmed = false,
+  ) {
     setActionOrderId(orderId);
 
     try {
@@ -264,6 +272,31 @@ export default function MerchantOrdersPage() {
     }
   }
 
+  async function handleConfirmCashPayment(order: MerchantOrderSummary) {
+    const orderStatus = getOrderStatusKey(order.status);
+    const paymentMethod = order.paymentMethod?.trim().toLowerCase();
+
+    if (orderStatus !== "cashpending" || paymentMethod !== "cash") {
+      notify.error(
+        "Chỉ có thể xác nhận thanh toán cho đơn tiền mặt đang chờ xác nhận.",
+      );
+      return;
+    }
+
+    setActionOrderId(order.orderId);
+
+    try {
+      await confirmCashPayment(order.orderId);
+      notify.success("Đã xác nhận thanh toán tiền mặt.");
+      await loadOrders();
+    } catch (error) {
+      console.error(error);
+      notify.error("Xác nhận thanh toán thất bại.");
+    } finally {
+      setActionOrderId(null);
+    }
+  }
+
   return (
     <main className="merchant-portal-layout">
       <MerchantSidebar />
@@ -305,6 +338,9 @@ export default function MerchantOrdersPage() {
                 const orderStatus = getOrderStatusKey(order.status);
                 const isPending = orderStatus === "pending";
                 const isBillRejected = orderStatus === "billrejected";
+                const isCashPending = orderStatus === "cashpending";
+                const isCashOrder =
+                  order.paymentMethod?.trim().toLowerCase() === "cash";
                 const canGenerateQr =
                   orderStatus === "accepted" ||
                   orderStatus === "billupdated" ||
@@ -395,6 +431,18 @@ export default function MerchantOrdersPage() {
                         >
                           <QrCode size={16} />
                           QR xác nhận bill
+                        </button>
+                      )}
+
+                      {isCashPending && isCashOrder && (
+                        <button
+                          type="button"
+                          onClick={() => void handleConfirmCashPayment(order)}
+                          disabled={isBusy}
+                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          <Check size={16} />
+                          Xác nhận thanh toán
                         </button>
                       )}
                     </div>

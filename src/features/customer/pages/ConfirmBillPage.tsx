@@ -5,8 +5,11 @@ import { getCurrentUser } from "@/features/auth";
 import {
   confirmBill,
   confirmReceived,
+  getCustomerOrderId,
+  getCustomerOrders,
   getBill,
   rejectBill,
+  requestCashPayment,
 } from "@/features/customer/services/orderService";
 
 type BillItem = {
@@ -23,11 +26,29 @@ type Bill = {
   OrderId?: string;
   name?: string;
   Name?: string;
+  paymentMethod?: string;
+  PaymentMethod?: string;
   finalPrice?: number;
   FinalPrice?: number;
   items?: BillItem[];
   Items?: BillItem[];
 };
+
+const cashPaymentStoragePrefix = "ugem.cash-payment-requested";
+
+function getCashPaymentStorageKey(orderId?: string | null) {
+  return orderId ? `${cashPaymentStoragePrefix}.${orderId}` : null;
+}
+
+function getPersistedCashRequest(orderId?: string | null) {
+  const key = getCashPaymentStorageKey(orderId);
+
+  if (!key || typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(key) === "1";
+}
 
 function getServerMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) {
@@ -57,7 +78,9 @@ export default function ConfirmBillPage() {
   const [submitting, setSubmitting] = useState(false);
   const [billConfirmed, setBillConfirmed] = useState(billConfirmedFromQr);
   const [showQr, setShowQr] = useState(false);
-  const [cashRequested, setCashRequested] = useState(false);
+  const [cashRequested, setCashRequested] = useState(() =>
+    getPersistedCashRequest(orderId),
+  );
 
   const billOrderId = bill?.orderId ?? bill?.OrderId ?? orderId;
   const finalPrice = bill?.finalPrice ?? bill?.FinalPrice ?? 0;
@@ -80,12 +103,43 @@ export default function ConfirmBillPage() {
     setError(null);
     setBillConfirmed(billConfirmedFromQr);
     setShowQr(false);
-    setCashRequested(false);
 
-    getBill(orderId)
-      .then((data) => {
+    Promise.all([getBill(orderId), getCustomerOrders().catch(() => [])])
+      .then(([billData, orders]) => {
         if (!active) return;
-        setBill(data as Bill);
+
+        setBill(billData as Bill);
+
+        const currentOrder = orders.find(
+          (order) => getCustomerOrderId(order) === orderId,
+        );
+        const currentStatus = currentOrder?.status?.trim().toLowerCase() ?? "";
+        const persistedCashRequest = getPersistedCashRequest(orderId);
+
+        if (currentStatus === "completed") {
+          const cashPaymentKey = getCashPaymentStorageKey(orderId);
+
+          if (cashPaymentKey && typeof window !== "undefined") {
+            window.localStorage.removeItem(cashPaymentKey);
+          }
+
+          navigate("/check-in?success=1", { replace: true });
+          return;
+        }
+
+        if (currentStatus === "cashpending") {
+          setBillConfirmed(true);
+          setCashRequested(true);
+          return;
+        }
+
+        if (currentStatus === "billconfirmed") {
+          setBillConfirmed(true);
+          setCashRequested(persistedCashRequest);
+          return;
+        }
+
+        setCashRequested(persistedCashRequest);
       })
       .catch((err) => {
         console.error(err);
@@ -102,6 +156,77 @@ export default function ConfirmBillPage() {
     };
   }, [billConfirmedFromQr, orderId, navigate]);
 
+  useEffect(() => {
+    const cashPaymentKey = getCashPaymentStorageKey(orderId);
+
+    if (!cashPaymentKey || typeof window === "undefined") {
+      return;
+    }
+
+    if (cashRequested) {
+      window.localStorage.setItem(cashPaymentKey, "1");
+      return;
+    }
+
+    window.localStorage.removeItem(cashPaymentKey);
+  }, [cashRequested, orderId]);
+
+  useEffect(() => {
+    if (!orderId || !cashRequested) return;
+
+    let active = true;
+    let timerId: number | undefined;
+
+    async function syncCashPaymentStatus() {
+      const orders = await getCustomerOrders().catch(() => []);
+
+      if (!active) return;
+
+      const currentOrder = orders.find(
+        (order) => getCustomerOrderId(order) === orderId,
+      );
+      const currentStatus = currentOrder?.status?.trim().toLowerCase() ?? "";
+
+      if (currentStatus === "completed") {
+        const cashPaymentKey = getCashPaymentStorageKey(orderId);
+
+        if (cashPaymentKey && typeof window !== "undefined") {
+          window.localStorage.removeItem(cashPaymentKey);
+        }
+
+        navigate("/check-in?success=1", { replace: true });
+        return;
+      }
+
+      if (!currentStatus || currentStatus === "cashpending") {
+        return;
+      }
+
+      const cashPaymentKey = getCashPaymentStorageKey(orderId);
+
+      if (cashPaymentKey && typeof window !== "undefined") {
+        window.localStorage.removeItem(cashPaymentKey);
+      }
+
+      setCashRequested(false);
+      setError(
+        "Đơn tiền mặt đã thay đổi trạng thái. Vui lòng tải lại hóa đơn.",
+      );
+    }
+
+    void syncCashPaymentStatus();
+    timerId = window.setInterval(() => {
+      void syncCashPaymentStatus();
+    }, 4000);
+
+    return () => {
+      active = false;
+      if (timerId) {
+        window.clearInterval(timerId);
+      }
+    };
+  }, [cashRequested, navigate, orderId]);
+
   async function handleConfirmBill() {
     if (!orderId) return;
 
@@ -117,10 +242,7 @@ export default function ConfirmBillPage() {
       console.error(err);
       setBillConfirmed(false);
       setError(
-        getServerMessage(
-          err,
-          "Xác nhận hóa đơn thất bại. Vui lòng thử lại.",
-        ),
+        getServerMessage(err, "Xác nhận hóa đơn thất bại. Vui lòng thử lại."),
       );
     } finally {
       setSubmitting(false);
@@ -145,10 +267,32 @@ export default function ConfirmBillPage() {
     }
 
     setShowQr(false);
-    setCashRequested(true);
+    void handleCashPaymentRequested();
   }
 
-  async function handlePaymentCompleted() {
+  async function handleCashPaymentRequested() {
+    if (!orderId) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await requestCashPayment(orderId);
+      setCashRequested(true);
+    } catch (err) {
+      console.error(err);
+      setError(
+        getServerMessage(
+          err,
+          "Không thể gửi yêu cầu xác nhận tiền mặt. Vui lòng thử lại.",
+        ),
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleTransferPaymentCompleted() {
     if (!orderId) return;
 
     setSubmitting(true);
@@ -220,7 +364,10 @@ export default function ConfirmBillPage() {
                   const subTotal = item.subTotal ?? item.SubTotal ?? 0;
 
                   return (
-                    <li key={`${name}-${idx}`} className="flex justify-between gap-3">
+                    <li
+                      key={`${name}-${idx}`}
+                      className="flex justify-between gap-3"
+                    >
                       <div className="min-w-0">
                         <div className="font-medium">{name}</div>
                         <div className="text-sm text-slate-500">
@@ -325,8 +472,8 @@ export default function ConfirmBillPage() {
                       Thanh toán chuyển khoản
                     </div>
                     <div className="text-sm text-slate-700">
-                      Tạo mã QR chuyển khoản ngân hàng. Sau khi chuyển xong,
-                      bấm Đã chuyển khoản để hoàn tất check-in.
+                      Tạo mã QR chuyển khoản ngân hàng. Sau khi chuyển xong, bấm
+                      Đã chuyển khoản để hoàn tất check-in.
                     </div>
                   </div>
                 )}
@@ -347,14 +494,16 @@ export default function ConfirmBillPage() {
                     onClick={() =>
                       method === "transfer"
                         ? handleStartPayment()
-                        : void handlePaymentCompleted()
+                        : void handleCashPaymentRequested()
                     }
                     disabled={submitting}
                     className="flex-1 rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
                   >
                     {method === "transfer"
                       ? "Tạo mã QR thanh toán"
-                      : "Đã thanh toán tiền mặt"}
+                      : cashRequested
+                        ? "Đang chờ merchant xác nhận"
+                        : "Đã thanh toán tiền mặt"}
                   </button>
                   <button
                     type="button"
@@ -386,7 +535,7 @@ export default function ConfirmBillPage() {
                       type="button"
                       className="mt-4 w-full rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
                       disabled={submitting}
-                      onClick={() => void handlePaymentCompleted()}
+                      onClick={() => void handleTransferPaymentCompleted()}
                     >
                       {submitting ? "Đang hoàn tất..." : "Đã chuyển khoản"}
                     </button>
@@ -395,8 +544,8 @@ export default function ConfirmBillPage() {
 
                 {cashRequested && method === "cash" && (
                   <div className="mt-5 rounded-md border border-cyan-100 bg-cyan-50 p-3 text-sm text-cyan-800">
-                    Đã ghi nhận bạn chọn thanh toán tiền mặt. Bấm Đã thanh toán
-                    tiền mặt để hoàn tất check-in.
+                    Đã ghi nhận thanh toán tiền mặt. Đang chờ merchant xác nhận
+                    để hoàn tất check-in.
                   </div>
                 )}
               </>

@@ -163,6 +163,14 @@ export async function confirmReceived(orderId: string) {
   return res.data;
 }
 
+export async function requestCashPayment(orderId: string) {
+  const res = await api.patch<ApiResponse<null>>(
+    `/orders/${orderId}/cash/request`,
+  );
+
+  return res.data;
+}
+
 export async function confirmNotReceived(orderId: string) {
   const res = await api.patch<ApiResponse<null>>(`/orders/${orderId}/status`, {
     status: "NotReceived",
