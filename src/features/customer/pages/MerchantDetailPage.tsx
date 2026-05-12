@@ -32,6 +32,7 @@ import { notify } from "@/shared/lib/notify";
 type CartItem = {
   food: MerchantMenuItem;
   quantity: number;
+  notes?: string;
 };
 
 const DESCRIPTION_META_LABELS = [
@@ -194,6 +195,7 @@ export default function MerchantDetailPage() {
         foods: cart.map((item) => ({
           foodId: item.food.id,
           quantity: item.quantity,
+          notes: item.notes ?? undefined,
         })),
       });
 
@@ -227,7 +229,7 @@ export default function MerchantDetailPage() {
         );
       }
 
-      return [...prev, { food, quantity: nextQuantity }];
+      return [...prev, { food, quantity: nextQuantity, notes: "" }];
     });
   }
 
@@ -238,6 +240,12 @@ export default function MerchantDetailPage() {
       prev.map((item) =>
         item.food.id === foodId ? { ...item, quantity: nextQuantity } : item,
       ),
+    );
+  }
+
+  function updateCartNotes(foodId: string, notes: string) {
+    setCart((prev) =>
+      prev.map((item) => (item.food.id === foodId ? { ...item, notes } : item)),
     );
   }
 
@@ -836,6 +844,17 @@ export default function MerchantDetailPage() {
                               {item.food.description}
                             </p>
                           )}
+
+                          <div className="mt-2">
+                            <input
+                              placeholder="Ghi chú cho món (ví dụ: bỏ hành)"
+                              value={item.notes ?? ""}
+                              onChange={(e) =>
+                                updateCartNotes(item.food.id, e.target.value)
+                              }
+                              className="w-full rounded-md border border-slate-200 px-3 py-1 text-sm outline-none"
+                            />
+                          </div>
                         </div>
 
                         <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">

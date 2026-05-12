@@ -8,6 +8,7 @@ import type {
 export type CreateOrderItem = {
   foodId: string;
   quantity: number;
+  notes?: string | null;
 };
 
 export async function createOrder(payload: {
@@ -22,7 +23,11 @@ export async function createOrder(payload: {
     paymentMethod: "Cash",
     deliveryAddress: payload.deliveryAddress,
     notes: payload.notes || "",
-    foods: payload.foods,
+    foods: payload.foods.map((f) => ({
+      foodId: f.foodId,
+      quantity: f.quantity,
+      notes: f.notes ?? undefined,
+    })),
   });
 
   return res.data;
@@ -161,6 +166,37 @@ export async function confirmReceived(orderId: string) {
 export async function confirmNotReceived(orderId: string) {
   const res = await api.patch<ApiResponse<null>>(`/orders/${orderId}/status`, {
     status: "NotReceived",
+  });
+
+  return res.data;
+}
+
+export async function getBill(orderId: string) {
+  const res = await api.get<ApiResponse<unknown> | unknown>("/orders/bill", {
+    params: { OrderId: orderId },
+  });
+
+  // unwrap if ApiResponse
+  const payload = (res.data as any) ?? res;
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return payload.data;
+  }
+
+  return payload;
+}
+
+export async function confirmBill(orderId: string) {
+  const res = await api.post<ApiResponse<null>>("/orders/bill/confirm", {
+    orderId,
+  });
+
+  return res.data;
+}
+
+export async function rejectBill(orderId: string, reason: string) {
+  const res = await api.post<ApiResponse<null>>("/orders/bill/reject", {
+    orderId,
+    reason,
   });
 
   return res.data;
