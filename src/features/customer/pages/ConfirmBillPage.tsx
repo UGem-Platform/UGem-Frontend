@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser } from "@/features/auth";
 import {
   confirmBill,
+  confirmReceived,
   getBill,
   rejectBill,
 } from "@/features/customer/services/orderService";
@@ -59,7 +60,6 @@ export default function ConfirmBillPage() {
   const [cashRequested, setCashRequested] = useState(false);
 
   const billOrderId = bill?.orderId ?? bill?.OrderId ?? orderId;
-  const billName = bill?.name ?? bill?.Name ?? "";
   const finalPrice = bill?.finalPrice ?? bill?.FinalPrice ?? 0;
   const items = useMemo(() => bill?.items ?? bill?.Items ?? [], [bill]);
 
@@ -129,18 +129,10 @@ export default function ConfirmBillPage() {
 
   function getQrUrl() {
     const amount = Number(finalPrice || 0);
-    const note = `UGem ${billOrderId ?? ""}`.trim();
-    const payload = [
-      "UGem payment",
-      `orderId=${billOrderId ?? ""}`,
-      `amount=${amount}`,
-      `note=${note}`,
-      billName ? `customer=${billName}` : "",
-    ]
-      .filter(Boolean)
-      .join(";");
+    const orderCode = String(billOrderId ?? "").replace(/-/g, "");
+    const description = `UGem-${orderCode}`;
 
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
+    return `https://qr.sepay.vn/img?acc=VQRQAIDAX4356&bank=MBBank&amount=${encodeURIComponent(String(Math.round(amount)))}&des=${encodeURIComponent(description)}&template=qronly`;
   }
 
   function handleStartPayment() {
@@ -154,6 +146,28 @@ export default function ConfirmBillPage() {
 
     setShowQr(false);
     setCashRequested(true);
+  }
+
+  async function handlePaymentCompleted() {
+    if (!orderId) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await confirmReceived(orderId);
+      navigate("/check-in?success=1", { replace: true });
+    } catch (err) {
+      console.error(err);
+      setError(
+        getServerMessage(
+          err,
+          "Không thể hoàn tất thanh toán/check-in. Vui lòng thử lại.",
+        ),
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleReject(reason?: string) {
@@ -311,8 +325,8 @@ export default function ConfirmBillPage() {
                       Thanh toán chuyển khoản
                     </div>
                     <div className="text-sm text-slate-700">
-                      Tạo mã QR thanh toán, quét bằng ứng dụng ngân hàng và
-                      chuyển đúng số tiền trên hóa đơn.
+                      Tạo mã QR chuyển khoản ngân hàng. Sau khi chuyển xong,
+                      bấm Đã chuyển khoản để hoàn tất check-in.
                     </div>
                   </div>
                 )}
@@ -321,8 +335,8 @@ export default function ConfirmBillPage() {
                   <div className="mb-4 rounded-md border bg-amber-50 p-3">
                     <div className="mb-2 font-medium">Thanh toán tiền mặt</div>
                     <div className="text-sm text-slate-700">
-                      Vui lòng thanh toán trực tiếp tại quán. Merchant sẽ xác
-                      thực tiền mặt và hoàn tất đơn.
+                      Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
+                      toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
                     </div>
                   </div>
                 )}
@@ -330,12 +344,17 @@ export default function ConfirmBillPage() {
                 <div className="mt-4 flex gap-3">
                   <button
                     type="button"
-                    onClick={handleStartPayment}
-                    className="flex-1 rounded-md bg-cyan-700 px-4 py-2 text-white"
+                    onClick={() =>
+                      method === "transfer"
+                        ? handleStartPayment()
+                        : void handlePaymentCompleted()
+                    }
+                    disabled={submitting}
+                    className="flex-1 rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
                   >
                     {method === "transfer"
                       ? "Tạo mã QR thanh toán"
-                      : "Chờ merchant xác thực"}
+                      : "Đã thanh toán tiền mặt"}
                   </button>
                   <button
                     type="button"
@@ -365,18 +384,19 @@ export default function ConfirmBillPage() {
                     </div>
                     <button
                       type="button"
-                      className="mt-4 w-full rounded-md bg-cyan-700 px-4 py-2 text-white"
-                      onClick={() => navigate(`/customer/orders/${orderId}`)}
+                      className="mt-4 w-full rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
+                      disabled={submitting}
+                      onClick={() => void handlePaymentCompleted()}
                     >
-                      Đã chuyển khoản
+                      {submitting ? "Đang hoàn tất..." : "Đã chuyển khoản"}
                     </button>
                   </div>
                 )}
 
                 {cashRequested && method === "cash" && (
                   <div className="mt-5 rounded-md border border-cyan-100 bg-cyan-50 p-3 text-sm text-cyan-800">
-                    Yêu cầu thanh toán tiền mặt đã được ghi nhận trên giao diện.
-                    Vui lòng chờ merchant xác thực tại quán.
+                    Đã ghi nhận bạn chọn thanh toán tiền mặt. Bấm Đã thanh toán
+                    tiền mặt để hoàn tất check-in.
                   </div>
                 )}
               </>
