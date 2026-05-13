@@ -1,12 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getStaffMerchantList } from "../services/merchantService";
+import type { PageResult, StaffMerchant } from "../services/merchantService";
 
 export function useStaffMerchantList(params: {
   searchTerm?: string;
   pageIndex: number;
   pageSize: number;
 }) {
-  return useQuery({
+  return useQuery<PageResult<StaffMerchant>>({
     queryKey: [
       "staff",
       "merchants",
@@ -17,6 +18,6 @@ export function useStaffMerchantList(params: {
     queryFn: () => getStaffMerchantList(params),
     staleTime: 1000 * 30,
     refetchOnWindowFocus: false,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 }
