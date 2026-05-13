@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Star, X } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getCustomerOrderDetail,
@@ -72,7 +72,6 @@ export default function CustomerOrderDetailPage() {
   const [resolvedOrderId, setResolvedOrderId] = useState<string | null>(null);
   const [items, setItems] = useState<CustomerOrderDetailItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [merchantId, setMerchantId] = useState<string | null>(null);
   const [merchantName, setMerchantName] = useState("");
@@ -350,7 +349,6 @@ export default function CustomerOrderDetailPage() {
   const normalizedOrderStatus = displayOrderStatus?.trim().toLowerCase();
   const isAccepted = normalizedOrderStatus === "accepted";
   const isCompleted = normalizedOrderStatus === "completed";
-  const isNotReceived = normalizedOrderStatus === "notreceived";
   const reviewLocked = hasReviewed || submittingReview;
 
   if (loading) return <div className="p-5">Đang tải...</div>;

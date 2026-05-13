@@ -46,7 +46,7 @@ function unwrapApiData<T>(payload: ApiResponse<T> | T | null | undefined) {
 
 function unwrapMerchantList(
   payload: ApiResponse<StaffMerchantListResponse> | StaffMerchantListResponse,
-) {
+): PageResult<StaffMerchant> {
   const data = unwrapApiData(payload);
 
   if (Array.isArray(data)) {
@@ -58,7 +58,14 @@ function unwrapMerchantList(
     } satisfies PageResult<StaffMerchant>;
   }
 
-  return data;
+  return (
+    data ?? {
+      items: [],
+      totalItems: 0,
+      pageSize: 10,
+      pageIndex: 1,
+    }
+  );
 }
 
 export async function getStaffMerchantList(params?: {
