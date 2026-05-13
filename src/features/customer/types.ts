@@ -6,6 +6,7 @@ export type Merchant = {
   email?: string;
   phone?: string;
   address?: string;
+  openingHours?: string;
   logoUrl?: string;
   rating?: number;
   reviewCount?: number;

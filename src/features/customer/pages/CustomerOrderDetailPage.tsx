@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Check, Star, X } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  confirmNotReceived,
-  confirmReceived,
   getCustomerOrderDetail,
   getCustomerOrderId,
   getCustomerOrders,
@@ -54,6 +52,10 @@ function getCustomerConfirmMessage(status?: string | null) {
 
   if (normalizedStatus === "notreceived") {
     return "Bạn đã báo chưa nhận hàng cho đơn này.";
+  }
+
+  if (normalizedStatus === "accepted") {
+    return "Đơn đã được Merchant chấp nhận. Vui lòng mở màn hình check-in để hoàn tất QR.";
   }
 
   return "Bạn chỉ có thể xác nhận đơn sau khi Merchant chấp nhận đơn hàng.";
@@ -293,58 +295,6 @@ export default function CustomerOrderDetailPage() {
     }
   }
 
-  async function handleConfirmReceived() {
-    const orderId = hasRealOrderId ? id : resolvedOrderId;
-
-    if (!orderId) return;
-
-    if (!isAccepted) {
-      notify.error(
-        "Merchant cần xác nhận đơn trước khi bạn xác nhận nhận hàng.",
-      );
-      return;
-    }
-
-    setUpdatingStatus(true);
-
-    try {
-      await confirmReceived(orderId);
-      setOrderStatus("Completed");
-      notify.success("Đã xác nhận đã nhận hàng.");
-    } catch (error) {
-      console.error(error);
-      notify.error("Xác nhận đơn thất bại.");
-    } finally {
-      setUpdatingStatus(false);
-    }
-  }
-
-  async function handleConfirmNotReceived() {
-    const orderId = hasRealOrderId ? id : resolvedOrderId;
-
-    if (!orderId) return;
-
-    if (!isAccepted) {
-      notify.error(
-        "Merchant cần xác nhận đơn trước khi bạn báo chưa nhận hàng.",
-      );
-      return;
-    }
-
-    setUpdatingStatus(true);
-
-    try {
-      await confirmNotReceived(orderId);
-      setOrderStatus("NotReceived");
-      notify.success("Đã báo chưa nhận hàng.");
-    } catch (error) {
-      console.error(error);
-      notify.error("Cập nhật đơn thất bại.");
-    } finally {
-      setUpdatingStatus(false);
-    }
-  }
-
   function handleBack() {
     if (window.history.length > 1) {
       navigate(-1);
@@ -356,6 +306,14 @@ export default function CustomerOrderDetailPage() {
 
   function handleRefresh() {
     window.location.reload();
+  }
+
+  function handleOpenCheckIn() {
+    const orderId = effectiveOrderId;
+
+    if (!orderId) return;
+
+    navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId)}`);
   }
 
   function updateFoodReviewDraft(
@@ -438,25 +396,19 @@ export default function CustomerOrderDetailPage() {
           )}
 
           {effectiveOrderId && isAccepted ? (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
+              <div className="font-semibold">Đơn đã được chấp nhận</div>
+              <p className="mt-1 text-cyan-800">
+                Merchant cần tạo QR check-in. Bạn chưa cần xác nhận “đã nhận
+                hàng” ở màn này.
+              </p>
               <button
                 type="button"
-                onClick={() => void handleConfirmReceived()}
-                disabled={updatingStatus || isCompleted}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                onClick={handleOpenCheckIn}
+                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-800"
               >
                 <Check size={16} />
-                Đã nhận hàng
-              </button>
-
-              <button
-                type="button"
-                onClick={() => void handleConfirmNotReceived()}
-                disabled={updatingStatus || isCompleted || isNotReceived}
-                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
-              >
-                <X size={16} />
-                Chưa nhận hàng
+                Mở màn hình check-in
               </button>
             </div>
           ) : effectiveOrderId ? (

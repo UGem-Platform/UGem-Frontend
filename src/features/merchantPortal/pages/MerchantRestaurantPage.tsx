@@ -38,8 +38,7 @@ function toEditForm(merchant?: MerchantDetail | null): MerchantEditForm {
     email: merchant?.email ?? "",
     phone: merchant?.phone ?? "",
     address: merchant?.address ?? "",
-    openingHours:
-      (merchant as { openingHours?: string } | null)?.openingHours ?? "",
+    openingHours: merchant?.openingHours ?? "",
   };
 }
 
@@ -348,9 +347,7 @@ export function MerchantRestaurantPage() {
                     <InfoLine
                       icon={<Clock3 size={16} />}
                       label="Giờ mở cửa"
-                      value={
-                        (merchant as { openingHours?: string }).openingHours
-                      }
+                      value={merchant.openingHours}
                     />
                     <InfoLine
                       icon={<Star size={16} />}

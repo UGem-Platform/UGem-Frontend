@@ -1,9 +1,12 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IdCard, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 
 import { getCurrentUser } from "@/features/auth";
+import type { MerchantDetail } from "@/features/customer/types";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
+import { notify } from "@/shared/lib/notify";
+import { getMyMerchantDetail } from "../services";
 
 function getInitial(name?: string) {
   return (name || "M").trim().charAt(0).toUpperCase() || "M";
@@ -11,16 +14,49 @@ function getInitial(name?: string) {
 
 export default function MerchantProfilePage() {
   const user = getCurrentUser();
+  const [merchantDetail, setMerchantDetail] = useState<MerchantDetail | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    const loadMerchantDetail = async () => {
+      try {
+        const data = await getMyMerchantDetail();
+
+        if (active) {
+          setMerchantDetail(data);
+        }
+      } catch (error) {
+        console.error(error);
+        notify.error("Không tải được thông tin Merchant.");
+      }
+    };
+
+    void loadMerchantDetail();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const profile = useMemo(() => {
     return {
       displayName: user?.Name || "Merchant",
-      email: user?.Email || "-",
+      email: merchantDetail?.email || user?.Email || "-",
       role: user?.Role || "Merchant",
-      phoneNumber: "Chưa cập nhật",
+      phoneNumber: merchantDetail?.phone || "Chưa cập nhật",
       userId: user?.UserId || "-",
     };
-  }, [user?.Email, user?.Name, user?.Role, user?.UserId]);
+  }, [
+    merchantDetail?.email,
+    merchantDetail?.phone,
+    user?.Email,
+    user?.Name,
+    user?.Role,
+    user?.UserId,
+  ]);
 
   return (
     <main className="merchant-portal-layout">

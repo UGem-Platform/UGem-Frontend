@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
 import { useStaffApplications } from "../hooks/useApplications";
 import type { Application } from "../types";
 import { UserAccountMenu } from "@/shared/components";
@@ -177,6 +183,8 @@ type ApplicationsPageProps = {
   subtitle?: string;
   fallbackName?: string;
   canReview?: boolean;
+  backTo?: string;
+  backLabel?: string;
   secondaryAction?: ReactNode;
   initialTab?: ApplicationTab;
   showTabs?: boolean;
@@ -191,6 +199,8 @@ export default function AdminApplicationsPage({
   subtitle = "Hàng đợi hồ sơ merchant cần Staff kiểm tra và xử lý.",
   fallbackName = "Staff",
   canReview = true,
+  backTo,
+  backLabel = "Back",
   secondaryAction,
   initialTab = "pending",
   showTabs = true,
@@ -319,6 +329,16 @@ export default function AdminApplicationsPage({
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
+            {backTo ? (
+              <Link
+                to={backTo}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 px-4 py-2.5 text-sm font-black text-slate-700 shadow-lg shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {backLabel}
+              </Link>
+            ) : null}
+
             <button
               onClick={handleRefresh}
               disabled={isRefetching}

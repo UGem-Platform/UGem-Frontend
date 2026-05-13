@@ -316,7 +316,8 @@ export function MerchantOnboardingPage() {
               : "Đã gửi hồ sơ quán thành công",
             {
               id: toastId,
-              description: "Bạn có thể theo dõi trạng thái xét duyệt trong Merchant Portal.",
+              description:
+                "Bạn có thể theo dõi trạng thái xét duyệt trong Merchant Portal.",
             },
           );
           navigate("/merchant/application/status");

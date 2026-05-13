@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { getStaffList, getStaffById } from "../services/staffService";
 
+export const STAFF_LIST_QUERY_KEY = ["admin", "staff", "list"] as const;
+
 export function useStaffList() {
   return useQuery({
-    queryKey: ["staff", "list"],
+    queryKey: STAFF_LIST_QUERY_KEY,
     queryFn: getStaffList,
   });
 }

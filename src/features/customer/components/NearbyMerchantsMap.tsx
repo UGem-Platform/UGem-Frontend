@@ -93,7 +93,7 @@ function getMerchantPopupHtml(merchant: Merchant) {
   const underratedScore = getDisplayUnderratedScore(merchant);
   const underratedHtml =
     underratedScore !== null
-      ? `<div style="margin-top:4px;color:#047857;font-size:12px;font-weight:800">US: ${underratedScore.percent}% underrated</div>`
+      ? `<div style="margin-top:4px;color:#047857;font-size:12px;font-weight:800">US: ${underratedScore.score.toFixed(2)}/1.00</div>`
       : "";
 
   return `

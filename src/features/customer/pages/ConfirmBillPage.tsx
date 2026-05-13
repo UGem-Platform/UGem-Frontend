@@ -99,15 +99,14 @@ export default function ConfirmBillPage() {
     }
 
     let active = true;
-    setLoading(true);
-    setError(null);
-    setBillConfirmed(billConfirmedFromQr);
-    setShowQr(false);
 
     Promise.all([getBill(orderId), getCustomerOrders().catch(() => [])])
       .then(([billData, orders]) => {
         if (!active) return;
 
+        setError(null);
+        setBillConfirmed(billConfirmedFromQr);
+        setShowQr(false);
         setBill(billData as Bill);
 
         const currentOrder = orders.find(
@@ -175,7 +174,9 @@ export default function ConfirmBillPage() {
     if (!orderId || !cashRequested) return;
 
     let active = true;
-    let timerId: number | undefined;
+    const timerId = window.setInterval(() => {
+      void syncCashPaymentStatus();
+    }, 4000);
 
     async function syncCashPaymentStatus() {
       const orders = await getCustomerOrders().catch(() => []);
@@ -215,15 +216,10 @@ export default function ConfirmBillPage() {
     }
 
     void syncCashPaymentStatus();
-    timerId = window.setInterval(() => {
-      void syncCashPaymentStatus();
-    }, 4000);
 
     return () => {
       active = false;
-      if (timerId) {
-        window.clearInterval(timerId);
-      }
+      window.clearInterval(timerId);
     };
   }, [cashRequested, navigate, orderId]);
 

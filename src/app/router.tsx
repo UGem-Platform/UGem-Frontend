@@ -1,10 +1,12 @@
-import AdminJobDetailPage from "@/features/admin/pages/AdminJobDetailPage";
-import AdminJobsPage from "@/features/admin/pages/AdminJobsPage";
 import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
+import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
+import AdminApplicationsPage from "@/features/admin/pages/AdminApplicationsPage";
+import AdminApplicationDetailPage from "@/features/admin/pages/AdminApplicationDetailPage";
 import StaffReviewerApplicationsPage from "@/features/admin/pages/StaffReviewerApplicationsPage";
 import StaffApplicationDetailPage from "@/features/admin/pages/StaffApplicationDetailPage";
 import StaffApplicationsPage from "@/features/admin/pages/StaffApplicationsPage";
 import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
+import StaffMerchantsPage from "@/features/admin/pages/StaffMerchantsPage";
 import StaffUserProfilePage from "@/features/admin/pages/StaffUserProfilePage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
 import { LoginPage, RegisterPage } from "@/features/auth";
@@ -243,6 +245,14 @@ const routers = createBrowserRouter([
         ),
       },
       {
+        path: "/staff/merchants",
+        element: (
+          <ProtectedRoute allowedRoles={["Staff"]}>
+            <StaffMerchantsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/staff/reviewer-applications",
         element: (
           <ProtectedRoute allowedRoles={["Staff"]}>
@@ -251,30 +261,10 @@ const routers = createBrowserRouter([
         ),
       },
       {
-        path: "/admin/jobs",
+        path: "/admin/dashboard",
         element: (
           <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminJobsPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/admin/jobs/:id",
-        element: (
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminJobDetailPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/admin/applications",
-        element: <Navigate to="/admin/jobs" replace />,
-      },
-      {
-        path: "/admin/applications/:id",
-        element: (
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminJobDetailPage />
+            <AdminDashboardPage />
           </ProtectedRoute>
         ),
       },
@@ -283,6 +273,46 @@ const routers = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["Admin"]}>
             <AdminStaffPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/applications",
+        element: (
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminApplicationsPage
+              basePath="/admin/applications"
+              title="Hồ sơ merchant"
+              subtitle="Theo dõi và xử lý hồ sơ merchant trong hệ thống."
+              fallbackName="Admin"
+              canReview
+              backTo="/admin/dashboard"
+              backLabel="Back"
+            />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/applications/:id",
+        element: (
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminApplicationDetailPage
+              basePath="/admin/applications"
+              fallbackName="Admin"
+              canReview
+            />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/reviewer-applications",
+        element: (
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <StaffReviewerApplicationsPage
+              shell="admin"
+              fallbackName="Admin"
+              canReview={false}
+            />
           </ProtectedRoute>
         ),
       },
