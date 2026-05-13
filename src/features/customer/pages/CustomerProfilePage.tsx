@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   IdCard,
-  Image,
+  ImagePlus,
   Loader2,
   Mail,
   Phone,
@@ -21,6 +21,11 @@ import {
   updateUserProfile,
   type UserProfile,
 } from "@/shared/services";
+import {
+  IMAGE_UPLOAD_ACCEPT,
+  uploadImage,
+  validateImageFile,
+} from "@/shared/services/mediaService";
 import {
   createReviewerApplication,
   getMyReviewerApplication,
@@ -43,8 +48,11 @@ export default function CustomerProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+  const [avatarFileName, setAvatarFileName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [reviewerApp, setReviewerApp] = useState<ReviewerApplication | null>(
     null,
   );
@@ -69,6 +77,8 @@ export default function CustomerProfilePage() {
 
   const userId = currentUser?.UserId || profile?.userId || profile?.id || "-";
 
+  const displayedAvatarUrl = avatarPreviewUrl || avatarUrl;
+
   useEffect(() => {
     let active = true;
 
@@ -83,6 +93,8 @@ export default function CustomerProfilePage() {
         setProfile(data ?? null);
         setFullName(data?.fullName || data?.name || currentUser?.Name || "");
         setAvatarUrl(data?.avatarUrl || "");
+        setAvatarPreviewUrl("");
+        setAvatarFileName(data?.avatarUrl ? "Ảnh hiện tại" : "");
       } catch (error) {
         console.error(error);
 
@@ -114,11 +126,50 @@ export default function CustomerProfilePage() {
     };
   }, [currentUser?.Name]);
 
+  async function handleAvatarUpload(file?: File) {
+    if (!file) return;
+
+    setAvatarFileName(file.name);
+    setIsUploadingAvatar(true);
+
+    try {
+      validateImageFile(file);
+
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Khong the doc file anh."));
+        reader.onload = () =>
+          resolve(typeof reader.result === "string" ? reader.result : "");
+        reader.readAsDataURL(file);
+      });
+
+      setAvatarPreviewUrl(dataUrl);
+
+      const imageUrl = await uploadImage(file);
+      setAvatarUrl(imageUrl);
+      notify.success("Da tai avatar len.");
+    } catch (error) {
+      console.error("Khong the tai avatar len:", error);
+      setAvatarPreviewUrl("");
+      setAvatarFileName(avatarUrl ? "Anh hien tai" : "");
+      notify.error("Tai avatar that bai.", {
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmedName = fullName.trim();
     const trimmedAvatar = avatarUrl.trim();
+
+    if (isUploadingAvatar) {
+      notify.error("Vui long cho avatar tai len xong roi luu.");
+      return;
+    }
 
     if (!trimmedName) {
       notify.error("Tên Customer không được để trống.");
@@ -141,6 +192,10 @@ export default function CustomerProfilePage() {
       setFullName(nextProfile?.fullName || nextProfile?.name || trimmedName);
 
       setAvatarUrl(nextProfile?.avatarUrl || trimmedAvatar);
+      setAvatarPreviewUrl("");
+      setAvatarFileName(
+        nextProfile?.avatarUrl || trimmedAvatar ? "Anh hien tai" : "",
+      );
 
       window.dispatchEvent(new Event("ugem:profile-updated"));
 
@@ -218,7 +273,10 @@ export default function CustomerProfilePage() {
             </p>
           </div>
 
-          <UserAccountMenu fallbackName="Customer" />
+          <UserAccountMenu
+            fallbackName="Customer"
+            avatarUrl={displayedAvatarUrl}
+          />
         </div>
       </header>
 
@@ -260,9 +318,9 @@ export default function CustomerProfilePage() {
               <div className="relative border-b border-white/70 p-6">
                 <div className="grid place-items-center text-center">
                   <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-[28px] bg-cyan-100 text-4xl font-black text-cyan-800 shadow-xl shadow-cyan-900/10 ring-1 ring-white/70">
-                    {avatarUrl ? (
+                    {displayedAvatarUrl ? (
                       <img
-                        src={avatarUrl}
+                        src={displayedAvatarUrl}
                         alt={displayName}
                         className="h-full w-full object-cover"
                       />
@@ -346,23 +404,41 @@ export default function CustomerProfilePage() {
                     />
                   </label>
 
-                  <label className="block">
+                  <div className="block">
                     <span className="text-sm font-black text-slate-800">
-                      Avatar URL
+                      Avatar
                     </span>
 
-                    <div className="mt-2 flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-4 shadow-sm ring-1 ring-slate-950/5 transition focus-within:border-cyan-500 focus-within:ring-4 focus-within:ring-cyan-500/15">
-                      <Image className="h-4 w-4 shrink-0 text-slate-400" />
-
+                    <div className="mt-2 flex flex-wrap items-center gap-3 rounded-2xl border border-white/70 bg-white/80 p-3 shadow-sm ring-1 ring-slate-950/5">
                       <input
-                        value={avatarUrl}
-                        onChange={(event) => setAvatarUrl(event.target.value)}
-                        className="h-12 min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
-                        placeholder="https://..."
-                        disabled={isSaving}
+                        id="customer-avatar-upload"
+                        type="file"
+                        accept={IMAGE_UPLOAD_ACCEPT}
+                        className="sr-only"
+                        disabled={isSaving || isUploadingAvatar}
+                        onChange={(event) => {
+                          void handleAvatarUpload(event.target.files?.[0]);
+                          event.currentTarget.value = "";
+                        }}
                       />
+
+                      <label
+                        htmlFor="customer-avatar-upload"
+                        className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-cyan-600 px-4 text-sm font-black text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-0.5 hover:bg-cyan-700"
+                      >
+                        {isUploadingAvatar ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ImagePlus className="h-4 w-4" />
+                        )}
+                        {isUploadingAvatar ? "Đang tải lên..." : "Chọn ảnh"}
+                      </label>
+
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-500">
+                        {avatarFileName || "Chưa chọn ảnh"}
+                      </span>
                     </div>
-                  </label>
+                  </div>
 
                   <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4 text-sm leading-6 text-cyan-900 shadow-sm">
                     Email, role và số điện thoại đang là thông tin đồng bộ từ hệ
@@ -371,10 +447,10 @@ export default function CustomerProfilePage() {
 
                   <Button
                     type="submit"
-                    disabled={isSaving}
+                    disabled={isSaving || isUploadingAvatar}
                     className="h-12 rounded-2xl bg-cyan-600 px-5 font-black text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:hover:translate-y-0"
                   >
-                    {isSaving ? (
+                    {isSaving || isUploadingAvatar ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Save className="h-4 w-4" />

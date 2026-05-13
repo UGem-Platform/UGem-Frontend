@@ -80,34 +80,34 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="relative grid min-h-screen grid-cols-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] lg:grid-cols-[1.18fr_0.82fr]">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+    <main className="relative grid h-screen grid-cols-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] lg:grid-cols-[1.18fr_0.82fr]">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[32px_32px]" />
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-      <section className="relative min-h-[52vh] p-3 lg:min-h-screen lg:p-4">
+      <section className="relative min-h-[52vh] overflow-hidden p-3 lg:h-full lg:p-4">
         <HeroCarousel images={HERO_IMAGES} onChange={setSlide} />
       </section>
 
       <section className="relative flex min-h-screen items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-8 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+          <div className="relative overflow-hidden rounded-4xl border border-white/70 bg-white/75 p-6 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl lg:p-5">
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
             <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl" />
 
             <div className="relative">
               <Logo />
 
-              <div className="mt-7">
+              <div className="mt-5">
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
                   Create UGem Account
                 </div>
 
-                <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">
                   Tạo tài khoản
                 </h1>
 
-                <p className="mt-4 text-sm leading-7 text-slate-600">
+                <p className="mt-3 text-sm leading-6 text-slate-600">
                   Chọn vai trò Customer hoặc Merchant để bắt đầu khám phá quán
                   ngon địa phương và mở rộng kinh doanh trên UGem.
                 </p>
@@ -116,7 +116,7 @@ export function RegisterPage() {
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="mt-7 space-y-4"
+                  className="mt-5 space-y-3"
                 >
                   <FormField
                     control={form.control}

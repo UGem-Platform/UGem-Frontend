@@ -2,6 +2,12 @@ import axios from "axios";
 import { API_BASE_URL } from "./env";
 import { clearAuth, getAccessToken } from "../features/auth/store";
 
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    skipAuthRedirect?: boolean;
+  }
+}
+
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
   headers: {
@@ -51,6 +57,10 @@ api.interceptors.response.use(
         message,
         data: error.response?.data,
       });
+
+      if (error.config?.skipAuthRedirect) {
+        return Promise.reject(new Error(message));
+      }
 
       if (typeof globalThis !== "undefined" && "location" in globalThis) {
         globalThis.location.href = "/login";

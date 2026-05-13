@@ -6,6 +6,25 @@ import type { CreateApplicationPayload, MerchantApplication } from "./types";
 
 const APPLICATION_TYPE = "Merchant";
 
+function getOpeningHours(record: Record<string, unknown>) {
+  const candidates = [
+    record.openingHours,
+    record.OpeningHours,
+    record.openHours,
+    record.OpenHours,
+    record.openHour,
+    record.OpenHour,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  return undefined;
+}
+
 function unwrapApiResponse<T>(payload: T | ApiResponse<T>) {
   if (
     payload &&
@@ -121,9 +140,11 @@ export async function getMyMerchantDetail() {
   );
 
   const merchant = unwrapApiResponse(res.data);
+  const record = merchant as Record<string, unknown>;
 
   return {
     ...merchant,
+    openingHours: getOpeningHours(record),
     foods: merchant.foods ?? merchant.menu ?? [],
     menu: merchant.menu ?? merchant.foods ?? [],
   };
@@ -134,6 +155,19 @@ export async function getMerchantOrders() {
     ApiResponse<MerchantOrderSummary[]> | MerchantOrderSummary[]
   >("/orders");
   return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+}
+
+export async function getMerchantOrderDetail(orderId: string) {
+  const res = await api.get<ApiResponse<unknown> | unknown>(
+    `/orders/${orderId}/merchant`,
+  );
+
+  const payload = (res.data ?? res) as unknown;
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return (payload as { data: unknown }).data;
+  }
+
+  return payload;
 }
 
 export async function acceptOrder(orderId: string) {

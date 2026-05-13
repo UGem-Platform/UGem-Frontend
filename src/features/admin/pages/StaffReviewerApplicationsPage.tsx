@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
@@ -10,26 +10,22 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
+import { UserAccountMenu } from "@/shared/components";
 import { notify } from "@/shared/lib/notify";
 import {
-  getStaffList,
+  getReviewerApplications,
   acceptReviewerApplication,
   rejectReviewerApplication,
+  type ReviewerApplication,
 } from "../services/staffService";
 import { StaffShell } from "../components/StaffShell";
 
-type ReviewerApp = {
-  id?: string;
-  status?: string;
-  motivation?: string;
-  experience?: string;
-  facebookUrl?: string;
-  tiktokUrl?: string;
-  youtubeUrl?: string;
-  otherSocialUrl?: string;
-  rejectionReason?: string;
-  customerId?: string;
-  createdAt?: string;
+type ReviewerApp = ReviewerApplication;
+
+type StaffReviewerApplicationsPageProps = {
+  shell?: "staff" | "admin";
+  fallbackName?: string;
+  canReview?: boolean;
 };
 
 function formatDate(value?: string | null) {
@@ -70,7 +66,11 @@ function StatusBadge({ status }: { status?: string }) {
 
 const REVIEWER_APPS_QK = ["reviewer-applications", "staff"] as const;
 
-export default function StaffReviewerApplicationsPage() {
+export default function StaffReviewerApplicationsPage({
+  shell = "staff",
+  fallbackName = "Staff",
+  canReview = true,
+}: StaffReviewerApplicationsPageProps) {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<{
@@ -85,7 +85,7 @@ export default function StaffReviewerApplicationsPage() {
   } = useQuery<ReviewerApp[]>({
     queryKey: REVIEWER_APPS_QK,
     queryFn: async () => {
-      const result = await getStaffList();
+      const result = await getReviewerApplications();
       // BE trả về paginated: { items: [...], totalItems, pageSize, pageIndex }
       if (result && typeof result === "object" && "items" in result) {
         return (
@@ -139,8 +139,8 @@ export default function StaffReviewerApplicationsPage() {
     (a) => a.status && a.status.toLowerCase() !== "pending",
   );
 
-  return (
-    <StaffShell activeItem="reviewer-applications">
+  const reviewerContent: ReactNode = (
+    <>
       <div className="relative">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white/55 p-3 backdrop-blur-xl ring-1 ring-slate-950/5">
           <div className="min-w-0">
@@ -154,6 +154,9 @@ export default function StaffReviewerApplicationsPage() {
               Xét duyệt đơn đăng ký làm Reviewer từ các Customer.
             </p>
           </div>
+          {shell === "admin" ? (
+            <UserAccountMenu fallbackName={fallbackName} />
+          ) : null}
         </div>
 
         {isError && (
@@ -183,8 +186,13 @@ export default function StaffReviewerApplicationsPage() {
                       key={app.id}
                       app={app}
                       processing={processing}
-                      onAccept={handleAccept}
-                      onReject={(id) => setRejectModal({ id, reason: "" })}
+                      readOnly={!canReview}
+                      onAccept={canReview ? handleAccept : undefined}
+                      onReject={
+                        canReview
+                          ? (id) => setRejectModal({ id, reason: "" })
+                          : undefined
+                      }
                     />
                   ))}
                 </div>
@@ -217,7 +225,7 @@ export default function StaffReviewerApplicationsPage() {
       </div>
 
       {/* Reject modal */}
-      {rejectModal && (
+      {canReview && rejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-2xl ring-1 ring-slate-950/5 backdrop-blur-2xl">
             <div className="border-b border-white/70 p-6">
@@ -265,7 +273,25 @@ export default function StaffReviewerApplicationsPage() {
           </div>
         </div>
       )}
-    </StaffShell>
+    </>
+  );
+
+  if (shell === "staff") {
+    return (
+      <StaffShell activeItem="reviewer-applications">
+        {reviewerContent}
+      </StaffShell>
+    );
+  }
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-6 text-slate-950">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+
+      <main className="relative mx-auto max-w-6xl">{reviewerContent}</main>
+    </div>
   );
 }
 

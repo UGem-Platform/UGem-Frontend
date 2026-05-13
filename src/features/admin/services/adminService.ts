@@ -38,9 +38,34 @@ export async function getAdminById(id: string) {
 }
 
 export async function createAdmin(payload: unknown) {
-  const { data } = await api.post<ApiResponse<null> | null>(
-    "/admins",
-    payload,
-  );
+  const { data } = await api.post<ApiResponse<null> | null>("/admins", payload);
   return data;
+}
+
+export type AdminDashboard = {
+  totalUsers: number;
+  totalMerchants: number;
+  totalOrders: number;
+  totalRevenue: number;
+  newUsersToday: number;
+  pendingApplications: number;
+  pendingReviewerApplications: number;
+};
+
+export async function getAdminDashboard() {
+  const { data } = await api.get<ApiResponse<AdminDashboard> | AdminDashboard>(
+    "/admin/dashboard",
+  );
+
+  return (
+    unwrapData(data) ?? {
+      totalUsers: 0,
+      totalMerchants: 0,
+      totalOrders: 0,
+      totalRevenue: 0,
+      newUsersToday: 0,
+      pendingApplications: 0,
+      pendingReviewerApplications: 0,
+    }
+  );
 }

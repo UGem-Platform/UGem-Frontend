@@ -6,7 +6,7 @@ import type { LoginRequest } from "../types";
 
 export function getRouteByRole(role?: string) {
   if (role === "Merchant") return "/merchant";
-  if (role === "Admin") return "/admin/jobs";
+  if (role === "Admin") return "/admin/dashboard";
   if (role === "Staff") return "/staff/dashboard";
   return "/customer";
 }

@@ -195,7 +195,7 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
                 ) : (
                   <Sparkles className="h-3.5 w-3.5" />
                 )}
-                {`US ${underratedScore.percent}%`}
+                {`US ${underratedScore.score.toFixed(2)}/1.00`}
               </span>
             )}
           </div>

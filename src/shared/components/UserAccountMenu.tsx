@@ -12,6 +12,7 @@ import { getUserProfile, type UserProfile } from "@/shared/services";
 type UserAccountMenuProps = {
   fallbackName: string;
   className?: string;
+  avatarUrl?: string;
 };
 
 function getRoleLabel(role?: string) {
@@ -25,6 +26,7 @@ function getRoleLabel(role?: string) {
 export function UserAccountMenu({
   fallbackName,
   className,
+  avatarUrl: avatarUrlOverride,
 }: UserAccountMenuProps) {
   const user = getCurrentUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -33,6 +35,8 @@ export function UserAccountMenu({
   const email = profile?.email || user?.Email || "";
   const roleLabel = getRoleLabel(profile?.role || user?.Role);
   const initial = (displayName || email || "U").trim().charAt(0).toUpperCase();
+  const avatarUrl =
+    avatarUrlOverride || profile?.avatarUrl || user?.AvatarUrl || "";
 
   useEffect(() => {
     let active = true;
@@ -79,8 +83,16 @@ export function UserAccountMenu({
     >
       <NotificationBellMenu />
 
-      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-800">
-        {initial}
+      <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-cyan-100 text-sm font-bold text-cyan-800">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={displayName}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          initial
+        )}
       </div>
 
       <div className="min-w-0">
