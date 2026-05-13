@@ -71,6 +71,28 @@ function getOrderStatusKey(status?: string | null) {
   return status?.trim().toLowerCase() ?? "";
 }
 
+function getOrderStatusChipClass(status?: string | null) {
+  const statusKey = getOrderStatusKey(status);
+
+  if (statusKey === "completed") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+
+  if (statusKey === "accepted" || statusKey === "billconfirmed") {
+    return "border-cyan-200 bg-cyan-50 text-cyan-700";
+  }
+
+  if (statusKey === "pending" || statusKey === "cashpending") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+
+  if (statusKey === "rejected" || statusKey === "billrejected") {
+    return "border-rose-200 bg-rose-50 text-rose-700";
+  }
+
+  return "border-slate-200 bg-slate-50 text-slate-700";
+}
+
 function canGenerateCheckInQr(status?: string | null) {
   const statusKey = getOrderStatusKey(status);
 
@@ -509,6 +531,9 @@ export default function MerchantOrdersPage() {
     );
   }
 
+  const detailItems = getDetailItems(orderDetail);
+  const detailTotal = getDetailTotal();
+
   return (
     <main className="merchant-portal-layout">
       <MerchantSidebar />
@@ -599,29 +624,33 @@ export default function MerchantOrdersPage() {
 
           <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
             <DialogContent
-              className="max-h-[90vh] max-w-4xl overflow-y-auto"
+              className="max-h-[92vh] max-w-4xl overflow-hidden border-white/80 bg-slate-50/95 p-0 shadow-2xl shadow-slate-950/25 backdrop-blur-xl"
               onInteractOutside={(event) => event.preventDefault()}
               onEscapeKeyDown={(event) => event.preventDefault()}
             >
-              <DialogHeader>
+              <DialogHeader className="border-b border-cyan-100 bg-white/90 px-6 py-5 text-left">
                 <DialogTitle>Chi tiết đơn hàng</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="mt-1 text-sm leading-6 text-slate-500">
                   Xem món ăn, ghi chú, giá tiền và thao tác duyệt đơn ở đây.
                 </DialogDescription>
               </DialogHeader>
 
               {selectedOrder ? (
-                <div className="space-y-5">
-                  <div className="grid gap-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4 text-sm text-slate-700 sm:grid-cols-2">
+                <div className="max-h-[calc(92vh-104px)] space-y-5 overflow-y-auto px-6 py-5">
+                  <div className="grid gap-3 rounded-3xl border border-white/80 bg-white p-4 text-sm text-slate-700 shadow-sm ring-1 ring-slate-950/5 sm:grid-cols-2">
                     <div>
                       <div className="text-slate-500">Mã đơn</div>
-                      <div className="font-semibold text-slate-900">
+                      <div className="break-all font-mono text-xs font-bold text-slate-900">
                         {selectedOrder.orderId}
                       </div>
                     </div>
                     <div>
                       <div className="text-slate-500">Trạng thái</div>
-                      <div className="font-semibold text-slate-900">
+                      <div
+                        className={`mt-1 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${getOrderStatusChipClass(
+                          selectedOrder.status,
+                        )}`}
+                      >
                         {selectedOrder.status}
                       </div>
                     </div>
@@ -647,43 +676,43 @@ export default function MerchantOrdersPage() {
                     </div>
                   ) : null}
 
-                  <div className="space-y-3">
+                  <div className="rounded-3xl border border-white/80 bg-white p-4 shadow-sm ring-1 ring-slate-950/5">
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="text-base font-semibold text-slate-950">
                         Món đã gọi
                       </h3>
-                      <div className="text-sm text-slate-500">
+                      <div className="rounded-full bg-cyan-50 px-3 py-1 text-sm font-black text-cyan-700 ring-1 ring-cyan-100">
                         Tổng: {formatCurrency(getDetailTotal())}
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      {getDetailItems(orderDetail).map((item, index) => (
+                    <div className="mt-4 space-y-3">
+                      {detailItems.map((item, index) => (
                         <div
                           key={`${getItemName(item)}-${index}`}
-                          className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
+                          className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 shadow-sm"
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0">
-                              <div className="font-semibold text-slate-900">
+                              <div className="font-black text-slate-950">
                                 {getItemName(item)}
                               </div>
-                              <div className="mt-1 text-sm text-slate-500">
+                              <div className="mt-1 inline-flex rounded-full bg-white px-2.5 py-1 text-sm font-bold text-slate-600 ring-1 ring-slate-100">
                                 Số lượng: {getItemQuantity(item)}
                               </div>
                               {getItemNote(item) ? (
-                                <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                                <div className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-100">
                                   Ghi chú: {getItemNote(item)}
                                 </div>
                               ) : null}
                             </div>
 
-                            <div className="shrink-0 text-right text-sm">
+                            <div className="shrink-0 rounded-2xl bg-white px-4 py-3 text-right text-sm shadow-sm ring-1 ring-slate-100">
                               <div className="font-medium text-slate-700">
                                 Đơn giá:{" "}
                                 {formatCurrency(getItemUnitPrice(item))}
                               </div>
-                              <div className="mt-1 font-semibold text-cyan-700">
+                              <div className="mt-1 font-black text-cyan-700">
                                 Thành tiền:{" "}
                                 {formatCurrency(getItemSubTotal(item))}
                               </div>
@@ -693,7 +722,7 @@ export default function MerchantOrdersPage() {
                       ))}
 
                       {!detailLoading &&
-                      getDetailItems(orderDetail).length === 0 ? (
+                      detailItems.length === 0 ? (
                         <p className="text-sm text-slate-500">
                           Chưa có dữ liệu món ăn.
                         </p>
@@ -708,20 +737,20 @@ export default function MerchantOrdersPage() {
                     ) : null}
                   </div>
 
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="rounded-3xl border border-cyan-100 bg-cyan-50/80 p-4 shadow-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm text-slate-500">Tổng tiền</div>
-                      <div className="text-xl font-bold text-cyan-700">
-                        {formatCurrency(getDetailTotal())}
+                      <div className="text-2xl font-black text-cyan-700">
+                        {formatCurrency(detailTotal)}
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-4 text-sm text-cyan-800">
+                  <div className="rounded-2xl border border-cyan-100 bg-white px-4 py-3 text-sm font-semibold text-cyan-800 shadow-sm ring-1 ring-cyan-50">
                     {getOrderActionMessage(selectedOrder.status)}
                   </div>
 
-                  <DialogFooter className="gap-2 sm:justify-between">
+                  <DialogFooter className="border-t border-slate-100 pt-4 gap-3 sm:justify-between">
                     <div className="flex flex-wrap gap-2">
                       {getOrderStatusKey(selectedOrder.status) === "pending" ? (
                         <>
@@ -731,7 +760,7 @@ export default function MerchantOrdersPage() {
                               void handleAcceptOrder(selectedOrder)
                             }
                             disabled={actionOrderId === selectedOrder.orderId}
-                            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-emerald-700 disabled:opacity-50"
                           >
                             <Check size={16} />
                             Xác nhận đơn
@@ -743,7 +772,7 @@ export default function MerchantOrdersPage() {
                               void handleRejectOrder(selectedOrder)
                             }
                             disabled={actionOrderId === selectedOrder.orderId}
-                            className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:-translate-y-px hover:bg-rose-50 disabled:opacity-50"
                           >
                             <X size={16} />
                             Từ chối đơn
@@ -757,7 +786,7 @@ export default function MerchantOrdersPage() {
                           type="button"
                           onClick={() => void handleUpdateBill(selectedOrder)}
                           disabled={actionOrderId === selectedOrder.orderId}
-                          className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-2xl border border-amber-200 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:-translate-y-px hover:bg-amber-50 disabled:opacity-50"
                         >
                           Cập nhật hóa đơn
                         </button>
@@ -774,7 +803,7 @@ export default function MerchantOrdersPage() {
                             )
                           }
                           disabled={actionOrderId === selectedOrder.orderId}
-                          className="inline-flex items-center gap-2 rounded-lg border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-2xl border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:-translate-y-px hover:bg-cyan-50 disabled:opacity-50"
                         >
                           <QrCode size={16} />
                           Tạo mã QR check-in
@@ -791,7 +820,7 @@ export default function MerchantOrdersPage() {
                             void handleConfirmCashPayment(selectedOrder)
                           }
                           disabled={actionOrderId === selectedOrder.orderId}
-                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-emerald-700 disabled:opacity-50"
                         >
                           <Check size={16} />
                           Xác nhận thanh toán tiền mặt
@@ -802,14 +831,14 @@ export default function MerchantOrdersPage() {
                     <button
                       type="button"
                       onClick={() => setDetailOpen(false)}
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-px hover:bg-slate-50"
                     >
                       Đóng
                     </button>
                   </DialogFooter>
 
                   {qrUrls[selectedOrder.orderId] ? (
-                    <div className="mx-auto inline-flex rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
+                    <div className="mx-auto inline-flex rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
                       <img
                         src={qrUrls[selectedOrder.orderId]}
                         alt={`QR check-in ${selectedOrder.orderId}`}
