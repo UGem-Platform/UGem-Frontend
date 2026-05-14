@@ -6,6 +6,27 @@ type ApiResponse<T> = {
   data: T;
 };
 
+function shouldFallback(error: unknown) {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return status === 404 || status === 405;
+}
+
+async function requestWithFallback<T>(
+  primary: () => Promise<T>,
+  fallback: () => Promise<T>,
+) {
+  try {
+    return await primary();
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+  }
+
+  return await fallback();
+}
+
 export type Staff = {
   id?: string;
   userId?: string;
@@ -106,9 +127,16 @@ function toBooleanValue(value: unknown) {
 }
 
 export async function getStaffList() {
-  const res = await api.get<
-    ApiResponse<StaffPageResult | Staff[]> | StaffPageResult | Staff[]
-  >("/admin/staff");
+  const res = await requestWithFallback(
+    () =>
+      api.get<
+        ApiResponse<StaffPageResult | Staff[]> | StaffPageResult | Staff[]
+      >("/admin/staff"),
+    () =>
+      api.get<
+        ApiResponse<StaffPageResult | Staff[]> | StaffPageResult | Staff[]
+      >("/admins/staff"),
+  );
 
   const payload = unwrapData(res.data) ?? [];
 
@@ -125,19 +153,26 @@ export async function getStaffList() {
 }
 
 export async function getStaffById(id: string) {
-  const res = await api.get<ApiResponse<unknown> | unknown>(
-    `/admin/staff/${id}`,
+  const res = await requestWithFallback(
+    () => api.get<ApiResponse<unknown> | unknown>(`/admin/staff/${id}`),
+    () => api.get<ApiResponse<unknown> | unknown>(`/admins/staff/${id}`),
   );
   return unwrapData(res.data);
 }
 
 export async function createStaff(payload: CreateStaffPayload) {
-  const res = await api.post<ApiResponse<null>>("/admin/staff", payload);
+  const res = await requestWithFallback(
+    () => api.post<ApiResponse<null>>("/admin/staff", payload),
+    () => api.post<ApiResponse<null>>("/admins/staff", payload),
+  );
   return res.data;
 }
 
 export async function deleteStaff(staffId: string) {
-  const res = await api.delete<ApiResponse<null>>(`/admin/staff/${staffId}`);
+  const res = await requestWithFallback(
+    () => api.delete<ApiResponse<null>>(`/admin/staff/${staffId}`),
+    () => api.delete<ApiResponse<null>>(`/admins/staff/${staffId}`),
+  );
   return res.data;
 }
 
@@ -164,7 +199,7 @@ export async function getReviewerApplications() {
 
 export async function acceptReviewerApplication(applicationId: string) {
   const res = await api.post<ApiResponse<null>>("/staff/accept", {
-    applicationId,
+    id: applicationId,
   });
   return res.data;
 }
@@ -174,7 +209,7 @@ export async function rejectReviewerApplication(
   reason: string,
 ) {
   const res = await api.post<ApiResponse<null>>("/staff/reject", {
-    applicationId,
+    id: applicationId,
     reason,
   });
   return res.data;

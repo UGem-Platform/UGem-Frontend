@@ -9,6 +9,22 @@ export type CreateOrderItem = {
   foodId: string;
   quantity: number;
   notes?: string | null;
+  foodToppingIds?: string[];
+};
+
+export type SepayWebhookRequest = {
+  gateway?: string;
+  transactionDate?: string;
+  accountNumber?: string;
+  subAccount?: string;
+  code?: string;
+  content?: string;
+  transferType?: string;
+  description?: string;
+  transferAmount: number;
+  referenceCode?: string;
+  accumulated?: number;
+  id?: number;
 };
 
 export async function createOrder(payload: {
@@ -27,9 +43,18 @@ export async function createOrder(payload: {
       foodId: f.foodId,
       quantity: f.quantity,
       notes: f.notes ?? undefined,
+      foodToppingIds: f.foodToppingIds ?? undefined,
     })),
   });
 
+  return res.data;
+}
+
+export async function sendSepayWebhook(payload: SepayWebhookRequest) {
+  const res = await api.post<ApiResponse<null>>(
+    "/orders/sepay/webhook",
+    payload,
+  );
   return res.data;
 }
 

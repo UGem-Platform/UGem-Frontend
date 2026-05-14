@@ -102,6 +102,13 @@ export type CustomerOrderDetailItem = {
   name?: string;
   unitPrice?: number;
   quantity?: number;
+  notes?: string;
+  note?: string;
+  toppings?: {
+    id?: string;
+    name?: string;
+    price?: number;
+  }[];
 };
 
 export type Application = {

@@ -29,6 +29,7 @@ import {
 import {
   createReviewerApplication,
   getMyReviewerApplication,
+  updateReviewerApplication,
   type ReviewerApplication,
 } from "@/features/review/services";
 
@@ -65,6 +66,7 @@ export default function CustomerProfilePage() {
     otherSocialUrl: "",
   });
   const [isSubmittingReviewerApp, setIsSubmittingReviewerApp] = useState(false);
+  const [showReviewerForm, setShowReviewerForm] = useState(false);
 
   const displayName =
     profile?.fullName || profile?.name || currentUser?.Name || "Customer";
@@ -78,6 +80,17 @@ export default function CustomerProfilePage() {
   const userId = currentUser?.UserId || profile?.userId || profile?.id || "-";
 
   const displayedAvatarUrl = avatarPreviewUrl || avatarUrl;
+
+  const reviewerStatus = reviewerApp?.status?.toLowerCase() ?? "";
+  const isReviewerPending =
+    reviewerApp && (reviewerStatus === "" || reviewerStatus === "pending");
+  const isReviewerAccepted =
+    reviewerApp &&
+    (reviewerStatus === "accept" ||
+      reviewerStatus === "accepted" ||
+      reviewerStatus === "approved");
+  const isReviewerRejected = reviewerApp && reviewerStatus === "rejected";
+  const canEditReviewer = !reviewerApp || isReviewerPending;
 
   useEffect(() => {
     let active = true;
@@ -112,7 +125,19 @@ export default function CustomerProfilePage() {
     const loadReviewerApp = async () => {
       try {
         const data = await getMyReviewerApplication();
-        if (active) setReviewerApp(data);
+        if (active) {
+          setReviewerApp(data);
+          if (data) {
+            setReviewerForm({
+              motivation: data.motivation ?? "",
+              experience: data.experience ?? "",
+              facebookUrl: data.facebookUrl ?? "",
+              tiktokUrl: data.tiktokUrl ?? "",
+              youtubeUrl: data.youtubeUrl ?? "",
+              otherSocialUrl: data.otherSocialUrl ?? "",
+            });
+          }
+        }
       } catch {
         // reviewer application not found is normal for most customers
       }
@@ -240,23 +265,41 @@ export default function CustomerProfilePage() {
     setIsSubmittingReviewerApp(true);
 
     try {
-      await createReviewerApplication({
-        motivation,
-        experience: reviewerForm.experience.trim() || undefined,
-        facebookUrl: reviewerForm.facebookUrl.trim() || undefined,
-        tiktokUrl: reviewerForm.tiktokUrl.trim() || undefined,
-        youtubeUrl: reviewerForm.youtubeUrl.trim() || undefined,
-        otherSocialUrl: reviewerForm.otherSocialUrl.trim() || undefined,
-      });
+      if (reviewerApp?.id && isReviewerPending) {
+        await updateReviewerApplication({
+          reviewerApplicationId: reviewerApp.id,
+          motivation,
+          experience: reviewerForm.experience.trim() || undefined,
+          facebookUrl: reviewerForm.facebookUrl.trim() || undefined,
+          tiktokUrl: reviewerForm.tiktokUrl.trim() || undefined,
+          youtubeUrl: reviewerForm.youtubeUrl.trim() || undefined,
+          otherSocialUrl: reviewerForm.otherSocialUrl.trim() || undefined,
+        });
+        notify.success("Đã cập nhật hồ sơ Reviewer.");
+      } else {
+        await createReviewerApplication({
+          motivation,
+          experience: reviewerForm.experience.trim() || undefined,
+          facebookUrl: reviewerForm.facebookUrl.trim() || undefined,
+          tiktokUrl: reviewerForm.tiktokUrl.trim() || undefined,
+          youtubeUrl: reviewerForm.youtubeUrl.trim() || undefined,
+          otherSocialUrl: reviewerForm.otherSocialUrl.trim() || undefined,
+        });
+        notify.success("Đã gửi đơn đăng ký Reviewer.");
+      }
 
       const nextApplication = await getMyReviewerApplication();
       setReviewerApp(nextApplication);
-      notify.success("Đã gửi đơn đăng ký Reviewer.");
     } catch (error) {
       console.error(error);
-      notify.error("Gửi đơn Reviewer thất bại.", {
-        description: getErrorMessage(error),
-      });
+      notify.error(
+        reviewerApp?.id && isReviewerPending
+          ? "Cập nhật hồ sơ Reviewer thất bại."
+          : "Gửi đơn Reviewer thất bại.",
+        {
+          description: getErrorMessage(error),
+        },
+      );
     } finally {
       setIsSubmittingReviewerApp(false);
     }
@@ -492,10 +535,55 @@ export default function CustomerProfilePage() {
                     Lý do từ chối: {reviewerApp.rejectionReason}
                   </p>
                 )}
+                {isReviewerAccepted && (
+                  <p className="relative mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+                    Hồ sơ đã được chấp thuận. Bạn có thể bắt đầu hoạt động với
+                    vai trò Reviewer.
+                  </p>
+                )}
+                {isReviewerRejected && (
+                  <p className="relative mt-3 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
+                    Hồ sơ bị từ chối. Vui lòng liên hệ hỗ trợ nếu cần mở lại
+                    quyền nộp hồ sơ.
+                  </p>
+                )}
               </section>
             )}
 
-            {!reviewerApp && (
+            {canEditReviewer && !showReviewerForm && (
+              <section className="relative col-span-full overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-violet-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+                <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
+                <div className="relative flex flex-wrap items-start justify-between gap-4">
+                  <div className="flex min-w-0 items-start gap-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-xl font-black text-slate-950">
+                        {reviewerApp
+                          ? "Hồ sơ Reviewer (chờ duyệt)"
+                          : "Đăng ký làm Reviewer"}
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-slate-500">
+                        {reviewerApp
+                          ? "Bạn có thể chỉnh sửa hồ sơ trước khi được duyệt."
+                          : "Gửi hồ sơ để đội ngũ xét duyệt vai trò Reviewer."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={() => setShowReviewerForm(true)}
+                    className="h-11 shrink-0 rounded-2xl bg-violet-600 px-5 font-black text-white shadow-lg shadow-violet-900/15 hover:bg-violet-700"
+                  >
+                    {reviewerApp ? "Chỉnh sửa hồ sơ" : "Đăng ký ngay"}
+                  </Button>
+                </div>
+              </section>
+            )}
+
+            {canEditReviewer && showReviewerForm && (
               <section className="relative col-span-full overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-violet-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
                 <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
                 <div className="relative mb-5 flex items-start gap-4">
@@ -504,10 +592,14 @@ export default function CustomerProfilePage() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xl font-black text-slate-950">
-                      Đăng ký làm Reviewer
+                      {reviewerApp
+                        ? "Chỉnh sửa hồ sơ Reviewer"
+                        : "Đăng ký làm Reviewer"}
                     </h3>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
-                      Gửi hồ sơ để đội ngũ xét duyệt vai trò Reviewer.
+                      {reviewerApp
+                        ? "Cập nhật hồ sơ trong lúc đang chờ duyệt."
+                        : "Gửi hồ sơ để đội ngũ xét duyệt vai trò Reviewer."}
                     </p>
                   </div>
                 </div>
@@ -590,7 +682,16 @@ export default function CustomerProfilePage() {
                     disabled={isSubmittingReviewerApp}
                   />
 
-                  <div className="flex items-end md:justify-end">
+                  <div className="flex flex-wrap items-end gap-3 md:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isSubmittingReviewerApp}
+                      onClick={() => setShowReviewerForm(false)}
+                      className="h-12 rounded-2xl border-violet-200 px-5 font-black text-violet-700 hover:bg-violet-50"
+                    >
+                      Đóng
+                    </Button>
                     <Button
                       type="submit"
                       disabled={isSubmittingReviewerApp}
@@ -601,7 +702,7 @@ export default function CustomerProfilePage() {
                       ) : (
                         <ShieldCheck className="h-4 w-4" />
                       )}
-                      Gửi hồ sơ
+                      {reviewerApp ? "Cập nhật" : "Gửi hồ sơ"}
                     </Button>
                   </div>
                 </form>

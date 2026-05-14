@@ -113,10 +113,52 @@ GET /api/v1/merchants
 }
 ```
 
+#### Response item shape
+
+```ts
+MerchantSummaryResponse {
+  id: string;
+  name: string;
+  description: string;
+  address: string;
+  logoUrl?: string;
+  rating?: number;
+  reviewCount?: number;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
+  distance?: number;
+  latitude?: number;
+  longitude?: number;
+}
+```
+
 ### Get merchant by id
 
 ```http
 GET /api/v1/merchants/{id}
+```
+
+#### Response shape
+
+```ts
+MerchantDetailResponse {
+  id: string;
+  name: string;
+  description: string;
+  address: string;
+  logoUrl?: string;
+  rating?: number;
+  reviewCount?: number;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
+  email?: string;
+  phone?: string;
+  latitude?: number;
+  longitude?: number;
+  menu?: Food[];
+}
 ```
 
 ### Get merchants by category
@@ -150,6 +192,47 @@ GET /api/v1/merchants/map
   minLatitude: number;
   maxLatitude: number;
   zoomLevel: number;
+}
+```
+
+#### Response item shape
+
+```ts
+MerchantMapResponse {
+  id: string;
+  name: string;
+  description: string;
+  address: string;
+  logoUrl?: string;
+  rating?: number;
+  reviewCount?: number;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
+  latitude?: number;
+  longitude?: number;
+}
+```
+
+### Update merchant
+
+```http
+PUT /api/v1/merchants
+```
+
+#### Request
+
+```ts
+UpdateMerchantRequest {
+  merchantName?: string;
+  merchantDescription?: string;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  openingHours?: string;
 }
 ```
 
@@ -197,6 +280,12 @@ GET /api/v1/foods
 GET /api/v1/foods/{id}
 ```
 
+### Delete food
+
+```http
+DELETE /api/v1/foods/{id}
+```
+
 ---
 
 ## 6. ORDERS
@@ -225,6 +314,20 @@ CreateOrderRequest {
 {
   foodId: string;
   quantity: number;
+}
+```
+
+#### Response shape
+
+```ts
+CreateOrderResponse {
+  orderId: string;
+  totalAmount: number;
+  bankName: string;
+  bankAccount: string;
+  description: string;
+  code: string;
+  qrCode: string;
 }
 ```
 
@@ -261,26 +364,107 @@ UpdateOrderStatusRequest {
 }
 ```
 
+### SePay webhook
+
+```http
+POST /api/v1/orders/sepay/webhook
+```
+
 ---
 
 ## 7. REVIEWS
 
-### Create review
+### Get merchant reviews
 
 ```http
-POST /api/v1/reviews
+GET /api/v1/reviews/merchant?merchantId={merchantId}
 ```
 
-### Get reviews
+#### Response item shape
 
-```http
-GET /api/v1/reviews
+```ts
+MerchantReviewResponse {
+  id: string;
+  merchantId: string;
+  orderId: string;
+  rating: number;
+  content: string;
+  imageUrl?: string;
+  createdAt: string;
+  customerName?: string;
+  customerAvatarUrl?: string;
+}
 ```
 
-### Get review by id
+### Review merchant
 
 ```http
-GET /api/v1/reviews/{id}
+POST /api/v1/reviews/merchant
+```
+
+#### Request
+
+```ts
+ReviewMerchantRequest {
+  merchantId: string;
+  orderId: string;
+  rating: number;
+  content: string;
+  imageUrl: string;
+  reviewDetails: ReviewDetailRequest[];
+}
+```
+
+#### ReviewDetailRequest
+
+```ts
+{
+  orderDetailId: string;
+  detailContent: string;
+  rating: number;
+}
+```
+
+### Update review merchant
+
+```http
+PUT /api/v1/reviews/merchant
+```
+
+#### Request
+
+```ts
+UpdateReviewMerchantRequest {
+  reviewId: string;
+  rating: number;
+  content: string;
+  imageUrl: string;
+  reviewDetails: UpdateReviewDetailRequest[];
+}
+```
+
+#### UpdateReviewDetailRequest
+
+```ts
+{
+  reviewDetailId: string;
+  detailContent: string;
+  rating: number;
+}
+```
+
+### Get review details by merchant
+
+```http
+GET /api/v1/reviews/merchant/review-details
+```
+
+#### Query parameters
+
+```ts
+{
+  reviewId: string;
+}
 ```
 
 ---
@@ -329,6 +513,9 @@ POST /api/v1/applications
 ApplicationRequest {
   name: string;
   description: string;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
   email: string;
   phone: string;
   logoUrl: string;
@@ -402,15 +589,17 @@ GET /api/v1/affiliate-links/{id}
 ### Admin
 
 ```http
-POST /api/v1/admins
-GET /api/v1/admins
-GET /api/v1/admins/{id}
+POST /api/v1/admins/staff
+GET /api/v1/admins/staff
+DELETE /api/v1/admins/staff/{staffId}
+GET /api/v1/admins/dashboard
 ```
 
 ### Staff
 
 ```http
-POST /api/v1/staff
+POST /api/v1/staff/accept
+POST /api/v1/staff/reject
 GET /api/v1/staff
 GET /api/v1/staff/{id}
 ```
@@ -427,7 +616,33 @@ GET /api/v1/notifications
 
 ---
 
-## 13. FRONTEND ARCHITECTURE SUGGESTION
+## 13. MEDIA
+
+### Upload image
+
+```http
+POST /api/v1/media/images
+```
+
+#### Notes
+
+- Auth: Bearer token required
+- Content type: multipart/form-data
+- Form field: file
+- Max request size: 5 MB
+- Accepted image types: .jpg, .jpeg, .png, .gif, .webp
+
+#### Response shape
+
+```ts
+{
+  url: string;
+}
+```
+
+---
+
+## 14. FRONTEND ARCHITECTURE SUGGESTION
 
 ### API layer structure
 
@@ -442,6 +657,49 @@ GET /api/v1/notifications
   wishlist.api.ts
   application.api.ts
   category.api.ts
+```
+
+---
+
+## 15. REVIEWER APPLICATIONS
+
+### Create reviewer application
+
+```http
+POST /api/v1/reviewer-applications
+```
+
+#### Request
+
+```ts
+CreateReviewerApplicationRequest {
+  motivation: string;
+  experience: string;
+  facebookUrl: string;
+  tiktokUrl: string;
+  youtubeUrl: string;
+  otherSocialUrl: string;
+}
+```
+
+### Update reviewer application
+
+```http
+PATCH /api/v1/reviewer-applications
+```
+
+#### Request
+
+```ts
+UpdateReviewerApplicationRequest {
+  reviewerApplicationId: string;
+  motivation: string;
+  experience: string;
+  facebookUrl: string;
+  tiktokUrl: string;
+  youtubeUrl: string;
+  otherSocialUrl: string;
+}
 ```
 
 ---

@@ -3,6 +3,10 @@ import { getCurrentUser } from "@/features/auth";
 import type { ApiResponse, MerchantOrderSummary } from "@/shared/types";
 import type { MerchantDetail } from "@/features/customer/types";
 import type { CreateApplicationPayload, MerchantApplication } from "./types";
+import {
+  acceptMerchantOrder,
+  rejectMerchantOrder,
+} from "@/shared/services/merchantOrderService";
 
 const APPLICATION_TYPE = "Merchant";
 
@@ -36,6 +40,12 @@ function unwrapApiResponse<T>(payload: T | ApiResponse<T>) {
   }
 
   return payload as T;
+}
+
+function shouldFallback(error: unknown) {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return status === 404 || status === 405;
 }
 
 function appendString(formData: FormData, key: string, value?: string | null) {
@@ -171,6 +181,14 @@ export async function getMerchantOrderDetail(orderId: string) {
 }
 
 export async function acceptOrder(orderId: string) {
+  try {
+    return await acceptMerchantOrder(orderId);
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+  }
+
   const res = await api.patch(`/orders/${orderId}/status`, {
     status: "Accepted",
   });
@@ -178,6 +196,14 @@ export async function acceptOrder(orderId: string) {
 }
 
 export async function rejectOrder(orderId: string, reason: string) {
+  try {
+    return await rejectMerchantOrder({ orderId, reason });
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+  }
+
   const res = await api.patch(`/orders/${orderId}/status`, {
     status: "Rejected",
     reason,
