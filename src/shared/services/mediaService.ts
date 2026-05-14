@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/lib/env";
+import { API_V1_BASE_URL } from "@/lib/env";
 import { getAccessToken } from "@/features/auth/store";
 import type { ApiResponse } from "@/shared/types";
 
@@ -32,11 +32,17 @@ function getFileExtension(fileName: string) {
   return dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : "";
 }
 
-async function compressImageFile(file: File, maxWidth = 1600, quality = 0.8): Promise<File> {
+async function compressImageFile(
+  file: File,
+  maxWidth = 1600,
+  quality = 0.8,
+): Promise<File> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Cannot read file for compression"));
-    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () =>
+      reject(new Error("Cannot read file for compression"));
+    reader.onload = () =>
+      resolve(typeof reader.result === "string" ? reader.result : "");
     reader.readAsDataURL(file);
   });
 
@@ -58,7 +64,9 @@ async function compressImageFile(file: File, maxWidth = 1600, quality = 0.8): Pr
   if (!ctx) throw new Error("Cannot get canvas context for compression");
   ctx.drawImage(img, 0, 0, width, height);
 
-  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/webp", quality));
+  const blob = await new Promise<Blob | null>((res) =>
+    canvas.toBlob(res, "image/webp", quality),
+  );
   if (!blob) throw new Error("Compression produced no data");
 
   const newName = file.name.replace(/\.[^/.]+$/, ".webp");
@@ -110,7 +118,7 @@ export async function uploadImage(file: File) {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const url = `${API_BASE_URL}/api/v1/media/images`;
+    const url = `${API_V1_BASE_URL}/media/images`;
     // debug: log what we send
     console.debug("media upload: file info", {
       name: file.name,
@@ -120,7 +128,11 @@ export async function uploadImage(file: File) {
     for (const entry of Array.from(formData.entries())) {
       const [k, v] = entry as [string, unknown];
       if (v instanceof File) {
-        console.debug("media upload: formData entry", k, { name: v.name, size: v.size, type: v.type });
+        console.debug("media upload: formData entry", k, {
+          name: v.name,
+          size: v.size,
+          type: v.type,
+        });
       } else {
         console.debug("media upload: formData entry", k, v);
       }
@@ -139,8 +151,13 @@ export async function uploadImage(file: File) {
       const text = await resp.text().catch(() => "");
       const msg = text || resp.statusText || `status code ${resp.status}`;
       // Log server response for easier debugging
-      console.error("media upload failed response:", { status: resp.status, body: msg });
-      const err = new Error(`Request failed with status code ${resp.status}: ${msg}`);
+      console.error("media upload failed response:", {
+        status: resp.status,
+        body: msg,
+      });
+      const err = new Error(
+        `Request failed with status code ${resp.status}: ${msg}`,
+      );
       throw err;
     }
 
@@ -157,7 +174,8 @@ export async function uploadImage(file: File) {
     if (message.includes("status code 400")) {
       // message format: 'Request failed with status code 400: <server text>'
       const parts = message.split(":");
-      const serverText = parts.slice(2).join(":").trim() || parts.slice(1).join(":").trim();
+      const serverText =
+        parts.slice(2).join(":").trim() || parts.slice(1).join(":").trim();
       if (serverText) {
         console.error("media upload server message:", serverText);
         throw new Error(serverText);

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { getCurrentUser } from "@/features/auth";
 import { getMerchantDetail } from "@/features/customer/services/merchantService";
-import { api } from "@/lib/axios";
+import { verifyCheckIn } from "@/shared/services/checkInService";
 
 export default function CheckInPage() {
   const [searchParams] = useSearchParams();
@@ -30,7 +30,7 @@ export default function CheckInPage() {
   useEffect(() => {
     let active = true;
 
-    async function verifyCheckIn() {
+    async function runCheckIn() {
       try {
         if (success) {
           if (!active) return;
@@ -53,9 +53,7 @@ export default function CheckInPage() {
           ? await getMerchantDetail(merchantId).catch(() => null)
           : null;
 
-        await api.post("/check-in/verify", {
-          merchantId: merchantId ?? undefined,
-        });
+        await verifyCheckIn({ merchantId: merchantId ?? undefined });
 
         if (!active) return;
 
@@ -79,12 +77,12 @@ export default function CheckInPage() {
       return;
     }
 
-    void verifyCheckIn();
+    void runCheckIn();
 
     return () => {
       active = false;
     };
-  }, [checkInReturnPath, merchantId, navigate, success]);
+  }, [checkInReturnPath, merchantId, navigate, orderId, success]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.16),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ecfeff_52%,#fff7ed_100%)] px-5 py-10">

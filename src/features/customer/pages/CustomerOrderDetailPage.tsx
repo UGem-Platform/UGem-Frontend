@@ -653,6 +653,23 @@ export default function CustomerOrderDetailPage() {
                 <p className="text-sm text-slate-500">
                   Số lượng: {item.quantity}
                 </p>
+                {getOrderItemToppings(item).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {getOrderItemToppings(item).map((topping) => (
+                      <span
+                        key={topping.id ?? topping.name}
+                        className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700"
+                      >
+                        +{topping.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {getOrderItemNotes(item) ? (
+                  <p className="mt-1 text-xs text-slate-500">
+                    {getOrderItemNotes(item)}
+                  </p>
+                ) : null}
               </div>
 
               <p>{Number(item.unitPrice || 0).toLocaleString("vi-VN")}đ</p>
@@ -711,6 +728,14 @@ function normalizeDateString(value?: string | null) {
   const timestamp = value ? Date.parse(value) : Number.NaN;
 
   return Number.isNaN(timestamp) ? "" : new Date(timestamp).toISOString();
+}
+
+function getOrderItemNotes(item: CustomerOrderDetailItem) {
+  return item.notes ?? item.note ?? "";
+}
+
+function getOrderItemToppings(item: CustomerOrderDetailItem) {
+  return item.toppings ?? [];
 }
 
 async function resolveOrderMerchant(item?: CustomerOrderDetailItem | null) {

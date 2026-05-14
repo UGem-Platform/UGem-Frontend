@@ -28,6 +28,14 @@ export type MerchantMenuItem = {
   price: number;
   imageUrl?: string;
   categoryDetail?: string[];
+  toppings?: MerchantFoodTopping[];
+};
+
+export type MerchantFoodTopping = {
+  id: string;
+  name: string;
+  price: number;
+  isActive?: boolean;
 };
 
 export type MerchantDetail = Merchant & {

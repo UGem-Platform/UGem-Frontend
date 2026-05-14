@@ -6,6 +6,12 @@ type ApiResponse<T> = {
   data: T;
 };
 
+function shouldFallback(error: unknown) {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return status === 404 || status === 405;
+}
+
 export type ReviewDetail = {
   id?: string;
   reviewId?: string;
@@ -78,7 +84,7 @@ export type UpdateReviewerApplicationPayload =
 export async function getReviewsByMerchantId(merchantId: string) {
   const res = await api.get<ApiResponse<Review[]>>("/reviews/merchant", {
     params: {
-      MerchantId: merchantId,
+      merchantId,
     },
   });
 
@@ -98,7 +104,7 @@ export async function getReviewDetailsByMerchant(reviewId: string) {
     "/reviews/merchant/review-details",
     {
       params: {
-        ReviewId: reviewId,
+        reviewId,
       },
     },
   );
@@ -131,8 +137,20 @@ export async function updateMerchantReview(
 export async function createReviewerApplication(
   payload: ReviewerApplicationPayload,
 ) {
+  try {
+    const res = await api.post<ApiResponse<null>>(
+      "/reviewer-application",
+      payload,
+    );
+    return res.data;
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+  }
+
   const res = await api.post<ApiResponse<null>>(
-    "/reviewer-application",
+    "/reviewer-applications",
     payload,
   );
   return res.data;
@@ -153,8 +171,19 @@ export type ReviewerApplication = {
 };
 
 export async function getMyReviewerApplication() {
+  try {
+    const res = await api.get<ApiResponse<ReviewerApplication>>(
+      "/reviewer-application",
+    );
+    return res.data.data ?? null;
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+  }
+
   const res = await api.get<ApiResponse<ReviewerApplication>>(
-    "/reviewer-application",
+    "/reviewer-applications",
   );
   return res.data.data ?? null;
 }
@@ -162,8 +191,20 @@ export async function getMyReviewerApplication() {
 export async function updateReviewerApplication(
   payload: UpdateReviewerApplicationPayload,
 ) {
+  try {
+    const res = await api.patch<ApiResponse<null>>(
+      "/reviewer-application",
+      payload,
+    );
+    return res.data;
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+  }
+
   const res = await api.patch<ApiResponse<null>>(
-    "/reviewer-application",
+    "/reviewer-applications",
     payload,
   );
   return res.data;

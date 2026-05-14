@@ -23,7 +23,11 @@ import {
 
 import { getMerchantDetail } from "../services/merchantService";
 
-import type { MerchantDetail, MerchantMenuItem } from "../types";
+import type {
+  MerchantDetail,
+  MerchantFoodTopping,
+  MerchantMenuItem,
+} from "../types";
 
 import { addWishlist } from "../services/wishlistService";
 import { createOrder } from "../services/orderService";
@@ -33,7 +37,10 @@ type CartItem = {
   food: MerchantMenuItem;
   quantity: number;
   notes?: string;
+  toppings?: MerchantFoodTopping[];
 };
+
+const NOTE_PRESETS = ["Không hành", "Ít cay", "Không ớt", "Ít đường", "Ít mỡ"];
 
 const DESCRIPTION_META_LABELS = [
   "Địa chỉ",
@@ -69,6 +76,23 @@ function getInitials(name: string) {
 
 function formatPrice(price: number) {
   return `${price.toLocaleString("vi-VN")}đ`;
+}
+
+function buildOrderItemNotes(
+  notes: string | undefined,
+  toppings: MerchantFoodTopping[] | undefined,
+) {
+  const cleanedNotes = (notes ?? "").trim();
+  const toppingNames = (toppings ?? [])
+    .map((topping) => topping.name?.trim())
+    .filter(Boolean);
+
+  if (toppingNames.length === 0) {
+    return cleanedNotes;
+  }
+
+  const toppingNote = `Topping: ${toppingNames.join(", ")}`;
+  return [cleanedNotes, toppingNote].filter(Boolean).join(" | ");
 }
 
 function parseMerchantDescription(description?: string) {
@@ -139,6 +163,9 @@ export default function MerchantDetailPage() {
   const [pendingFood, setPendingFood] = useState<MerchantMenuItem | null>(null);
 
   const [pendingQuantity, setPendingQuantity] = useState(1);
+  const [pendingNotes, setPendingNotes] = useState("");
+  const [pendingToppingIds, setPendingToppingIds] = useState<string[]>([]);
+  const [pendingMode, setPendingMode] = useState<"add" | "edit">("add");
 
   const [showReviews, setShowReviews] = useState(false);
 
@@ -149,7 +176,13 @@ export default function MerchantDetailPage() {
   const [ordering, setOrdering] = useState(false);
 
   const total = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.food.price * item.quantity, 0);
+    return cart.reduce((sum, item) => {
+      const toppingTotal = (item.toppings ?? []).reduce(
+        (subtotal, topping) => subtotal + (topping.price || 0),
+        0,
+      );
+      return sum + (item.food.price + toppingTotal) * item.quantity;
+    }, 0);
   }, [cart]);
 
   const cartItemCount = useMemo(() => {
@@ -195,7 +228,9 @@ export default function MerchantDetailPage() {
         foods: cart.map((item) => ({
           foodId: item.food.id,
           quantity: item.quantity,
-          notes: item.notes ?? undefined,
+          notes:
+            buildOrderItemNotes(item.notes ?? "", item.toppings) || undefined,
+          foodToppingIds: item.toppings?.map((topping) => topping.id),
         })),
       });
 
@@ -212,7 +247,12 @@ export default function MerchantDetailPage() {
     }
   }
 
-  function addToCart(food: MerchantMenuItem, quantity: number = 1) {
+  function addToCart(
+    food: MerchantMenuItem,
+    quantity: number = 1,
+    notes: string = "",
+    toppings: MerchantFoodTopping[] = [],
+  ) {
     const nextQuantity = Math.max(1, Math.min(99, Math.floor(quantity || 1)));
 
     setCart((prev) => {
@@ -224,13 +264,38 @@ export default function MerchantDetailPage() {
             ? {
                 ...item,
                 quantity: Math.min(99, item.quantity + nextQuantity),
+                notes,
+                toppings,
               }
             : item,
         );
       }
 
-      return [...prev, { food, quantity: nextQuantity, notes: "" }];
+      return [
+        ...prev,
+        { food, quantity: nextQuantity, notes: notes.trim(), toppings },
+      ];
     });
+  }
+
+  function updateCartItem(
+    foodId: string,
+    quantity: number,
+    notes: string,
+    toppings: MerchantFoodTopping[],
+  ) {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.food.id === foodId
+          ? {
+              ...item,
+              quantity: Math.max(1, Math.min(99, Math.floor(quantity || 1))),
+              notes: notes.trim(),
+              toppings,
+            }
+          : item,
+      ),
+    );
   }
 
   function updateCartQuantity(foodId: string, quantity: number) {
@@ -246,6 +311,21 @@ export default function MerchantDetailPage() {
   function updateCartNotes(foodId: string, notes: string) {
     setCart((prev) =>
       prev.map((item) => (item.food.id === foodId ? { ...item, notes } : item)),
+    );
+  }
+
+  function removeCartTopping(foodId: string, toppingId: string) {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.food.id === foodId
+          ? {
+              ...item,
+              toppings: (item.toppings ?? []).filter(
+                (topping) => topping.id !== toppingId,
+              ),
+            }
+          : item,
+      ),
     );
   }
 
@@ -312,11 +392,26 @@ export default function MerchantDetailPage() {
   function openAddFoodModal(food: MerchantMenuItem) {
     setPendingFood(food);
     setPendingQuantity(1);
+    setPendingNotes("");
+    setPendingToppingIds([]);
+    setPendingMode("add");
+  }
+
+  function openEditFoodModal(item: CartItem) {
+    setPendingFood(item.food);
+    setPendingQuantity(item.quantity);
+    setPendingNotes(item.notes ?? "");
+    setPendingToppingIds((item.toppings ?? []).map((topping) => topping.id));
+    setPendingMode("edit");
+    setCartOpen(false);
   }
 
   function closeAddFoodModal() {
     setPendingFood(null);
     setPendingQuantity(1);
+    setPendingNotes("");
+    setPendingToppingIds([]);
+    setPendingMode("add");
   }
 
   if (loading) {
@@ -755,6 +850,95 @@ export default function MerchantDetailPage() {
                   </div>
                 </div>
 
+                {pendingFood.toppings && pendingFood.toppings.length > 0 && (
+                  <div className="mt-5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-slate-900">
+                        Topping
+                      </h3>
+                      <span className="text-xs font-semibold text-slate-400">
+                        Chọn nhiều tùy ý
+                      </span>
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                      {pendingFood.toppings.map((topping) => {
+                        const checked = pendingToppingIds.includes(topping.id);
+                        return (
+                          <label
+                            key={topping.id}
+                            className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white px-3 py-2 text-sm shadow-sm"
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(event) => {
+                                  const nextChecked = event.target.checked;
+                                  setPendingToppingIds((prev) => {
+                                    if (nextChecked) {
+                                      return Array.from(
+                                        new Set([...prev, topping.id]),
+                                      );
+                                    }
+                                    return prev.filter(
+                                      (id) => id !== topping.id,
+                                    );
+                                  });
+                                }}
+                                className="h-4 w-4 rounded border-slate-300 text-cyan-600"
+                              />
+                              <span className="font-semibold text-slate-700">
+                                {topping.name}
+                              </span>
+                            </div>
+                            <span className="text-xs font-semibold text-slate-500">
+                              +{formatPrice(topping.price)}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-5">
+                  <h3 className="text-sm font-black text-slate-900">
+                    Ghi chú món
+                  </h3>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {NOTE_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setPendingNotes((prev) => {
+                            const exists = prev
+                              .toLowerCase()
+                              .includes(preset.toLowerCase());
+                            if (exists) return prev;
+                            const nextValue = [prev.trim(), preset]
+                              .filter(Boolean)
+                              .join(", ");
+                            return nextValue;
+                          });
+                        }}
+                        className="rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700 transition hover:-translate-y-0.5 hover:bg-cyan-100"
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    value={pendingNotes}
+                    onChange={(event) => setPendingNotes(event.target.value)}
+                    placeholder="Ví dụ: bỏ hành, ít đá"
+                    className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                  />
+                </div>
+
                 <div className="mt-5 flex flex-wrap justify-end gap-3">
                   <button
                     type="button"
@@ -767,12 +951,31 @@ export default function MerchantDetailPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      addToCart(pendingFood, pendingQuantity);
+                      const selectedToppings = (
+                        pendingFood.toppings ?? []
+                      ).filter((topping) =>
+                        pendingToppingIds.includes(topping.id),
+                      );
+                      if (pendingMode === "edit") {
+                        updateCartItem(
+                          pendingFood.id,
+                          pendingQuantity,
+                          pendingNotes,
+                          selectedToppings,
+                        );
+                      } else {
+                        addToCart(
+                          pendingFood,
+                          pendingQuantity,
+                          pendingNotes,
+                          selectedToppings,
+                        );
+                      }
                       closeAddFoodModal();
                     }}
                     className="rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-black text-white shadow-xl shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-700"
                   >
-                    Thêm vào đơn
+                    {pendingMode === "edit" ? "Cập nhật" : "Thêm vào đơn"}
                   </button>
                 </div>
               </div>
@@ -845,6 +1048,45 @@ export default function MerchantDetailPage() {
                             </p>
                           )}
 
+                          {(() => {
+                            const toppingTotal = (item.toppings ?? []).reduce(
+                              (sum, topping) => sum + (topping.price || 0),
+                              0,
+                            );
+                            if (!toppingTotal) return null;
+                            return (
+                              <p className="mt-1 text-xs font-semibold text-slate-500">
+                                Topping +{formatPrice(toppingTotal)}
+                              </p>
+                            );
+                          })()}
+
+                          {(item.toppings ?? []).length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {item.toppings?.map((topping) => (
+                                <span
+                                  key={topping.id}
+                                  className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700"
+                                >
+                                  +{topping.name}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      removeCartTopping(
+                                        item.food.id,
+                                        topping.id,
+                                      )
+                                    }
+                                    className="grid h-4 w-4 place-items-center rounded-full text-emerald-700 transition hover:bg-emerald-100"
+                                    aria-label={`Xoa ${topping.name}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
                           <div className="mt-2">
                             <input
                               placeholder="Ghi chú cho món (ví dụ: bỏ hành)"
@@ -854,6 +1096,16 @@ export default function MerchantDetailPage() {
                               }
                               className="w-full rounded-md border border-slate-200 px-3 py-1 text-sm outline-none"
                             />
+                            {item.food.toppings &&
+                              item.food.toppings.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => openEditFoodModal(item)}
+                                  className="mt-2 inline-flex items-center gap-2 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700 transition hover:-translate-y-0.5 hover:bg-cyan-100"
+                                >
+                                  Chỉnh topping
+                                </button>
+                              )}
                           </div>
                         </div>
 
@@ -977,8 +1229,8 @@ export default function MerchantDetailPage() {
 
                   <button
                     type="button"
-                    onClick={() => void handleCreateOrder()}
-                    disabled={ordering}
+                    onClick={() => setCartOpen(true)}
+                    disabled={ordering || cart.length === 0}
                     className="rounded-2xl bg-cyan-600 px-6 py-3 text-sm font-black text-white shadow-xl shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:opacity-50"
                   >
                     {ordering ? "Đang đặt..." : "Đặt món ngay"}
