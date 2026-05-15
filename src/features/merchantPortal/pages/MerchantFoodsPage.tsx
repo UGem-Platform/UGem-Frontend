@@ -199,43 +199,51 @@ export function MerchantFoodsPage() {
   }
 
   return (
-    <main className="merchant-portal-layout">
+    <main className="merchant-portal-layout bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] relative">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+
       <MerchantSidebar />
 
-      <section className="merchant-main">
+      <section className="merchant-main relative z-10">
         <MerchantHeader />
 
         <div className="merchant-content">
-          <div className="mb-5">
-            <h1 className="text-2xl font-bold text-slate-900">
+          <div className="mb-6">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+              Food Management
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
               Quản lý món ăn
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="mt-3 text-[14px] font-medium text-slate-500 leading-relaxed">
               Tạo, xem và xóa món ăn của merchant hiện tại.
             </p>
           </div>
 
           <form
             onSubmit={handleCreateFood}
-            className="rounded-lg border border-white/70 bg-white/90 p-5 shadow-lg shadow-slate-950/5 backdrop-blur"
+            className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 sm:p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]"
           >
-            <h2 className="mb-4 text-lg font-semibold">Thêm món mới</h2>
+            <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl mix-blend-multiply" />
+            <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">Thêm món mới</h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-1">
-                <span className="text-sm font-medium">Tên món *</span>
+            <div className="grid gap-5 md:grid-cols-2 relative">
+              <label className="space-y-1.5">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Tên món <span className="text-rose-500">*</span></span>
                 <input
                   value={form.name}
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, name: e.target.value }))
                   }
                   placeholder="Bún bò Huế"
-                  className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                 />
               </label>
 
-              <label className="space-y-1">
-                <span className="text-sm font-medium">Giá *</span>
+              <label className="space-y-1.5">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Giá <span className="text-rose-500">*</span></span>
                 <input
                   type="number"
                   value={form.price}
@@ -246,12 +254,12 @@ export function MerchantFoodsPage() {
                     }))
                   }
                   placeholder="45000"
-                  className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                 />
               </label>
 
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-sm font-medium">Mô tả</span>
+              <label className="space-y-1.5 md:col-span-2">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Mô tả</span>
                 <input
                   value={form.description}
                   onChange={(e) =>
@@ -261,24 +269,24 @@ export function MerchantFoodsPage() {
                     }))
                   }
                   placeholder="Đậm vị Huế"
-                  className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                 />
               </label>
 
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-sm font-medium">Ảnh URL</span>
+              <label className="space-y-1.5 md:col-span-2">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Ảnh URL</span>
                 <input
                   value={form.imageUrl}
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, imageUrl: e.target.value }))
                   }
                   placeholder="https://..."
-                  className="w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                 />
               </label>
 
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-sm font-medium">Danh mục</span>
+              <label className="space-y-1.5 md:col-span-2">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Danh mục</span>
                 <select
                   multiple
                   value={form.categoryIds}
@@ -289,10 +297,10 @@ export function MerchantFoodsPage() {
 
                     setForm((prev) => ({ ...prev, categoryIds: selected }));
                   }}
-                  className="min-h-28 w-full rounded-lg border border-slate-200 bg-white/90 px-3 py-2 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  className="min-h-32 w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                 >
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
+                    <option key={category.id} value={category.id} className="py-1">
                       {category.name}
                     </option>
                   ))}
@@ -303,45 +311,48 @@ export function MerchantFoodsPage() {
             <button
               type="submit"
               disabled={creating}
-              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-5 py-3 font-semibold text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-px hover:bg-cyan-700 disabled:translate-y-0 disabled:opacity-50"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-6 py-3.5 text-[14px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Plus size={18} />
               {creating ? "Đang tạo..." : "Thêm món"}
             </button>
           </form>
 
-          <div className="mt-6 rounded-lg border border-white/70 bg-white/90 p-5 shadow-lg shadow-slate-950/5 backdrop-blur">
-            <h2 className="mb-4 text-lg font-semibold">Danh sách món</h2>
+          <div className="mt-8 relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 sm:p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+            <div className="absolute -left-12 -top-12 h-40 w-40 rounded-full bg-blue-300/20 blur-3xl mix-blend-multiply" />
+            <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">Danh sách món</h2>
 
-            {loading && <p className="text-slate-500">Đang tải...</p>}
+            {loading && <p className="text-slate-500 font-medium">Đang tải...</p>}
 
             {!loading && foods.length === 0 && (
-              <p className="text-slate-500">Chưa có món nào.</p>
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/40 p-12 text-center shadow-sm backdrop-blur">
+                <p className="text-[15px] font-bold text-slate-500">Chưa có món nào.</p>
+              </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2 relative">
               {foods.map((food) => (
                 <div
                   key={food.id}
-                  className="rounded-lg border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-px hover:shadow-md"
+                  className="group rounded-3xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-white/80"
                 >
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     {food.imageUrl && (
                       <img
                         src={food.imageUrl}
                         alt={food.name}
-                        className="h-20 w-20 rounded-lg object-cover"
+                        className="h-24 w-24 rounded-2xl object-cover shadow-sm"
                       />
                     )}
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="font-semibold">{food.name}</h3>
+                        <h3 className="text-[16px] font-black text-slate-900 group-hover:text-cyan-800 transition-colors truncate">{food.name}</h3>
                         <button
                           type="button"
                           onClick={() => void handleDeleteFood(food.id)}
                           disabled={deletingFoodId === food.id}
-                          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-100 text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+                          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-200/60 bg-white/70 text-rose-600 shadow-sm transition-all hover:bg-rose-50 hover:shadow-md disabled:opacity-50"
                           aria-label="Xóa món"
                         >
                           <Trash2 size={16} />
@@ -349,42 +360,46 @@ export function MerchantFoodsPage() {
                       </div>
 
                       {food.description && (
-                        <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                        <p className="mt-1.5 line-clamp-2 text-[13px] font-medium text-slate-500">
                           {food.description}
                         </p>
                       )}
 
-                      <p className="mt-2 font-medium text-cyan-700">
+                      <p className="mt-2.5 text-[16px] font-black text-cyan-700">
                         {food.price.toLocaleString("vi-VN")}đ
                       </p>
 
                       {typeof food.isAvailable === "boolean" && (
-                        <p className="mt-1 text-xs text-slate-500">
-                          {food.isAvailable ? "Đang bán" : "Tạm ẩn"}
+                        <p className="mt-1.5 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm border border-slate-200/60 bg-white">
+                          {food.isAvailable ? (
+                            <span className="text-emerald-600">Đang bán</span>
+                          ) : (
+                            <span className="text-amber-600">Tạm ẩn</span>
+                          )}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="mt-4 border-t border-dashed border-slate-100 pt-3">
+                  <div className="mt-5 border-t border-slate-200/50 pt-4">
                     <button
                       type="button"
                       onClick={() => toggleToppings(food.id)}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-700 transition hover:border-cyan-200 hover:text-cyan-700"
+                      className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/60 bg-white/70 px-4 py-2 text-[13px] font-black text-cyan-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md"
                     >
-                      Topping & do them
-                      <span className="text-xs text-slate-400">
-                        {expandedFoodId === food.id ? "An" : "Mo"}
+                      Topping & Đồ thêm
+                      <span className="text-[11px] font-bold text-cyan-700/60 ml-1">
+                        {expandedFoodId === food.id ? "Ẩn" : "Mở"}
                       </span>
                     </button>
 
                     {expandedFoodId === food.id && (
-                      <div className="mt-3 space-y-3">
-                        <div className="rounded-lg border border-slate-100 bg-slate-50/70 p-3">
-                          <div className="grid gap-3 md:grid-cols-3">
-                            <label className="space-y-1">
-                              <span className="text-xs font-semibold text-slate-500">
-                                Ten topping
+                      <div className="mt-4 space-y-4">
+                        <div className="rounded-2xl border border-white/60 bg-white/50 p-4 shadow-sm">
+                          <div className="grid gap-4 md:grid-cols-3">
+                            <label className="space-y-1.5">
+                              <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                                Tên topping
                               </span>
                               <input
                                 value={toppingForms[food.id]?.name ?? ""}
@@ -398,14 +413,14 @@ export function MerchantFoodsPage() {
                                     },
                                   }));
                                 }}
-                                placeholder="Them do an kem"
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                                placeholder="Thêm đồ ăn kèm"
+                                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2 text-[13px] font-medium outline-none shadow-sm transition-all focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                               />
                             </label>
 
-                            <label className="space-y-1">
-                              <span className="text-xs font-semibold text-slate-500">
-                                Gia them
+                            <label className="space-y-1.5">
+                              <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                                Giá thêm
                               </span>
                               <input
                                 type="number"
@@ -421,71 +436,73 @@ export function MerchantFoodsPage() {
                                   }));
                                 }}
                                 placeholder="5000"
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2 text-[13px] font-medium outline-none shadow-sm transition-all focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                               />
                             </label>
 
-                            <div className="flex items-end">
+                            <div className="flex items-end pb-0.5">
                               <button
                                 type="button"
                                 onClick={() =>
                                   void handleCreateTopping(food.id)
                                 }
                                 disabled={savingToppingByFoodId[food.id]}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-900/10 transition hover:-translate-y-px hover:bg-cyan-700 disabled:translate-y-0 disabled:opacity-60"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-4 py-2 text-[13px] font-black text-white shadow-md shadow-cyan-900/20 transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:translate-y-0 disabled:opacity-60"
                               >
                                 <Plus size={16} />
                                 {savingToppingByFoodId[food.id]
-                                  ? "Dang them..."
-                                  : "Them topping"}
+                                  ? "Đang thêm..."
+                                  : "Thêm topping"}
                               </button>
                             </div>
                           </div>
                         </div>
 
                         {loadingToppingsByFoodId[food.id] && (
-                          <p className="text-sm text-slate-500">
-                            Dang tai topping...
+                          <p className="text-[13px] font-medium text-slate-500">
+                            Đang tải topping...
                           </p>
                         )}
 
                         {!loadingToppingsByFoodId[food.id] &&
                           (toppingsByFoodId[food.id]?.length ?? 0) === 0 && (
-                            <p className="text-sm text-slate-500">
-                              Chua co topping nao.
+                            <p className="text-[13px] font-medium text-slate-500">
+                              Chưa có topping nào.
                             </p>
                           )}
 
-                        {(toppingsByFoodId[food.id] ?? []).map((topping) => (
-                          <div
-                            key={topping.id}
-                            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2"
-                          >
-                            <div>
-                              <p className="text-sm font-semibold text-slate-800">
-                                {topping.name}
-                              </p>
-                              <p className="text-xs text-slate-500">
-                                {Number(topping.price ?? 0).toLocaleString(
-                                  "vi-VN",
-                                )}
-                                d
-                              </p>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                void handleDeleteTopping(food.id, topping.id)
-                              }
-                              disabled={deletingToppingId === topping.id}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-100 text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
-                              aria-label="Xoa topping"
+                        <div className="space-y-2.5">
+                          {(toppingsByFoodId[food.id] ?? []).map((topping) => (
+                            <div
+                              key={topping.id}
+                              className="flex items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/50 px-4 py-3 shadow-sm transition-all hover:bg-white/70"
                             >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        ))}
+                              <div>
+                                <p className="text-[14px] font-bold text-slate-900">
+                                  {topping.name}
+                                </p>
+                                <p className="text-[13px] font-black text-cyan-700 mt-0.5">
+                                  {Number(topping.price ?? 0).toLocaleString(
+                                    "vi-VN",
+                                  )}
+                                  đ
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handleDeleteTopping(food.id, topping.id)
+                                }
+                                disabled={deletingToppingId === topping.id}
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200/60 bg-white/70 text-rose-600 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-rose-50 hover:shadow-md disabled:translate-y-0 disabled:opacity-50"
+                                aria-label="Xóa topping"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

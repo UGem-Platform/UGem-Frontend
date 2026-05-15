@@ -199,7 +199,7 @@ export async function getReviewerApplications() {
 
 export async function acceptReviewerApplication(applicationId: string) {
   const res = await api.post<ApiResponse<null>>("/staff/accept", {
-    id: applicationId,
+    applicationId,
   });
   return res.data;
 }
@@ -209,7 +209,7 @@ export async function rejectReviewerApplication(
   reason: string,
 ) {
   const res = await api.post<ApiResponse<null>>("/staff/reject", {
-    id: applicationId,
+    applicationId,
     reason,
   });
   return res.data;

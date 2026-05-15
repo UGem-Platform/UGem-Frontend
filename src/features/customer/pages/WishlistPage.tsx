@@ -100,41 +100,42 @@ export default function WishlistPage() {
               return (
                 <div
                   key={merchantId || `${merchant.name}-${index}`}
-                  className="group relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-950/10"
+                  className="group relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)] hover:border-white/80"
                 >
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/15 blur-2xl opacity-0 transition group-hover:opacity-100" />
+                  <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100 mix-blend-multiply" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full transition-transform duration-1000 group-hover:translate-x-full" />
 
-                  <div className="relative flex gap-4">
-                    <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-cyan-100 shadow-md shadow-slate-950/5 ring-1 ring-white/70">
+                  <div className="relative flex gap-5">
+                    <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 shadow-sm ring-1 ring-white/70">
                       {merchant.logoUrl ? (
                         <img
                           src={merchant.logoUrl}
                           alt={merchant.name}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#cffafe,#f8fafc,#fef3c7)] text-cyan-800">
-                          <Store className="h-7 w-7" />
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-cyan-100 to-blue-50 text-cyan-800 transition-transform duration-500 group-hover:scale-105">
+                          <Store className="h-8 w-8" />
                         </div>
                       )}
                     </div>
 
-                    <div className="min-w-0 flex-1">
-                      <h3 className="line-clamp-1 text-lg font-black tracking-tight text-slate-950">
+                    <div className="min-w-0 flex-1 flex flex-col">
+                      <h3 className="line-clamp-1 text-[19px] font-black tracking-tight text-slate-900 group-hover:text-cyan-800 transition-colors">
                         {merchant.name}
                       </h3>
 
-                      <p className="mt-2 inline-flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-sm font-black text-amber-700 shadow-sm">
-                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <p className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-200/60 bg-gradient-to-r from-amber-50/90 to-orange-50/90 px-3.5 py-1 text-[13px] font-black text-amber-800 shadow-sm">
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
                         {merchant.rating || 0}
                       </p>
 
-                      <div className="mt-4">
+                      <div className="mt-auto pt-3">
                         <button
                           onClick={() => handleRemove(merchantId)}
-                          className="inline-flex items-center gap-2 rounded-2xl border border-rose-100 bg-white/85 px-4 py-2 text-sm font-black text-rose-600 shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:bg-rose-50 hover:shadow-lg"
+                          className="inline-flex items-center gap-2 rounded-xl border border-rose-200/60 bg-white/70 px-4 py-2 text-sm font-bold text-rose-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-50 hover:shadow-md hover:border-rose-300"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 transition-transform group-hover:scale-110" />
                           Xóa khỏi yêu thích
                         </button>
                       </div>

@@ -351,66 +351,75 @@ export default function CustomerOrderDetailPage() {
   const isCompleted = normalizedOrderStatus === "completed";
   const reviewLocked = hasReviewed || submittingReview;
 
-  if (loading) return <div className="p-5">Đang tải...</div>;
+  if (loading) return <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] p-5 text-center text-slate-500 font-medium">Đang tải chi tiết đơn hàng...</div>;
 
   return (
-    <div className="min-h-screen bg-cyan-50 px-4 py-5">
-      <div className="mx-auto max-w-3xl">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="mb-4 inline-flex items-center rounded-xl border border-white/70 bg-white/85 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur transition hover:-translate-y-px hover:bg-white"
-        >
-          Back
-        </button>
+    <div className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-8 text-slate-950">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-        <button
-          type="button"
-          onClick={handleRefresh}
-          className="mb-4 ml-2 inline-flex items-center rounded-xl border border-cyan-200 bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:-translate-y-px hover:bg-cyan-700"
-        >
-          Refresh
-        </button>
+      <div className="relative mx-auto max-w-3xl">
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/60 bg-white/60 px-4 text-[13px] font-black text-slate-700 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:bg-white/80 hover:text-cyan-800 hover:shadow-md"
+          >
+            Back
+          </button>
 
-        <div className="rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
-          <h1 className="text-2xl font-bold">{title}</h1>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-4 text-[13px] font-black text-white shadow-lg shadow-cyan-900/20 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
+          >
+            Refresh
+          </button>
+        </div>
 
-          <p className="mt-3 text-xl font-bold text-cyan-700">
+        <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl mix-blend-multiply" />
+          
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+            Order Summary
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">{title}</h1>
+
+          <p className="mt-3 text-[22px] font-black text-cyan-700">
             {total.toLocaleString("vi-VN")}đ
           </p>
 
           {summaryOrder && (
-            <div className="mt-3 space-y-1 text-sm text-slate-500">
-              <p>Trạng thái: {displayOrderStatus ?? summaryOrder.status}</p>
-              <p>
-                Ngày đặt:{" "}
-                {new Date(summaryOrder.orderedAt).toLocaleString("vi-VN")}
-              </p>
+            <div className="mt-5 space-y-2 text-[14px] text-slate-500 font-medium">
+              <p className="flex items-center gap-2"><span className="font-bold text-slate-700">Trạng thái:</span> <span className="inline-flex rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-xs font-black text-cyan-700 shadow-sm">{displayOrderStatus ?? summaryOrder.status}</span></p>
+              <p><span className="font-bold text-slate-700">Ngày đặt:</span> {new Date(summaryOrder.orderedAt).toLocaleString("vi-VN")}</p>
               {summaryOrder.deliveryAddress && (
-                <p>Địa chỉ: {summaryOrder.deliveryAddress}</p>
+                <p><span className="font-bold text-slate-700">Địa chỉ:</span> {summaryOrder.deliveryAddress}</p>
               )}
-              {summaryOrder.notes && <p>Ghi chú: {summaryOrder.notes}</p>}
+              {summaryOrder.notes && <p><span className="font-bold text-slate-700">Ghi chú:</span> {summaryOrder.notes}</p>}
             </div>
           )}
 
           {effectiveOrderId && isAccepted ? (
-            <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
-              <div className="font-semibold">Đơn đã được chấp nhận</div>
-              <p className="mt-1 text-cyan-800">
+            <div className="mt-6 rounded-2xl border border-cyan-200/60 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-5 py-4 text-[14px] text-cyan-900 shadow-sm backdrop-blur">
+              <div className="font-black text-cyan-800 text-lg">Đơn đã được chấp nhận</div>
+              <p className="mt-2 text-cyan-800/90 font-medium">
                 Merchant cần tạo QR check-in. Bạn chưa cần xác nhận “đã nhận
                 hàng” ở màn này.
               </p>
               <button
                 type="button"
                 onClick={handleOpenCheckIn}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-cyan-800"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-2.5 text-[14px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
               >
-                <Check size={16} />
+                <Check size={18} />
                 Mở màn hình check-in
               </button>
             </div>
           ) : effectiveOrderId ? (
-            <div className="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+            <div className="mt-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 px-5 py-4 text-[14px] font-bold text-amber-800 shadow-sm backdrop-blur">
               {getCustomerConfirmMessage(displayOrderStatus)}
             </div>
           ) : null}
@@ -418,12 +427,16 @@ export default function CustomerOrderDetailPage() {
 
         <div
           id="review-section"
-          className="mt-5 rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur"
+          className="mt-6 relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]"
         >
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="absolute -left-12 -top-12 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl mix-blend-multiply" />
+          <div className="relative flex flex-wrap items-start justify-between gap-3 mb-6">
             <div>
-              <h2 className="text-lg font-semibold">Đánh giá quán</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-200/50 bg-gradient-to-r from-amber-50/80 to-orange-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-amber-800 ring-1 ring-amber-500/10">
+                Feedback
+              </div>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">Đánh giá quán</h2>
+              <p className="mt-1.5 text-[14px] font-medium text-slate-500">
                 {merchantId
                   ? `Gửi nhận xét cho ${merchantName || "merchant này"}.`
                   : "Chưa xác định được merchant từ đơn hàng này."}
@@ -431,253 +444,260 @@ export default function CustomerOrderDetailPage() {
             </div>
 
             <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+              className={`inline-flex items-center rounded-full px-3.5 py-1.5 text-[12px] font-black shadow-sm ${
                 isCompleted
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-amber-50 text-amber-700"
+                  ? "border border-emerald-200/60 bg-emerald-50 text-emerald-700"
+                  : "border border-amber-200/60 bg-amber-50 text-amber-700"
               }`}
             >
               Trạng thái: {displayOrderStatus || "Đang tải"}
             </span>
           </div>
 
-          {!effectiveOrderId ? (
-            <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-              Chưa ghép được mã đơn thật từ dữ liệu danh sách, nên trang này chỉ
-              hiển thị thông tin tóm tắt.
-            </p>
-          ) : !isCompleted ? (
-            <p className="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Bạn chỉ có thể gửi đánh giá sau khi đơn hàng đã được xác nhận hoàn
-              tất.
-            </p>
-          ) : hasReviewed ? (
-            <p className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              Đơn hàng này đã được đánh giá rồi, mỗi đơn chỉ đánh giá một lần.
-            </p>
-          ) : merchantId ? (
-            <div className="mt-4 space-y-4">
-              <div>
-                <p className="mb-2 text-sm font-medium text-slate-700">
-                  Chọn số sao
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {Array.from({ length: 5 }).map((_, index) => {
-                    const value = index + 1;
-                    const active = value <= reviewRating;
-
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setReviewRating(value)}
-                        disabled={reviewLocked}
-                        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${
-                          active
-                            ? "border-amber-300 bg-amber-50 text-amber-500"
-                            : "border-slate-200 bg-white text-slate-300 hover:border-amber-200 hover:text-amber-400"
-                        }`}
-                        aria-label={`Chọn ${value} sao`}
-                      >
-                        <Star
-                          size={18}
-                          className={active ? "fill-amber-400" : ""}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="review-content"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Nội dung đánh giá
-                  <span className="ml-1 text-xs font-normal text-slate-400">
-                    (không bắt buộc)
-                  </span>
-                </label>
-                <textarea
-                  id="review-content"
-                  value={reviewContent}
-                  onChange={(e) => setReviewContent(e.target.value)}
-                  placeholder="Chia sẻ cảm nhận của bạn về quán nếu muốn..."
-                  disabled={reviewLocked}
-                  className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
-                />
-              </div>
-
-              {items.length > 0 && (
+          <div className="relative">
+            {!effectiveOrderId ? (
+              <p className="mt-4 rounded-2xl border border-dashed border-slate-200/60 bg-slate-50/80 px-5 py-4 text-[14px] font-medium text-slate-500 backdrop-blur">
+                Chưa ghép được mã đơn thật từ dữ liệu danh sách, nên trang này chỉ
+                hiển thị thông tin tóm tắt.
+              </p>
+            ) : !isCompleted ? (
+              <p className="mt-4 rounded-2xl border border-dashed border-amber-200/60 bg-amber-50/80 px-5 py-4 text-[14px] font-bold text-amber-800 backdrop-blur">
+                Bạn chỉ có thể gửi đánh giá sau khi đơn hàng đã được xác nhận hoàn
+                tất.
+              </p>
+            ) : hasReviewed ? (
+              <p className="mt-4 rounded-2xl border border-dashed border-emerald-200/60 bg-emerald-50/80 px-5 py-4 text-[14px] font-bold text-emerald-800 backdrop-blur">
+                Đơn hàng này đã được đánh giá rồi, mỗi đơn chỉ đánh giá một lần.
+              </p>
+            ) : merchantId ? (
+              <div className="mt-6 space-y-6">
                 <div>
-                  <div className="mb-3">
-                    <h3 className="text-sm font-semibold text-slate-800">
-                      Đánh giá từng món
-                    </h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Không bắt buộc. Món nào không chọn sao sẽ không gửi review
-                      riêng.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    {items.map((item) => {
-                      const orderDetailId = getOrderDetailId(item);
-                      if (!orderDetailId) return null;
-
-                      const draft = foodReviewDrafts[orderDetailId] ?? {
-                        rating: 0,
-                        content: "",
-                      };
-                      const isOpen = activeFoodReviewId === orderDetailId;
+                  <p className="mb-3 text-[14px] font-black uppercase tracking-wider text-slate-800">
+                    Chọn số sao
+                  </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const value = index + 1;
+                      const active = value <= reviewRating;
 
                       return (
-                        <div
-                          key={`food-review-${orderDetailId}`}
-                          className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4"
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setReviewRating(value)}
+                          disabled={reviewLocked}
+                          className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+                            active
+                              ? "border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 text-amber-500 shadow-sm"
+                              : "border-slate-200/60 bg-white/60 text-slate-300 hover:border-amber-200 hover:text-amber-400"
+                          }`}
+                          aria-label={`Chọn ${value} sao`}
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                              <p className="font-semibold text-slate-950">
-                                {item.name || "Món ăn"}
-                              </p>
-                              <p className="mt-1 text-xs text-slate-500">
-                                Số lượng: {item.quantity || 0}
-                              </p>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => toggleFoodReview(orderDetailId)}
-                              disabled={reviewLocked}
-                              className="rounded-xl border border-cyan-200 bg-white px-3 py-2 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:opacity-60"
-                            >
-                              {isOpen ? "Ẩn món" : "Xem món"}
-                            </button>
-                          </div>
-
-                          {draft.rating > 0 && !isOpen ? (
-                            <p className="mt-3 text-xs font-semibold text-amber-700">
-                              Đã chọn {draft.rating}/5 sao cho món này.
-                            </p>
-                          ) : null}
-
-                          {isOpen ? (
-                            <div className="mt-4 space-y-3 border-t border-slate-200 pt-4">
-                              <div className="flex flex-wrap gap-1">
-                                {Array.from({ length: 5 }).map((_, index) => {
-                                  const value = index + 1;
-                                  const active = value <= draft.rating;
-
-                                  return (
-                                    <button
-                                      key={value}
-                                      type="button"
-                                      onClick={() =>
-                                        updateFoodReviewDraft(orderDetailId, {
-                                          rating:
-                                            draft.rating === value ? 0 : value,
-                                        })
-                                      }
-                                      disabled={reviewLocked}
-                                      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${
-                                        active
-                                          ? "border-amber-300 bg-amber-50 text-amber-500"
-                                          : "border-slate-200 bg-white text-slate-300 hover:border-amber-200 hover:text-amber-400"
-                                      }`}
-                                      aria-label={`Chọn ${value} sao cho ${item.name || "món ăn"}`}
-                                    >
-                                      <Star
-                                        size={15}
-                                        className={
-                                          active ? "fill-amber-400" : ""
-                                        }
-                                      />
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              <textarea
-                                value={draft.content}
-                                onChange={(event) =>
-                                  updateFoodReviewDraft(orderDetailId, {
-                                    content: event.target.value,
-                                  })
-                                }
-                                placeholder="Nhận xét riêng cho món này nếu muốn..."
-                                disabled={reviewLocked}
-                                className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
-                              />
-                            </div>
-                          ) : null}
-                        </div>
+                          <Star
+                            size={20}
+                            className={active ? "fill-amber-400" : ""}
+                          />
+                        </button>
                       );
                     })}
                   </div>
                 </div>
-              )}
 
-              <button
-                type="button"
-                onClick={() => void handleSubmitReview()}
-                disabled={reviewLocked}
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Star size={16} className="fill-white" />
-                {hasReviewed
-                  ? "Đã đánh giá"
-                  : submittingReview
-                    ? "Đang gửi..."
-                    : "Gửi đánh giá"}
-              </button>
-            </div>
-          ) : (
-            <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-              Không lấy được merchant của đơn này, nên chưa thể tạo đánh giá.
-            </p>
-          )}
-        </div>
+                <div>
+                  <label
+                    htmlFor="review-content"
+                    className="mb-3 block text-[14px] font-black uppercase tracking-wider text-slate-800"
+                  >
+                    Nội dung đánh giá
+                    <span className="ml-1.5 text-[11px] font-bold lowercase text-slate-400">
+                      (không bắt buộc)
+                    </span>
+                  </label>
+                  <textarea
+                    id="review-content"
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
+                    placeholder="Chia sẻ cảm nhận của bạn về quán nếu muốn..."
+                    disabled={reviewLocked}
+                    className="min-h-32 w-full rounded-2xl border border-white/60 bg-white/70 px-5 py-4 text-[15px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
+                  />
+                </div>
 
-        <div className="mt-5 rounded-2xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
-          <h2 className="mb-3 text-lg font-semibold">Món đã đặt</h2>
+                {items.length > 0 && (
+                  <div>
+                    <div className="mb-4">
+                      <h3 className="text-[14px] font-black uppercase tracking-wider text-slate-800">
+                        Đánh giá từng món
+                      </h3>
+                      <p className="mt-1.5 text-[13px] font-medium text-slate-500">
+                        Không bắt buộc. Món nào không chọn sao sẽ không gửi review
+                        riêng.
+                      </p>
+                    </div>
 
-          {items.map((item) => (
-            <div
-              key={`${item.foodId}-${item.orderId}`}
-              className="flex justify-between border-b py-3"
-            >
-              <div>
-                <p className="font-medium">{item.name || "Món ăn"}</p>
-                <p className="text-sm text-slate-500">
-                  Số lượng: {item.quantity}
-                </p>
-                {getOrderItemToppings(item).length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {getOrderItemToppings(item).map((topping) => (
-                      <span
-                        key={topping.id ?? topping.name}
-                        className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700"
-                      >
-                        +{topping.name}
-                      </span>
-                    ))}
+                    <div className="space-y-4">
+                      {items.map((item) => {
+                        const orderDetailId = getOrderDetailId(item);
+                        if (!orderDetailId) return null;
+
+                        const draft = foodReviewDrafts[orderDetailId] ?? {
+                          rating: 0,
+                          content: "",
+                        };
+                        const isOpen = activeFoodReviewId === orderDetailId;
+
+                        return (
+                          <div
+                            key={`food-review-${orderDetailId}`}
+                            className="rounded-3xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur transition-all duration-300 hover:shadow-md"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <div>
+                                <p className="text-[16px] font-bold text-slate-900">
+                                  {item.name || "Món ăn"}
+                                </p>
+                                <p className="mt-1 text-[13px] font-bold text-slate-500">
+                                  Số lượng: <span className="text-slate-700">{item.quantity || 0}</span>
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => toggleFoodReview(orderDetailId)}
+                                disabled={reviewLocked}
+                                className="rounded-xl border border-cyan-200/60 bg-white/70 px-4 py-2 text-[13px] font-black text-cyan-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md disabled:opacity-60"
+                              >
+                                {isOpen ? "Ẩn món" : "Xem món"}
+                              </button>
+                            </div>
+
+                            {draft.rating > 0 && !isOpen ? (
+                              <p className="mt-3 text-[13px] font-bold text-amber-700 bg-amber-50/80 px-3 py-1.5 rounded-lg w-fit border border-amber-100/50">
+                                Đã chọn {draft.rating}/5 sao cho món này.
+                              </p>
+                            ) : null}
+
+                            {isOpen ? (
+                              <div className="mt-5 space-y-4 border-t border-slate-200/50 pt-5">
+                                <div className="flex flex-wrap gap-2">
+                                  {Array.from({ length: 5 }).map((_, index) => {
+                                    const value = index + 1;
+                                    const active = value <= draft.rating;
+
+                                    return (
+                                      <button
+                                        key={value}
+                                        type="button"
+                                        onClick={() =>
+                                          updateFoodReviewDraft(orderDetailId, {
+                                            rating:
+                                              draft.rating === value ? 0 : value,
+                                          })
+                                        }
+                                        disabled={reviewLocked}
+                                        className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 hover:-translate-y-0.5 ${
+                                          active
+                                            ? "border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 text-amber-500 shadow-sm"
+                                            : "border-slate-200/60 bg-white/60 text-slate-300 hover:border-amber-200 hover:text-amber-400"
+                                        }`}
+                                        aria-label={`Chọn ${value} sao cho ${item.name || "món ăn"}`}
+                                      >
+                                        <Star
+                                          size={16}
+                                          className={
+                                            active ? "fill-amber-400" : ""
+                                          }
+                                        />
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                <textarea
+                                  value={draft.content}
+                                  onChange={(event) =>
+                                    updateFoodReviewDraft(orderDetailId, {
+                                      content: event.target.value,
+                                    })
+                                  }
+                                  placeholder="Nhận xét riêng cho món này nếu muốn..."
+                                  disabled={reviewLocked}
+                                  className="min-h-24 w-full rounded-2xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
+                                />
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
-                {getOrderItemNotes(item) ? (
-                  <p className="mt-1 text-xs text-slate-500">
-                    {getOrderItemNotes(item)}
-                  </p>
-                ) : null}
-              </div>
 
-              <p>{Number(item.unitPrice || 0).toLocaleString("vi-VN")}đ</p>
-            </div>
-          ))}
+                <button
+                  type="button"
+                  onClick={() => void handleSubmitReview()}
+                  disabled={reviewLocked}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-6 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                >
+                  <Star size={18} className="fill-white" />
+                  {hasReviewed
+                    ? "Đã đánh giá"
+                    : submittingReview
+                      ? "Đang gửi..."
+                      : "Gửi đánh giá"}
+                </button>
+              </div>
+            ) : (
+              <p className="mt-4 rounded-2xl border border-dashed border-slate-200/60 bg-slate-50/80 px-5 py-4 text-[14px] font-medium text-slate-500 backdrop-blur">
+                Không lấy được merchant của đơn này, nên chưa thể tạo đánh giá.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-blue-300/20 blur-3xl mix-blend-multiply" />
+          <h2 className="mb-4 text-xl font-black tracking-tight text-slate-900">Món đã đặt</h2>
+
+          <div className="space-y-3">
+            {items.map((item) => (
+              <div
+                key={`${item.foodId}-${item.orderId}`}
+                className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/50 p-4 shadow-sm backdrop-blur transition-all duration-300 hover:shadow-md hover:bg-white/70"
+              >
+                <div className="min-w-0 pr-4">
+                  <p className="text-[16px] font-bold text-slate-900 truncate">{item.name || "Món ăn"}</p>
+                  <p className="mt-1 text-[13px] font-bold text-slate-500">
+                    Số lượng: <span className="text-slate-700">{item.quantity}</span>
+                  </p>
+                  {getOrderItemToppings(item).length > 0 && (
+                    <div className="mt-2.5 flex flex-wrap gap-2">
+                      {getOrderItemToppings(item).map((topping) => (
+                        <span
+                          key={topping.id ?? topping.name}
+                          className="rounded-full border border-emerald-200/60 bg-gradient-to-r from-emerald-50 to-teal-50 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-emerald-800 shadow-sm"
+                        >
+                          +{topping.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {getOrderItemNotes(item) ? (
+                    <p className="mt-2.5 text-[13px] font-medium leading-relaxed text-slate-500 bg-slate-50/80 px-3 py-1.5 rounded-lg border border-slate-100/50 w-fit">
+                      {getOrderItemNotes(item)}
+                    </p>
+                  ) : null}
+                </div>
+
+                <p className="shrink-0 text-[16px] font-black text-cyan-700">
+                  {Number(item.unitPrice || 0).toLocaleString("vi-VN")}đ
+                </p>
+              </div>
+            ))}
+          </div>
 
           {items.length === 0 && (
-            <p className="text-slate-500">
+            <p className="text-[14px] font-medium text-slate-500 text-center py-6 bg-white/40 rounded-2xl border border-white/50 backdrop-blur">
               {effectiveOrderId
                 ? "Không có món nào trong đơn."
                 : "Backend chưa trả mã đơn nên chưa tải được danh sách món."}

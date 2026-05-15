@@ -7,6 +7,7 @@ import {
   Loader2,
   Mail,
   Phone,
+  RefreshCw,
   Save,
   ShieldCheck,
   UserRound,
@@ -73,7 +74,7 @@ export default function CustomerProfilePage() {
 
   const email = profile?.email || currentUser?.Email || "-";
 
-  const roleLabel = profile?.role || currentUser?.Role || "Customer";
+  const baseRoleLabel = profile?.role || currentUser?.Role || "Customer";
 
   const phoneNumber = profile?.phoneNumber || "Chưa cập nhật";
 
@@ -89,6 +90,8 @@ export default function CustomerProfilePage() {
     (reviewerStatus === "accept" ||
       reviewerStatus === "accepted" ||
       reviewerStatus === "approved");
+  const profileContextLabel = isReviewerAccepted ? "Reviewer" : "Customer";
+  const roleLabel = isReviewerAccepted ? "Reviewer" : baseRoleLabel;
   const isReviewerRejected = reviewerApp && reviewerStatus === "rejected";
   const canEditReviewer = !reviewerApp || isReviewerPending;
 
@@ -112,7 +115,7 @@ export default function CustomerProfilePage() {
         console.error(error);
 
         if (active) {
-          notify.error("Không tải được hồ sơ Customer.");
+          notify.error("Không tải được hồ sơ.");
           setFullName(currentUser?.Name || "");
         }
       } finally {
@@ -197,11 +200,13 @@ export default function CustomerProfilePage() {
     }
 
     if (!trimmedName) {
-      notify.error("Tên Customer không được để trống.");
+      notify.error(`Tên ${profileContextLabel} không được để trống.`);
       return;
     }
 
-    const toastId = notify.loading("Đang cập nhật hồ sơ Customer...");
+    const toastId = notify.loading(
+      `Đang cập nhật hồ sơ ${profileContextLabel}...`,
+    );
     setIsSaving(true);
 
     try {
@@ -224,7 +229,7 @@ export default function CustomerProfilePage() {
 
       window.dispatchEvent(new Event("ugem:profile-updated"));
 
-      notify.success("Đã cập nhật hồ sơ Customer.", {
+      notify.success(`Đã cập nhật hồ sơ ${profileContextLabel}.`, {
         id: toastId,
       });
     } catch (error) {
@@ -312,12 +317,12 @@ export default function CustomerProfilePage() {
           <div>
             <h1 className="text-3xl font-black">UGem</h1>
             <p className="text-sm font-medium text-slate-500">
-              Quản lý thông tin tài khoản Customer
+              Quản lý thông tin tài khoản {profileContextLabel}
             </p>
           </div>
 
           <UserAccountMenu
-            fallbackName="Customer"
+            fallbackName={profileContextLabel}
             avatarUrl={displayedAvatarUrl}
           />
         </div>
@@ -328,11 +333,11 @@ export default function CustomerProfilePage() {
           <div className="sticky top-4 z-30 mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white/55 p-3 backdrop-blur-xl ring-1 ring-slate-950/5">
             <div className="min-w-0">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm shadow-cyan-950/5">
-                Customer Profile
+                {profileContextLabel} Profile
               </div>
 
               <h2 className="wrap-break-word text-3xl font-black tracking-tight text-slate-950">
-                Profile Customer
+                Profile {profileContextLabel}
               </h2>
 
               <p className="mt-1 text-sm leading-6 text-slate-600">
@@ -340,53 +345,65 @@ export default function CustomerProfilePage() {
               </p>
             </div>
 
-            <Button
-              asChild
-              type="button"
-              variant="outline"
-              className="h-10 shrink-0 gap-2 rounded-2xl border-white/70 bg-white/80 px-4 font-black shadow-sm ring-1 ring-slate-950/5"
-            >
-              <Link to="/customer">
-                <ArrowLeft className="h-4 w-4" />
-                Về trang chủ
-              </Link>
-            </Button>
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 gap-2 rounded-2xl border-white/70 bg-white/80 px-4 font-black shadow-sm ring-1 ring-slate-950/5"
+                onClick={() => window.location.reload()}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                className="h-10 gap-2 rounded-2xl border-white/70 bg-white/80 px-4 font-black shadow-sm ring-1 ring-slate-950/5"
+              >
+                <Link to="/customer">
+                  <ArrowLeft className="h-4 w-4" />
+                  Về trang chủ
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
-            <section className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
-              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-300/25 blur-2xl" />
-              <div className="absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-amber-300/25 blur-2xl" />
+            <section className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl mix-blend-multiply" />
+              <div className="absolute -bottom-12 -left-10 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl mix-blend-multiply" />
 
-              <div className="relative border-b border-white/70 p-6">
+              <div className="relative border-b border-white/40 bg-white/40 p-8 backdrop-blur-md">
                 <div className="grid place-items-center text-center">
-                  <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-[28px] bg-cyan-100 text-4xl font-black text-cyan-800 shadow-xl shadow-cyan-900/10 ring-1 ring-white/70">
+                  <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-[28px] bg-gradient-to-br from-cyan-100 to-blue-100 text-4xl font-black text-cyan-800 shadow-xl shadow-cyan-900/10 ring-2 ring-white/80 transition-transform duration-500 hover:scale-105">
                     {displayedAvatarUrl ? (
                       <img
                         src={displayedAvatarUrl}
                         alt={displayName}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
                       />
                     ) : (
                       getInitial(displayName)
                     )}
                   </div>
 
-                  <h3 className="mt-5 max-w-full truncate text-2xl font-black tracking-tight text-slate-950">
+                  <h3 className="mt-5 max-w-full truncate text-[22px] font-black tracking-tight text-slate-900 leading-tight">
                     {displayName}
                   </h3>
 
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-500">
+                  <p className="mt-1 truncate text-[15px] font-medium text-slate-500">
                     {email}
                   </p>
 
-                  <span className="mt-4 inline-flex rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-black text-cyan-700 shadow-sm">
+                  <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-cyan-200/60 bg-gradient-to-r from-cyan-50/90 to-blue-50/90 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-cyan-800 shadow-sm">
                     {roleLabel}
                   </span>
                 </div>
               </div>
 
-              <div className="relative space-y-3 p-5 text-sm">
+              <div className="relative space-y-3 p-6 text-sm bg-white/30 backdrop-blur-md">
                 <ProfileInfoRow
                   icon={ShieldCheck}
                   label="Vai trò"
@@ -435,7 +452,7 @@ export default function CustomerProfilePage() {
                 <form onSubmit={handleSubmit} className="relative space-y-5">
                   <label className="block">
                     <span className="text-sm font-black text-slate-800">
-                      Tên Customer
+                      Tên {profileContextLabel}
                     </span>
 
                     <input
@@ -505,7 +522,28 @@ export default function CustomerProfilePage() {
             </section>
 
             {/* Reviewer application status */}
-            {reviewerApp && (
+            {reviewerApp && isReviewerAccepted && (
+              <section className="relative col-span-full overflow-hidden rounded-[28px] border border-emerald-100 bg-emerald-50/80 p-5 shadow-xl shadow-emerald-950/5 ring-1 ring-emerald-100 backdrop-blur-2xl">
+                <div className="relative flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-black text-emerald-950">
+                        Hồ sơ đăng ký Reviewer đã được duyệt
+                      </h3>
+                      <p className="mt-1 text-sm font-semibold leading-6 text-emerald-700">
+                        Bạn có thể bắt đầu hoạt động với vai trò Reviewer.
+                      </p>
+                    </div>
+                  </div>
+                  <ReviewerStatusBadge status={reviewerApp.status} />
+                </div>
+              </section>
+            )}
+
+            {reviewerApp && !isReviewerAccepted && (
               <section className="relative col-span-full overflow-hidden rounded-[28px] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-violet-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
                 <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-violet-300/20 blur-2xl" />
                 <div className="relative mb-4 flex items-center gap-3">
@@ -533,12 +571,6 @@ export default function CustomerProfilePage() {
                 {reviewerApp.rejectionReason && (
                   <p className="relative mt-2 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700">
                     Lý do từ chối: {reviewerApp.rejectionReason}
-                  </p>
-                )}
-                {isReviewerAccepted && (
-                  <p className="relative mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
-                    Hồ sơ đã được chấp thuận. Bạn có thể bắt đầu hoạt động với
-                    vai trò Reviewer.
                   </p>
                 )}
                 {isReviewerRejected && (
@@ -725,17 +757,17 @@ function ProfileInfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/80 p-3 shadow-sm ring-1 ring-slate-950/5">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-50 text-cyan-700 shadow-sm ring-1 ring-cyan-100">
-        <Icon className="h-4 w-4" />
+    <div className="flex items-start gap-4 rounded-2xl border border-white/50 bg-white/60 p-3.5 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:bg-white/80 group">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-700 shadow-sm ring-1 ring-cyan-200/50 transition-transform duration-300 group-hover:scale-110">
+        <Icon className="h-4.5 w-4.5" />
       </span>
 
       <div className="min-w-0">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400 group-hover:text-cyan-700 transition-colors">
           {label}
         </p>
 
-        <p className="mt-1 break-all text-sm font-black text-slate-950">
+        <p className="mt-1 break-all text-[14px] font-bold text-slate-800">
           {value}
         </p>
       </div>

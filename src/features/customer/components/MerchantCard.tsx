@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { Merchant } from "../types";
 import { getDisplayUnderratedScore } from "../utils/underratedScore";
+import { cleanAddress } from "@/shared/utils/address";
 
 const DESCRIPTION_META_LABELS = [
   "Địa chỉ",
@@ -59,18 +60,18 @@ function formatDistance(distanceKm: number) {
 
 function getUnderratedTone(percent: number) {
   if (percent <= 0) {
-    return "border-slate-100 bg-slate-50 text-slate-500";
+    return "border-slate-200/60 bg-slate-50/80 text-slate-500 shadow-sm";
   }
 
   if (percent >= 80) {
-    return "border-emerald-100 bg-emerald-50 text-emerald-700";
+    return "border-emerald-200/60 bg-emerald-50/80 text-emerald-700 shadow-emerald-500/10 shadow-sm ring-1 ring-emerald-500/5";
   }
 
   if (percent >= 50) {
-    return "border-cyan-100 bg-cyan-50 text-cyan-700";
+    return "border-cyan-200/60 bg-cyan-50/80 text-cyan-700 shadow-cyan-500/10 shadow-sm ring-1 ring-cyan-500/5";
   }
 
-  return "border-slate-100 bg-slate-50 text-slate-600";
+  return "border-slate-200/60 bg-slate-50/80 text-slate-600 shadow-sm";
 }
 
 export default function MerchantCard({ merchant, selected = false }: Props) {
@@ -102,82 +103,92 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
     <Link
       to={`/customer/merchants/${merchant.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-lg border bg-white p-3 text-slate-900 shadow-sm shadow-slate-950/5 ring-1 ring-slate-950/5 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-lg hover:shadow-cyan-950/10",
+        "group relative block overflow-hidden rounded-xl border bg-white p-3.5 text-slate-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/5",
         selected
-          ? "border-cyan-300 bg-cyan-50/80 shadow-cyan-950/10 ring-2 ring-cyan-200"
-          : "border-slate-200/80",
+          ? "border-cyan-300 bg-gradient-to-br from-cyan-50/90 to-white shadow-cyan-950/10 ring-2 ring-cyan-400/50"
+          : "border-slate-200/70 hover:border-cyan-200",
       )}
     >
+      {/* Subtle indicator line */}
       <div
         className={cn(
-          "absolute inset-y-0 left-0 w-1 bg-cyan-500 opacity-0 transition",
+          "absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-cyan-400 to-blue-500 opacity-0 transition-opacity duration-300",
           selected ? "opacity-100" : "group-hover:opacity-100",
         )}
       />
 
-      <div className="relative flex min-w-0 flex-col gap-3 sm:flex-row">
-        <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-lg bg-cyan-50 shadow-sm shadow-slate-950/5 ring-1 ring-white/80 sm:w-32">
+      {/* Shine effect on hover */}
+      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
+
+      <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
+        {/* Image Container with overflow hidden for zoom effect */}
+        <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-lg bg-slate-50 shadow-inner sm:h-28 sm:w-32">
           {shouldShowImage ? (
             <img
               src={image}
               alt={name}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
               onError={() => setFailedImage(image)}
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-cyan-800">
-              <Store className="h-7 w-7" />
-              <span className="text-sm font-black">{initials}</span>
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-700">
+              <Store className="h-8 w-8 opacity-70" />
+              <span className="text-sm font-black tracking-tight">{initials}</span>
             </div>
           )}
 
-          {selected ? (
-            <span className="absolute right-2 top-2 rounded-md bg-cyan-500 px-2 py-1 text-[10px] font-black uppercase text-white shadow-sm">
+          {/* Overlays */}
+          <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-lg" />
+          
+          {selected && (
+            <span className="absolute right-2 top-2 rounded-md bg-cyan-500/95 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm backdrop-blur-sm">
               Đang chọn
             </span>
-          ) : null}
+          )}
 
-          {isHotUnderrated ? (
-            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50/95 px-2 py-1 text-[10px] font-black uppercase text-orange-700 shadow-sm">
-              <Flame className="h-3 w-3 fill-orange-500 text-orange-500" />
+          {isHotUnderrated && (
+            <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md border border-orange-200/80 bg-orange-50/95 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-orange-700 shadow-sm backdrop-blur-sm">
+              <Flame className="h-3 w-3 fill-orange-500 text-orange-500 animate-pulse" />
               Hot
             </span>
-          ) : null}
+          )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        {/* Content */}
+        <div className="flex min-w-0 flex-1 flex-col justify-center">
           <div className="flex min-w-0 items-start justify-between gap-3">
-            <h3 className="line-clamp-1 text-base font-black leading-snug text-slate-950 md:text-lg">
+            <h3 className="line-clamp-1 text-base font-black leading-snug text-slate-900 group-hover:text-cyan-700 transition-colors md:text-lg">
               {name}
             </h3>
 
-            <span className="hidden shrink-0 items-center gap-1 rounded-md bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700 transition group-hover:bg-cyan-50 group-hover:text-cyan-800 sm:inline-flex">
+            <span className="hidden shrink-0 items-center gap-1 rounded-full bg-slate-50 border border-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors group-hover:bg-cyan-50 group-hover:border-cyan-200 group-hover:text-cyan-700 sm:inline-flex">
               Chi tiết
               <ChevronRight className="h-3.5 w-3.5" />
             </span>
           </div>
 
           {merchant.description && (
-            <div className="mt-1 space-y-1">
+            <div className="mt-1.5">
               {descriptionPreview.summary && (
-                <p className="line-clamp-2 text-sm font-medium leading-6 text-slate-500">
+                <p className="line-clamp-2 text-sm font-medium leading-relaxed text-slate-500">
                   {descriptionPreview.summary}
                 </p>
               )}
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-black">
+          {/* Tags */}
+          <div className="mt-3.5 flex flex-wrap gap-2.5 text-xs font-bold">
             {typeof merchant.rating === "number" && (
-              <span className="inline-flex items-center gap-1 rounded-md border border-amber-100 bg-amber-50 px-2.5 py-1.5 text-amber-700 shadow-sm">
-                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200/60 bg-amber-50/80 px-2.5 py-1.5 text-amber-700 shadow-sm ring-1 ring-amber-500/5">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
                 {formatRating(merchant.rating)}
               </span>
             )}
 
             {typeof merchant.distance === "number" &&
               Number.isFinite(merchant.distance) && (
-                <span className="rounded-md border border-cyan-100 bg-cyan-50 px-2.5 py-1.5 text-cyan-700 shadow-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-cyan-200/60 bg-cyan-50/80 px-2.5 py-1.5 text-cyan-700 shadow-sm ring-1 ring-cyan-500/5">
                   {formatDistance(merchant.distance)}
                 </span>
               )}
@@ -185,25 +196,25 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
             {underratedScore !== null && (
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 shadow-sm",
+                  "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5",
                   getUnderratedTone(underratedScore.percent),
                 )}
                 title="US = Underrated Score từ BE, càng cao càng đáng thử."
               >
                 {isHotUnderrated ? (
-                  <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
+                  <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500 animate-pulse" />
                 ) : (
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-500" />
                 )}
-                {`US ${underratedScore.score.toFixed(2)}/1.00`}
+                {`US ${underratedScore.score.toFixed(2)}`}
               </span>
             )}
           </div>
 
           {merchant.address && (
-            <p className="mt-3 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-500">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-cyan-700" />
-              <span className="line-clamp-1">{merchant.address}</span>
+            <p className="mt-3.5 flex min-w-0 items-center gap-2 text-[13px] font-semibold text-slate-500 group-hover:text-slate-600 transition-colors">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
+              <span className="line-clamp-1">{cleanAddress(merchant.address)}</span>
             </p>
           )}
         </div>
@@ -211,3 +222,4 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
     </Link>
   );
 }
+

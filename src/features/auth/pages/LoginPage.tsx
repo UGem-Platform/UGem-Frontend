@@ -201,28 +201,28 @@ export function LoginPage() {
       {/* right */}
       <section className="relative flex items-center justify-center overflow-hidden px-4 py-4">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-5 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
             {/* glow */}
-            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl" />
 
-            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl" />
+            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl" />
 
             <div className="relative">
               <Logo />
 
-              <div className="mt-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm shadow-cyan-950/5">
+              <div className="mt-4">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm ring-1 ring-cyan-500/10">
                   UGem Platform
                 </div>
 
-                <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
                   Khám phá quán ăn đang bị{" "}
-                  <span className="bg-gradient-to-r from-cyan-700 to-sky-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                     FLOP
                   </span>
                 </h1>
 
-                <p className="mt-2 text-xs leading-5 text-slate-600">
+                <p className="mt-2.5 text-sm font-medium leading-relaxed text-slate-500">
                   Những quán ngon địa phương chưa nhiều người biết đến. Tìm
                   hidden gems, mở merchant và quản lý hồ sơ trong một nền tảng
                   hiện đại.
@@ -230,10 +230,10 @@ export function LoginPage() {
               </div>
 
               {/* google */}
-              <div className="mt-4 space-y-2">
+              <div className="mt-5 space-y-2">
                 {GOOGLE_CLIENT_ID ? (
                   <div
-                    className={`flex min-h-11 justify-center rounded-2xl border border-white/70 bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-950/5 ${
+                    className={`flex min-h-12 justify-center rounded-2xl border border-white/60 bg-white/70 px-3 py-2 shadow-sm backdrop-blur transition-all duration-300 hover:bg-white/90 hover:shadow-md ${
                       googleLoading ? "pointer-events-none opacity-60" : ""
                     }`}
                   >
@@ -243,7 +243,7 @@ export function LoginPage() {
                   <button
                     type="button"
                     disabled
-                    className="flex h-12 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white font-semibold text-slate-400 shadow-sm"
+                    className="flex h-12 w-full items-center justify-center rounded-2xl border border-slate-200/60 bg-slate-50/50 font-semibold text-slate-400 shadow-sm backdrop-blur"
                   >
                     Chưa cấu hình Google Client ID
                   </button>
@@ -287,53 +287,53 @@ export function LoginPage() {
 
       {/* purpose dialog */}
       {showGooglePurposeDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-md transition-all duration-300">
           <section
             aria-modal="true"
             role="dialog"
-            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-7 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl"
+            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/50 bg-white/70 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-2xl transition-transform duration-300 scale-100"
           >
-            <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-cyan-300/20 blur-3xl" />
+            <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl" />
 
-            <div className="absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-amber-300/20 blur-3xl" />
+            <div className="absolute -bottom-14 -left-14 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl" />
 
             <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                 Welcome to UGem
               </div>
 
-              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950">
+              <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
                 Bạn muốn bắt đầu như thế nào?
               </h2>
 
-              <p className="mt-3 text-sm leading-7 text-slate-600">
+              <p className="mt-3.5 text-sm font-medium leading-relaxed text-slate-500">
                 Tài khoản Google mới đã được tạo dưới vai trò Customer. Bạn có
                 thể khám phá món ngon hoặc mở quán trên UGem.
               </p>
 
-              <div className="mt-7 grid gap-3">
+              <div className="mt-8 grid gap-4">
                 <button
                   type="button"
                   onClick={() => handleGooglePurpose("/customer")}
-                  className="group flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/85 px-5 py-4 text-left shadow-sm ring-1 ring-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-white/60 bg-white/60 px-5 py-4 text-left shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-md"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-700">
-                      <Compass size={18} />
+                  <div className="flex items-center gap-3.5">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 shadow-sm">
+                      <Compass size={20} />
                     </span>
 
                     <div>
-                      <p className="font-black text-slate-950">
+                      <p className="font-black text-slate-900 group-hover:text-cyan-700 transition-colors">
                         Khám phá món ngon
                       </p>
 
-                      <p className="text-xs text-slate-500">
+                      <p className="text-[13px] font-medium text-slate-500">
                         Tìm hidden gems quanh bạn
                       </p>
                     </div>
                   </div>
 
-                  <ArrowRight className="h-5 w-5 text-slate-400 transition group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-5 w-5 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-cyan-600" />
                 </button>
 
                 <button
@@ -341,23 +341,23 @@ export function LoginPage() {
                   onClick={() =>
                     handleGooglePurpose("/merchant/application/create")
                   }
-                  className="group flex w-full items-center justify-between rounded-2xl bg-cyan-700 px-5 py-4 text-left text-white shadow-xl shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-800"
+                  className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-4 text-left text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/30"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/15">
-                      <Store size={18} />
+                  <div className="flex items-center gap-3.5">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 shadow-inner">
+                      <Store size={20} />
                     </span>
 
                     <div>
                       <p className="font-black">Mở quán trên UGem</p>
 
-                      <p className="text-xs text-cyan-100">
+                      <p className="text-[13px] font-medium text-cyan-100">
                         Gửi hồ sơ merchant để xét duyệt
                       </p>
                     </div>
                   </div>
 
-                  <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-5 w-5 transition-all duration-300 group-hover:translate-x-1" />
                 </button>
               </div>
             </div>

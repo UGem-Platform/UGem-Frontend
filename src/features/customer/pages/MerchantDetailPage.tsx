@@ -481,29 +481,32 @@ export default function MerchantDetailPage() {
         <button
           type="button"
           onClick={handleBack}
-          className="mb-4 inline-flex h-11 items-center gap-2 rounded-lg border border-white/80 bg-white/85 px-4 text-sm font-black text-slate-700 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white hover:text-cyan-800"
+          className="mb-5 inline-flex h-11 items-center gap-2 rounded-xl border border-white/60 bg-white/60 px-4 text-sm font-black text-slate-700 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:bg-white/80 hover:text-cyan-800 hover:shadow-md"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
         {/* hero */}
-        <section className="relative overflow-hidden rounded-[36px] border border-white/70 bg-white/75 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%)]" />
+        <section className="relative overflow-hidden rounded-[36px] border border-white/50 bg-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-300/10 via-transparent to-amber-300/10 opacity-50" />
+          
+          <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl mix-blend-multiply" />
+          <div className="absolute -right-20 -bottom-20 h-56 w-56 rounded-full bg-amber-400/20 blur-3xl mix-blend-multiply" />
 
           <div className="relative grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr] lg:p-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                 Featured Merchant
               </div>
 
-              <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+              <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-900 leading-[1.15]">
                 {name}
               </h1>
 
               {merchant.address && (
-                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-slate-600">
-                  <MapPin className="h-4 w-4 text-cyan-700" />
+                <p className="mt-3 flex items-center gap-2 text-[15px] font-semibold text-slate-600">
+                  <MapPin className="h-4.5 w-4.5 text-cyan-700" />
                   {merchant.address}
                 </p>
               )}
@@ -512,12 +515,12 @@ export default function MerchantDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowReviews(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-sm font-black text-amber-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/60 bg-gradient-to-r from-amber-50/90 to-orange-50/90 px-3.5 py-1.5 text-[13px] font-black text-amber-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                 >
                   <Star
                     className={
                       displayRating
-                        ? "h-4 w-4 fill-amber-400 text-amber-400"
+                        ? "h-4 w-4 fill-amber-400 text-amber-500"
                         : "h-4 w-4 text-amber-400"
                     }
                   />
@@ -527,14 +530,14 @@ export default function MerchantDetailPage() {
                 </button>
 
                 {merchant.phone && (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-950/5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3.5 py-1.5 text-[13px] font-semibold text-slate-700 shadow-sm backdrop-blur transition-all duration-300 hover:bg-white/90">
                     <Phone className="h-4 w-4 text-cyan-700" />
                     {merchant.phone}
                   </span>
                 )}
 
                 {merchant.email && (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-950/5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 px-3.5 py-1.5 text-[13px] font-semibold text-slate-700 shadow-sm backdrop-blur transition-all duration-300 hover:bg-white/90">
                     <Mail className="h-4 w-4 text-cyan-700" />
                     {merchant.email}
                   </span>
@@ -542,17 +545,17 @@ export default function MerchantDetailPage() {
               </div>
 
               {descriptionInfo.summary && (
-                <p className="mt-6 max-w-3xl text-sm leading-7 text-slate-600">
+                <p className="mt-6 max-w-3xl text-[15px] leading-relaxed text-slate-600 font-medium">
                   {descriptionInfo.summary}
                 </p>
               )}
 
               {visibleFacts.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2.5">
                   {visibleFacts.map((item) => (
                     <span
                       key={`${item.label}-${item.value}`}
-                      className="inline-flex items-center rounded-full border border-cyan-100 bg-cyan-50/80 px-3 py-1 text-xs font-bold text-cyan-800"
+                      className="inline-flex items-center rounded-full border border-cyan-200/50 bg-cyan-50/80 px-3.5 py-1.5 text-[13px] font-bold text-cyan-800 shadow-sm"
                     >
                       {item.value}
                     </span>
@@ -565,9 +568,9 @@ export default function MerchantDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleAddWishlist()}
-                className="group inline-flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-5 py-3 text-sm font-black text-cyan-700 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 transition-all hover:-translate-y-0.5 hover:bg-cyan-50"
+                className="group inline-flex items-center gap-3 rounded-2xl border border-white/60 bg-white/70 px-5 py-3.5 text-[15px] font-black text-cyan-700 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 hover:shadow-md"
               >
-                <Heart className="h-5 w-5 transition group-hover:scale-110" />
+                <Heart className="h-5 w-5 transition-transform duration-300 group-hover:scale-125 group-hover:fill-rose-400 group-hover:text-rose-500" />
                 Thêm yêu thích
               </button>
             </div>
@@ -599,47 +602,51 @@ export default function MerchantDetailPage() {
               {menuItems.map((food) => (
                 <div
                   key={food.id}
-                  className="group relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-950/10"
+                  className="group relative overflow-hidden rounded-[28px] border border-white/50 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)] hover:border-white/80"
                 >
-                  <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl opacity-0 transition group-hover:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full transition-transform duration-1000 group-hover:translate-x-full" />
+                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-                  <div className="relative flex gap-4">
+                  <div className="relative flex gap-5">
                     {food.imageUrl ? (
-                      <img
-                        src={food.imageUrl}
-                        alt={food.name}
-                        className="h-24 w-24 shrink-0 rounded-2xl object-cover shadow-md"
-                      />
+                      <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl shadow-sm">
+                        <img
+                          src={food.imageUrl}
+                          alt={food.name}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
                     ) : (
-                      <div className="grid h-24 w-24 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#cffafe,#f8fafc,#fef3c7)] text-cyan-800 shadow-md">
+                      <div className="grid h-28 w-28 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-700 shadow-sm transition-transform duration-500 group-hover:scale-105">
                         <Flame className="h-8 w-8" />
                       </div>
                     )}
 
-                    <div className="min-w-0 flex-1">
-                      <h3 className="line-clamp-1 text-lg font-black text-slate-950">
+                    <div className="min-w-0 flex-1 flex flex-col">
+                      <h3 className="line-clamp-1 text-[17px] font-black text-slate-900 group-hover:text-cyan-800 transition-colors">
                         {food.name}
                       </h3>
 
                       {food.description && (
-                        <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">
+                        <p className="mt-1.5 line-clamp-2 text-[13px] font-medium leading-relaxed text-slate-500">
                           {food.description}
                         </p>
                       )}
 
                       {food.categoryDetail?.length ? (
-                        <p className="mt-2 text-xs font-semibold text-slate-500">
-                          Danh mục: {food.categoryDetail.join(", ")}
+                        <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          {food.categoryDetail.join(" • ")}
                         </p>
                       ) : null}
 
-                      <div className="mt-4 flex items-center justify-between gap-3">
+                      <div className="mt-auto pt-4 flex items-end justify-between gap-3">
                         <div>
-                          <p className="text-lg font-black text-cyan-700">
+                          <p className="text-[17px] font-black tracking-tight text-cyan-700">
                             {formatPrice(food.price)}
                           </p>
                           {getCartQuantity(cart, food.id) > 0 && (
-                            <p className="mt-1 text-xs font-black text-emerald-600">
+                            <p className="mt-1 flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
+                              <ShoppingCart className="h-3 w-3" />
                               {getCartQuantity(cart, food.id)} trong đơn
                             </p>
                           )}
@@ -648,10 +655,10 @@ export default function MerchantDetailPage() {
                         <button
                           type="button"
                           onClick={() => openAddFoodModal(food)}
-                          className="inline-flex items-center gap-2 rounded-2xl bg-cyan-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-0.5 hover:bg-cyan-700"
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                          Thêm món
+                          <Plus className="h-4 w-4" />
+                          Thêm
                         </button>
                       </div>
                     </div>
