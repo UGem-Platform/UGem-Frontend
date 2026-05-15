@@ -330,69 +330,80 @@ export default function ConfirmBillPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-lg rounded-lg bg-white p-6 shadow">
-        <h1 className="mb-4 text-2xl font-bold">Xác nhận hóa đơn</h1>
+    <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-8 text-slate-950">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-        {loading && <p>Đang tải hóa đơn...</p>}
+      <div className="relative mx-auto max-w-xl overflow-hidden rounded-[36px] border border-white/50 bg-white/60 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl mix-blend-multiply" />
+        <div className="absolute -bottom-12 -left-10 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl mix-blend-multiply" />
 
-        {error && (
-          <div className="mb-4 rounded-md bg-rose-50 p-3 text-rose-700">
-            {error}
+        <div className="relative">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+            Payment & Check-in
           </div>
-        )}
+          <h1 className="mb-6 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">Xác nhận hóa đơn</h1>
 
-        {!loading && bill && (
-          <section>
-            <div className="mb-4">
-              <div className="text-sm text-slate-600">Mã đơn</div>
-              <div className="break-all font-mono font-semibold">
-                {billOrderId}
-              </div>
+          {loading && <p className="text-slate-500 font-medium">Đang tải hóa đơn...</p>}
+
+          {error && (
+            <div className="mb-6 rounded-2xl border border-rose-200/60 bg-rose-50/80 p-4 text-sm font-semibold text-rose-700 shadow-sm backdrop-blur">
+              {error}
             </div>
+          )}
 
-            <div className="mb-4">
-              <div className="text-sm text-slate-600">Món đã gọi</div>
-              <ul className="mt-2 space-y-2">
-                {items.map((item, idx) => {
-                  const name = item.name ?? item.Name ?? "Món ăn";
-                  const quantity = item.quantity ?? item.Quantity ?? 0;
-                  const subTotal = item.subTotal ?? item.SubTotal ?? 0;
+          {!loading && bill && (
+            <section className="space-y-6">
+              <div className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Mã đơn</div>
+                <div className="mt-1 break-all font-mono text-[15px] font-black text-cyan-800">
+                  {billOrderId}
+                </div>
+              </div>
 
-                  return (
-                    <li
-                      key={`${name}-${idx}`}
-                      className="flex justify-between gap-3"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-medium">{name}</div>
-                        <div className="text-sm text-slate-500">
-                          Số lượng: {quantity}
+              <div className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400 mb-3">Món đã gọi</div>
+                <ul className="space-y-3">
+                  {items.map((item, idx) => {
+                    const name = item.name ?? item.Name ?? "Món ăn";
+                    const quantity = item.quantity ?? item.Quantity ?? 0;
+                    const subTotal = item.subTotal ?? item.SubTotal ?? 0;
+
+                    return (
+                      <li
+                        key={`${name}-${idx}`}
+                        className="flex items-center justify-between gap-3 border-b border-slate-200/50 pb-3 last:border-0 last:pb-0"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-[15px] font-bold text-slate-800">{name}</div>
+                          <div className="text-[13px] font-medium text-slate-500 mt-0.5">
+                            Số lượng: <span className="font-bold text-slate-700">{quantity}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="shrink-0 font-semibold">
-                        {formatCurrency(subTotal)}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="text-sm text-slate-600">Tổng</div>
-              <div className="text-xl font-bold">
-                {formatCurrency(finalPrice)}
+                        <div className="shrink-0 text-[15px] font-black text-slate-900">
+                          {formatCurrency(subTotal)}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-            </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 p-5 shadow-sm">
+                <div className="text-[13px] font-black uppercase tracking-[0.18em] text-cyan-800">Tổng thanh toán</div>
+                <div className="text-2xl font-black text-cyan-700">
+                  {formatCurrency(finalPrice)}
+                </div>
+              </div>
 
             {!billConfirmed && (
-              <div className="mt-4 flex gap-3">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={handleConfirmBill}
-                  className="flex-1 rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
+                  className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                 >
                   {submitting ? "Đang gửi..." : "Xác nhận hóa đơn"}
                 </button>
@@ -400,7 +411,7 @@ export default function ConfirmBillPage() {
                   type="button"
                   disabled={submitting}
                   onClick={() => handleReject("Khác")}
-                  className="rounded-md border px-4 py-2 disabled:cursor-wait disabled:opacity-60"
+                  className="rounded-xl border border-rose-200/60 bg-white/70 px-6 py-3.5 text-[15px] font-bold text-rose-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-50 hover:shadow-md hover:border-rose-300 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                 >
                   Từ chối
                 </button>
@@ -409,27 +420,27 @@ export default function ConfirmBillPage() {
 
             {billConfirmed && (
               <>
-                <div className="mb-4 rounded-md border border-emerald-100 bg-emerald-50 p-3 text-emerald-700">
-                  <div className="flex items-center gap-2 font-medium">
-                    <CheckCircle2 className="h-4 w-4" />
+                <div className="mb-6 rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-4 shadow-sm backdrop-blur">
+                  <div className="flex items-center gap-2.5 font-bold text-emerald-700">
+                    <CheckCircle2 className="h-5 w-5" />
                     Hóa đơn đã được xác nhận
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <div className="mb-2 text-sm text-slate-600">
+                <div className="mb-6">
+                  <div className="mb-3 text-[13px] font-black uppercase tracking-[0.18em] text-slate-500">
                     Chọn phương thức thanh toán
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <label
-                      className={`cursor-pointer rounded-md border px-3 py-2 ${
+                      className={`group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border p-4 text-[15px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
                         method === "transfer"
-                          ? "border-cyan-700 bg-cyan-50"
-                          : "border-slate-200"
+                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 shadow-sm"
+                          : "border-white/60 bg-white/50 text-slate-600 hover:border-cyan-300 hover:bg-white/80"
                       }`}
                     >
                       <input
-                        className="mr-2"
+                        className="peer sr-only"
                         type="radio"
                         name="method"
                         checked={method === "transfer"}
@@ -438,17 +449,20 @@ export default function ConfirmBillPage() {
                           setCashRequested(false);
                         }}
                       />
+                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${method === 'transfer' ? 'border-cyan-600' : 'border-slate-400 group-hover:border-cyan-400'}`}>
+                        {method === 'transfer' && <div className="h-2 w-2 rounded-full bg-cyan-600" />}
+                      </div>
                       Chuyển khoản (QR)
                     </label>
                     <label
-                      className={`cursor-pointer rounded-md border px-3 py-2 ${
+                      className={`group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border p-4 text-[15px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
                         method === "cash"
-                          ? "border-cyan-700 bg-cyan-50"
-                          : "border-slate-200"
+                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 shadow-sm"
+                          : "border-white/60 bg-white/50 text-slate-600 hover:border-cyan-300 hover:bg-white/80"
                       }`}
                     >
                       <input
-                        className="mr-2"
+                        className="peer sr-only"
                         type="radio"
                         name="method"
                         checked={method === "cash"}
@@ -457,17 +471,20 @@ export default function ConfirmBillPage() {
                           setShowQr(false);
                         }}
                       />
+                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${method === 'cash' ? 'border-cyan-600' : 'border-slate-400 group-hover:border-cyan-400'}`}>
+                        {method === 'cash' && <div className="h-2 w-2 rounded-full bg-cyan-600" />}
+                      </div>
                       Tiền mặt
                     </label>
                   </div>
                 </div>
 
                 {method === "transfer" && (
-                  <div className="mb-4 rounded-md border bg-amber-50 p-3">
-                    <div className="mb-2 font-medium">
+                  <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
+                    <div className="mb-2 font-bold text-amber-800">
                       Thanh toán chuyển khoản
                     </div>
-                    <div className="text-sm text-slate-700">
+                    <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
                       Tạo mã QR chuyển khoản ngân hàng. Sau khi chuyển xong, bấm
                       Đã chuyển khoản để hoàn tất check-in.
                     </div>
@@ -475,16 +492,16 @@ export default function ConfirmBillPage() {
                 )}
 
                 {method === "cash" && (
-                  <div className="mb-4 rounded-md border bg-amber-50 p-3">
-                    <div className="mb-2 font-medium">Thanh toán tiền mặt</div>
-                    <div className="text-sm text-slate-700">
+                  <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
+                    <div className="mb-2 font-bold text-amber-800">Thanh toán tiền mặt</div>
+                    <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
                       Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
                       toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 flex gap-3">
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
                     onClick={() =>
@@ -493,7 +510,7 @@ export default function ConfirmBillPage() {
                         : void handleCashPaymentRequested()
                     }
                     disabled={submitting}
-                    className="flex-1 rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
+                    className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                   >
                     {method === "transfer"
                       ? "Tạo mã QR thanh toán"
@@ -504,32 +521,34 @@ export default function ConfirmBillPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/customer/orders/${orderId}`)}
-                    className="rounded-md border px-4 py-2"
+                    className="rounded-xl border border-slate-200/60 bg-white/70 px-6 py-3.5 text-[15px] font-bold text-slate-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md hover:border-slate-300"
                   >
                     Quay lại
                   </button>
                 </div>
 
                 {showQr && method === "transfer" && (
-                  <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm">
-                    <div className="mb-3 flex items-center justify-center gap-2 font-semibold">
-                      <QrCode className="h-5 w-5 text-cyan-700" />
+                  <div className="mt-8 rounded-3xl border border-white/60 bg-white/80 p-6 text-center shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl">
+                    <div className="mb-4 flex items-center justify-center gap-2 text-lg font-black text-cyan-800">
+                      <QrCode className="h-6 w-6" />
                       Mã QR thanh toán
                     </div>
-                    <img
-                      src={getQrUrl()}
-                      alt="Mã QR thanh toán"
-                      className="mx-auto h-64 w-64 max-w-full object-contain"
-                    />
-                    <div className="mt-3 text-sm text-slate-600">
+                    <div className="mx-auto rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100 max-w-fit">
+                      <img
+                        src={getQrUrl()}
+                        alt="Mã QR thanh toán"
+                        className="h-64 w-64 max-w-full object-contain"
+                      />
+                    </div>
+                    <div className="mt-4 text-[15px] font-medium text-slate-500">
                       Số tiền:{" "}
-                      <span className="font-semibold text-slate-900">
+                      <span className="font-black text-cyan-700 text-lg">
                         {formatCurrency(finalPrice)}
                       </span>
                     </div>
                     <button
                       type="button"
-                      className="mt-4 w-full rounded-md bg-cyan-700 px-4 py-2 text-white disabled:cursor-wait disabled:opacity-60"
+                      className="mt-6 w-full rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                       disabled={submitting}
                       onClick={() => void handleTransferPaymentCompleted()}
                     >
@@ -539,7 +558,7 @@ export default function ConfirmBillPage() {
                 )}
 
                 {cashRequested && method === "cash" && (
-                  <div className="mt-5 rounded-md border border-cyan-100 bg-cyan-50 p-3 text-sm text-cyan-800">
+                  <div className="mt-8 rounded-2xl border border-cyan-200/60 bg-cyan-50/80 p-4 text-[14px] font-semibold text-cyan-800 shadow-sm backdrop-blur">
                     Đã ghi nhận thanh toán tiền mặt. Đang chờ merchant xác nhận
                     để hoàn tất check-in.
                   </div>
@@ -548,6 +567,7 @@ export default function ConfirmBillPage() {
             )}
           </section>
         )}
+        </div>
       </div>
     </main>
   );

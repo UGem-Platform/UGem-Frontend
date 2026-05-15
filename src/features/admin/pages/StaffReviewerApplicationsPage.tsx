@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowLeft,
   BadgeCheck,
   CheckCircle2,
   Hourglass,
@@ -8,6 +9,7 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/shared/components/ui/button";
 import { UserAccountMenu } from "@/shared/components";
@@ -71,6 +73,7 @@ export default function StaffReviewerApplicationsPage({
   fallbackName = "Staff",
   canReview = true,
 }: StaffReviewerApplicationsPageProps) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<{
@@ -154,9 +157,21 @@ export default function StaffReviewerApplicationsPage({
               Xét duyệt đơn đăng ký làm Reviewer từ các Customer.
             </p>
           </div>
-          {shell === "admin" ? (
-            <UserAccountMenu fallbackName={fallbackName} />
-          ) : null}
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 gap-2 rounded-2xl border-white/70 bg-white/80 px-4 font-black shadow-sm ring-1 ring-slate-950/5"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+
+            {shell === "admin" ? (
+              <UserAccountMenu fallbackName={fallbackName} />
+            ) : null}
+          </div>
         </div>
 
         {isError && (

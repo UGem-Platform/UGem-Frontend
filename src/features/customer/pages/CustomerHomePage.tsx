@@ -819,7 +819,7 @@ export default function CustomerHomePage() {
     return (
       <div
         className={cn(
-          "grid grid-cols-2 gap-1.5 rounded-lg border border-slate-200/70 bg-white/90 p-1.5 shadow-sm",
+          "grid grid-cols-2 gap-2 rounded-xl border border-white/40 bg-white/40 p-1.5 shadow-[inset_0_2px_10px_rgba(255,255,255,0.7)] backdrop-blur-md",
           className,
         )}
         aria-label="Chọn kiểu sử dụng dịch vụ"
@@ -829,16 +829,16 @@ export default function CustomerHomePage() {
           onClick={() => handleServiceModeChange("delivery")}
           aria-pressed={serviceMode === "delivery"}
           className={cn(
-            "flex h-12 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold transition",
+            "flex h-12 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition-all duration-300 ease-out",
             serviceMode === "delivery"
-              ? "bg-[#083f4a] text-white shadow-md shadow-cyan-950/15"
-              : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
+              ? "bg-gradient-to-br from-cyan-600 to-blue-700 text-white shadow-lg shadow-cyan-900/20 ring-1 ring-white/20 scale-[1.02]"
+              : "text-slate-600 hover:bg-white/60 hover:text-cyan-800",
           )}
         >
           <span
             className={cn(
-              "flex h-7 w-7 items-center justify-center rounded-md",
-              serviceMode === "delivery" ? "bg-white/15" : "bg-cyan-50",
+              "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+              serviceMode === "delivery" ? "bg-white/20 text-cyan-50" : "bg-cyan-50 text-cyan-600",
             )}
           >
             <Navigation className="h-4 w-4" />
@@ -850,21 +850,21 @@ export default function CustomerHomePage() {
           onClick={() => handleServiceModeChange("dineIn")}
           aria-pressed={serviceMode === "dineIn"}
           className={cn(
-            "flex h-12 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold transition",
+            "flex h-12 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition-all duration-300 ease-out",
             serviceMode === "dineIn"
-              ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-900/10"
-              : "text-slate-600 hover:bg-amber-50 hover:text-slate-950",
+              ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-900/20 ring-1 ring-white/20 scale-[1.02]"
+              : "text-slate-600 hover:bg-white/60 hover:text-amber-700",
           )}
         >
           <span
             className={cn(
-              "flex h-7 w-7 items-center justify-center rounded-md",
-              serviceMode === "dineIn" ? "bg-white/35" : "bg-amber-50",
+              "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+              serviceMode === "dineIn" ? "bg-white/20 text-amber-50" : "bg-amber-50 text-amber-600",
             )}
           >
             <MapIcon className="h-4 w-4" />
           </span>
-          Đi ăn nhà hàng
+          Tại quán
         </button>
       </div>
     );
@@ -909,7 +909,7 @@ export default function CustomerHomePage() {
         value={selectedCategoryId}
         onChange={(event) => handleCategoryChange(event.target.value)}
         className={cn(
-          "h-11 rounded-lg border border-slate-200 bg-white/90 px-3 text-sm font-semibold text-slate-700 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100",
+          "h-11 rounded-xl border border-white/60 bg-white/60 px-4 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur outline-none transition-all focus:border-cyan-400 focus:bg-white/90 focus:ring-4 focus:ring-cyan-400/10",
           className,
         )}
       >
@@ -1030,31 +1030,33 @@ export default function CustomerHomePage() {
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-130 max-w-full bg-linear-to-r from-white/75 via-white/35 to-transparent" />
         )}
 
-        <header className="pointer-events-none absolute left-0 right-0 top-0 z-30 flex flex-wrap items-start justify-between gap-3 px-4 py-4 lg:px-6">
+        <header className="pointer-events-none absolute left-0 right-0 top-0 z-30 flex flex-wrap items-start justify-between gap-4 px-4 py-4 lg:px-6">
           {showMerchantPanel && (
-            <div className="pointer-events-auto w-full max-w-110 rounded-lg border border-white/70 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
+            <div className="pointer-events-auto w-full max-w-110 rounded-2xl border border-white/50 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-semibold">UGem</h1>
-                  <p className="text-sm text-slate-500">
-                    Khám phá các quán ăn gần bạn
+                  <h1 className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+                    UGem
+                  </h1>
+                  <p className="text-sm font-medium text-slate-500">
+                    Khám phá tinh hoa ẩm thực
                   </p>
                 </div>
-                <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
+                <span className="flex items-center rounded-full bg-gradient-to-r from-cyan-100 to-blue-100 px-3.5 py-1.5 text-xs font-bold tracking-wide text-cyan-800 shadow-sm ring-1 ring-cyan-500/10">
                   {merchantCountText}
                 </span>
               </div>
 
-              <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+              <form onSubmit={handleSearch} className="mt-5 flex gap-2">
                 <Input
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Tìm quán, món ăn..."
-                  className="h-11 rounded-lg border-white/80 bg-white/90 text-sm shadow-sm"
+                  className="h-11 rounded-xl border-white/60 bg-white/60 px-4 text-sm font-medium shadow-sm backdrop-blur transition-all focus:border-cyan-400 focus:bg-white/90 focus:ring-4 focus:ring-cyan-400/10"
                 />
                 <Button
                   type="submit"
-                  className="h-11 shrink-0 gap-2 rounded-lg px-4"
+                  className="h-11 shrink-0 gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-5 font-bold shadow-md shadow-cyan-500/20 transition-all hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-95"
                   disabled={loading}
                 >
                   <Search className="h-4 w-4" />
@@ -1062,22 +1064,22 @@ export default function CustomerHomePage() {
                 </Button>
               </form>
 
-              {renderServiceModeTabs("mt-3")}
-              {renderCategoryFilter("mt-3 w-full")}
-              {renderPriceRangeFilters("mt-3")}
+              {renderServiceModeTabs("mt-4")}
+              {renderCategoryFilter("mt-4 w-full")}
+              {renderPriceRangeFilters("mt-4")}
             </div>
           )}
 
-          <div className="pointer-events-auto ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
+          <div className="pointer-events-auto ml-auto flex max-w-full flex-wrap items-center justify-end gap-2.5">
             <UserAccountMenu fallbackName="Customer" />
             <Button
               type="button"
               variant="outline"
               onClick={() => setShowMerchantPanel((value) => !value)}
               aria-pressed={showMerchantPanel}
-              className="h-10 gap-2 rounded-lg border-white/70 bg-white/90 shadow-lg backdrop-blur"
+              className="h-10 gap-2 rounded-xl border-white/50 bg-white/70 font-semibold shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] backdrop-blur-lg transition-all hover:bg-white/90"
             >
-              <List className="h-4 w-4" />
+              <List className="h-4 w-4 text-cyan-600" />
               {showMerchantPanel ? "Ẩn quán" : "Hiện quán"}
             </Button>
             <Button
@@ -1085,9 +1087,9 @@ export default function CustomerHomePage() {
               variant="outline"
               onClick={() => setShowRoutePanel((value) => !value)}
               aria-pressed={showRoutePanel}
-              className="h-10 gap-2 rounded-lg border-white/70 bg-white/90 shadow-lg backdrop-blur"
+              className="h-10 gap-2 rounded-xl border-white/50 bg-white/70 font-semibold shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] backdrop-blur-lg transition-all hover:bg-white/90"
             >
-              <MapPin className="h-4 w-4" />
+              <MapPin className="h-4 w-4 text-emerald-600" />
               {showRoutePanel ? "Ẩn vị trí" : "Hiện vị trí"}
             </Button>
             <Button
@@ -1095,43 +1097,40 @@ export default function CustomerHomePage() {
               variant="outline"
               onClick={() => handleServiceModeChange("delivery")}
               aria-pressed={serviceMode === "delivery"}
-              className="h-10 gap-2 rounded-lg border-white/70 bg-white/90 shadow-lg backdrop-blur"
+              className="h-10 gap-2 rounded-xl border-white/50 bg-white/70 font-semibold shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] backdrop-blur-lg transition-all hover:bg-white/90"
             >
-              <Navigation className="h-4 w-4" />
+              <Navigation className="h-4 w-4 text-blue-600" />
               Giao hàng
             </Button>
           </div>
         </header>
 
         {showMerchantPanel && (
-          <aside className="pointer-events-auto absolute bottom-4 left-4 top-52 z-20 flex w-[min(440px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-2xl backdrop-blur-xl lg:bottom-6 lg:left-6 lg:top-52">
-            <div className="border-b border-slate-200/80 px-4 py-3">
+          <aside className="pointer-events-auto absolute bottom-4 left-4 top-56 z-20 flex w-[min(440px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500 lg:bottom-6 lg:left-6 lg:top-56">
+            <div className="border-b border-white/40 bg-white/40 px-5 py-4 backdrop-blur-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold">Quán gần bạn</h2>
-                  <p className="text-xs text-slate-500">
+                  <h2 className="text-lg font-black text-slate-800 tracking-tight">Quán gần bạn</h2>
+                  <p className="text-xs font-medium text-slate-500">
                     Chọn quán để xem đường đi trên bản đồ
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                    {merchantCountText}
-                  </span>
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
                     onClick={handleOpenMyOrders}
-                    className="h-8 rounded-lg border-cyan-200 bg-white/90 px-3 text-xs text-cyan-700 shadow-sm"
+                    className="h-8 rounded-xl border-cyan-200/60 bg-white/80 px-3 text-xs font-bold text-cyan-700 shadow-sm transition-colors hover:bg-cyan-50 hover:text-cyan-800"
                   >
-                    Đơn hàng của tôi
+                    Đơn của tôi
                   </Button>
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
                     onClick={() => setShowMerchantPanel(false)}
-                    className="h-8 rounded-lg px-2 text-xs text-slate-500"
+                    className="h-8 rounded-xl px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-200/50"
                   >
                     Ẩn
                   </Button>
@@ -1139,41 +1138,41 @@ export default function CustomerHomePage() {
               </div>
 
               {locationError && (
-                <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-800">
+                <div className="mt-3 rounded-xl border border-orange-200/80 bg-gradient-to-r from-orange-50/90 to-red-50/90 px-4 py-2.5 text-[13px] font-semibold text-orange-800 shadow-sm">
                   {locationError}
                 </div>
               )}
 
-              {renderPriceRangeFilters("mt-3")}
+              {renderPriceRangeFilters("mt-4")}
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin]">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-width:thin]">
               {renderMerchantListContent(true)}
             </div>
           </aside>
         )}
 
         {showRoutePanel && (
-          <section className="pointer-events-auto absolute right-4 top-52 z-20 flex max-h-[calc(100vh-9rem)] w-[min(470px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-2xl backdrop-blur-xl lg:right-6 lg:top-52">
-            <div className="border-b border-slate-200/80 px-4 py-3">
+          <section className="pointer-events-auto absolute right-4 top-56 z-20 flex max-h-[calc(100vh-10rem)] w-[min(470px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500 lg:right-6 lg:top-56">
+            <div className="border-b border-white/40 bg-white/40 px-5 py-4 backdrop-blur-sm">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold">Bản đồ</h2>
-                  <p className="text-xs text-slate-500">
+                  <h2 className="text-lg font-black text-slate-800 tracking-tight">Bản đồ di chuyển</h2>
+                  <p className="text-[13px] font-medium text-slate-500">
                     {selectedMerchant
-                      ? `Đang xem: ${selectedMerchant.name}`
+                      ? <span className="text-cyan-700">Đang xem: {selectedMerchant.name}</span>
                       : "Click vào quán để xem đường đi"}
                   </p>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1.5">
                   {selectedMerchantId && (
                     <Button
                       type="button"
                       size="sm"
                       variant="ghost"
                       onClick={handleClearRoute}
-                      className="h-8 gap-1 rounded-lg px-2 text-xs text-slate-500"
+                      className="h-8 gap-1.5 rounded-xl px-2.5 text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
                     >
                       <X className="h-3.5 w-3.5" />
                       Xoá
@@ -1184,7 +1183,7 @@ export default function CustomerHomePage() {
                     size="sm"
                     variant="ghost"
                     onClick={() => setShowRoutePanel(false)}
-                    className="h-8 rounded-lg px-2 text-xs text-slate-500"
+                    className="h-8 rounded-xl px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-200/50"
                   >
                     Ẩn
                   </Button>

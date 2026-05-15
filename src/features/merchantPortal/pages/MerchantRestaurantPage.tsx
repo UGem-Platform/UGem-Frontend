@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
+import { cleanAddress } from "@/shared/utils/address";
 import { Link } from "react-router-dom";
 import {
   Clock3,
@@ -186,25 +187,31 @@ export function MerchantRestaurantPage() {
   }
 
   return (
-    <main className="merchant-portal-layout">
+    <main className="merchant-portal-layout bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] relative">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
+
       <MerchantSidebar />
 
-      <section className="merchant-main">
+      <section className="merchant-main relative z-10">
         <MerchantHeader />
 
         <div className="merchant-content">
-          <section className="rounded-2xl border border-cyan-100 bg-white/90 p-6 shadow-sm">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <section className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+            <div className="absolute -left-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl opacity-0 transition-opacity duration-500 hover:opacity-100 mix-blend-multiply" />
+            
+            <div className="mb-8 flex flex-wrap items-start justify-between gap-6 relative">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-700">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                   Nhà hàng của bạn
-                </p>
-                <h1 className="mt-2 text-2xl font-bold text-slate-950">
+                </div>
+                <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
                   {merchant?.name || "Thông tin nhà hàng"}
                 </h1>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {merchant ? (
                   <button
                     type="button"
@@ -212,7 +219,7 @@ export function MerchantRestaurantPage() {
                       setForm(toEditForm(merchant));
                       setIsEditing((value) => !value);
                     }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-white/80 border border-slate-200/60 px-5 py-2.5 text-[13px] font-black text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
                   >
                     {isEditing ? <X size={16} /> : <Pencil size={16} />}
                     {isEditing ? "Hủy sửa" : "Chỉnh sửa"}
@@ -220,13 +227,13 @@ export function MerchantRestaurantPage() {
                 ) : null}
                 <Link
                   to="/merchant/foods"
-                  className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-2.5 text-[13px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
                 >
                   Quản lý món
                 </Link>
                 <Link
                   to="/merchant/orders"
-                  className="rounded-xl border border-cyan-200 px-4 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/80 border border-cyan-200/60 px-5 py-2.5 text-[13px] font-black text-cyan-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-50 hover:shadow-md"
                 >
                   Đơn hàng
                 </Link>
@@ -234,19 +241,22 @@ export function MerchantRestaurantPage() {
             </div>
 
             {loading ? (
-              <p className="text-sm text-slate-500">Đang tải nhà hàng...</p>
+              <p className="text-[14px] font-medium text-slate-500">Đang tải nhà hàng...</p>
             ) : !merchant ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Chưa lấy được hồ sơ nhà hàng. FE đang dùng MerchantId trong JWT
-                để gọi GET /api/v1/merchants/{`{id}`}; token hiện tại{" "}
-                {merchantId
-                  ? "có MerchantId nhưng BE chưa trả dữ liệu."
-                  : "chưa có MerchantId."}
+              <div className="relative overflow-hidden rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50/90 to-orange-50/90 p-5 shadow-sm">
+                <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-amber-300/30 blur-2xl" />
+                <p className="relative text-[14px] font-bold text-amber-800 leading-relaxed">
+                  Chưa lấy được hồ sơ nhà hàng. FE đang dùng MerchantId trong JWT
+                  để gọi GET /api/v1/merchants/{`{id}`}; token hiện tại{" "}
+                  {merchantId
+                    ? "có MerchantId nhưng BE chưa trả dữ liệu."
+                    : "chưa có MerchantId."}
+                </p>
               </div>
             ) : isEditing ? (
               <form
                 onSubmit={handleUpdateMerchant}
-                className="grid gap-4 md:grid-cols-2"
+                className="grid gap-5 md:grid-cols-2 relative"
               >
                 <EditField
                   label="Tên nhà hàng"
@@ -289,8 +299,8 @@ export function MerchantRestaurantPage() {
                   disabled={saving}
                   className="md:col-span-2"
                 />
-                <label className="block md:col-span-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                <label className="block md:col-span-2 space-y-1.5">
+                  <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
                     Mô tả
                   </span>
                   <textarea
@@ -302,42 +312,42 @@ export function MerchantRestaurantPage() {
                       }))
                     }
                     disabled={saving}
-                    className="mt-1 min-h-28 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 disabled:opacity-60"
+                    className="w-full min-h-32 rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20 disabled:opacity-60"
                   />
                 </label>
-                <div className="flex justify-end md:col-span-2">
+                <div className="flex justify-end md:col-span-2 pt-2">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-6 py-3.5 text-[14px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
                   >
-                    <Save size={16} />
+                    <Save size={18} />
                     {saving ? "Đang lưu..." : "Lưu hồ sơ"}
                   </button>
                 </div>
               </form>
             ) : (
-              <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
-                <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+              <div className="grid gap-6 lg:grid-cols-[260px_1fr] relative">
+                <div className="overflow-hidden rounded-[24px] border border-white/60 bg-white/50 shadow-md">
                   {merchant.logoUrl ? (
                     <img
                       src={merchant.logoUrl}
                       alt={merchant.name}
-                      className="h-52 w-full object-cover"
+                      className="h-64 w-full object-cover"
                     />
                   ) : (
-                    <div className="grid h-52 place-items-center text-cyan-700">
-                      <Store size={42} />
+                    <div className="grid h-64 place-items-center text-cyan-700 bg-gradient-to-br from-cyan-50 to-blue-50">
+                      <Store size={56} className="opacity-50" />
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-4">
-                  <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-6">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <InfoLine
                       icon={<MapPin size={16} />}
                       label="Địa chỉ"
-                      value={merchant.address}
+                      value={cleanAddress(merchant.address)}
                     />
                     <InfoLine
                       icon={<Phone size={16} />}
@@ -361,19 +371,19 @@ export function MerchantRestaurantPage() {
                   </div>
 
                   {displayDescription ? (
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                    <div className="rounded-2xl border border-white/60 bg-white/50 p-6 shadow-sm">
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
                         Mô tả
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-slate-700">
+                      <p className="mt-3 text-[14px] font-medium leading-relaxed text-slate-700">
                         {displayDescription}
                       </p>
                       {descriptionMeta.length > 0 ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="mt-5 flex flex-wrap gap-2.5">
                           {descriptionMeta.map((item) => (
                             <span
                               key={item.label}
-                              className="rounded-full border border-cyan-100 bg-white px-3 py-1 text-xs font-bold text-cyan-800"
+                              className="rounded-full border border-cyan-200/60 bg-white/70 px-4 py-1.5 text-[12px] font-black tracking-wide text-cyan-800 shadow-sm"
                             >
                               {item.label}: {item.value}
                             </span>
@@ -388,30 +398,33 @@ export function MerchantRestaurantPage() {
           </section>
 
           {merchant ? (
-            <section className="mt-5 rounded-2xl border border-cyan-100 bg-white/90 p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-slate-950">
+            <section className="mt-8 relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+              <div className="absolute -right-12 -bottom-12 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl opacity-0 transition-opacity duration-500 hover:opacity-100 mix-blend-multiply" />
+              <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">
                 Menu hiện tại
               </h2>
 
               {menu.length > 0 ? (
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2 relative">
                   {menu.map((item) => (
                     <article
                       key={item.id}
-                      className="flex gap-3 rounded-xl border border-slate-100 bg-white p-3"
+                      className="group flex items-center gap-4 rounded-[20px] border border-white/60 bg-white/50 p-4 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/80 hover:shadow-md hover:border-white/80"
                     >
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
                           alt={item.name}
-                          className="h-16 w-16 rounded-lg object-cover"
+                          className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-sm transition-transform duration-300 group-hover:scale-105"
                         />
-                      ) : null}
-                      <div className="min-w-0">
-                        <h3 className="truncate font-semibold text-slate-900">
+                      ) : (
+                        <div className="h-20 w-20 shrink-0 rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 shadow-sm" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-[16px] font-black text-slate-900 group-hover:text-cyan-800 transition-colors">
                           {item.name}
                         </h3>
-                        <p className="mt-1 text-sm font-semibold text-cyan-700">
+                        <p className="mt-1.5 text-[15px] font-black text-cyan-700">
                           {item.price.toLocaleString("vi-VN")}đ
                         </p>
                       </div>
@@ -419,9 +432,11 @@ export function MerchantRestaurantPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">
-                  Chưa có món nào trong menu.
-                </p>
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/40 p-12 text-center shadow-sm backdrop-blur">
+                  <p className="text-[15px] font-bold text-slate-500">
+                    Chưa có món nào trong menu.
+                  </p>
+                </div>
               )}
             </section>
           ) : null}
@@ -441,12 +456,12 @@ function InfoLine({
   value?: string | null;
 }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-3">
-      <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-400">
-        {icon}
+    <div className="rounded-[20px] border border-white/60 bg-white/50 p-4 shadow-sm backdrop-blur transition-all duration-300 hover:bg-white/80 hover:shadow-md">
+      <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+        <span className="text-cyan-700">{icon}</span>
         {label}
       </div>
-      <p className="text-sm font-semibold text-slate-800">
+      <p className="text-[14px] font-black text-slate-900">
         {value || "Chưa có"}
       </p>
     </div>
@@ -468,12 +483,12 @@ function EditField({
 }) {
   return (
     <label className={className}>
-      <span className="text-sm font-semibold text-slate-700">{label}</span>
+      <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">{label}</span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
-        className="mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 disabled:opacity-60"
+        className="h-12 w-full rounded-xl border border-white/60 bg-white/70 px-4 text-[14px] font-medium text-slate-900 outline-none shadow-sm backdrop-blur transition-all focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20 disabled:opacity-60"
       />
     </label>
   );
