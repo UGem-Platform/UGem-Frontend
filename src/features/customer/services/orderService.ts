@@ -12,6 +12,8 @@ export type CreateOrderItem = {
   foodToppingIds?: string[];
 };
 
+export type CustomerOrderType = "Online" | "Offline";
+
 export type SepayWebhookRequest = {
   gateway?: string;
   transactionDate?: string;
@@ -29,15 +31,22 @@ export type SepayWebhookRequest = {
 
 export async function createOrder(payload: {
   name: string;
-  deliveryAddress: string;
+  deliveryAddress?: string;
   notes?: string;
+  orderType?: CustomerOrderType;
+  paymentMethod?: "Cash" | "BankTransfer" | "COD";
   finalPrice: number;
   foods: CreateOrderItem[];
 }) {
+  const orderType = payload.orderType ?? "Online";
+
   const res = await api.post<ApiResponse<null>>("/orders", {
     name: payload.name,
-    paymentMethod: "Cash",
-    deliveryAddress: payload.deliveryAddress,
+    paymentMethod:
+      payload.paymentMethod ?? (orderType === "Online" ? "COD" : "Cash"),
+    orderType,
+    deliveryAddress:
+      orderType === "Online" ? payload.deliveryAddress : "Tai quan",
     notes: payload.notes || "",
     foods: payload.foods.map((f) => ({
       foodId: f.foodId,

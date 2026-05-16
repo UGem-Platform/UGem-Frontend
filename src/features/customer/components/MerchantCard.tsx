@@ -49,6 +49,7 @@ function getMerchantDescriptionPreview(description?: string) {
 type Props = {
   merchant: Merchant;
   selected?: boolean;
+  orderMode?: "online" | "offline";
 };
 
 function formatDistance(distanceKm: number) {
@@ -74,7 +75,11 @@ function getUnderratedTone(percent: number) {
   return "border-slate-200/60 bg-slate-50/80 text-slate-600 shadow-sm";
 }
 
-export default function MerchantCard({ merchant, selected = false }: Props) {
+export default function MerchantCard({
+  merchant,
+  selected = false,
+  orderMode = "online",
+}: Props) {
   const name = merchant.name || "Unnamed merchant";
   const descriptionPreview = getMerchantDescriptionPreview(
     merchant.description,
@@ -101,7 +106,7 @@ export default function MerchantCard({ merchant, selected = false }: Props) {
 
   return (
     <Link
-      to={`/customer/merchants/${merchant.id}`}
+      to={`/customer/merchants/${merchant.id}?mode=${orderMode}`}
       className={cn(
         "group relative block overflow-hidden rounded-xl border bg-white p-3.5 text-slate-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/5",
         selected

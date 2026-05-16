@@ -3,7 +3,6 @@ import type { ApiResponse } from "@/shared/types";
 
 export type GenerateQrParams = {
   orderId: string;
-  merchantId?: string;
 };
 
 export async function generateCheckInQr(params: GenerateQrParams) {
@@ -16,7 +15,7 @@ export async function generateCheckInQr(params: GenerateQrParams) {
 }
 
 export type CheckInRequest = {
-  merchantId?: string;
+  orderId: string;
 };
 
 export async function verifyCheckIn(payload: CheckInRequest) {

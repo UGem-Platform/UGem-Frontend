@@ -992,7 +992,11 @@ export default function CustomerHomePage() {
                 selected ? "bg-cyan-50/70 p-1" : "",
               )}
             >
-              <MerchantCard merchant={merchant} selected={selected} />
+              <MerchantCard
+                merchant={merchant}
+                selected={selected}
+                orderMode={serviceMode === "dineIn" ? "offline" : "online"}
+              />
 
               {withRouteActions && (
                 <div className="px-1 pt-2">{renderRouteButton(merchant)}</div>

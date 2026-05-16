@@ -7,6 +7,9 @@ export type Application = {
   updatedAt?: string | null;
   name?: string;
   description?: string;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
   applicant?: {
     userId: string;
     fullName: string;

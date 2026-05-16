@@ -41,6 +41,9 @@ export type OnboardingFormValues = {
 export type CreateApplicationPayload = {
   name: string;
   description: string;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
   email: string;
   phone: string;
   logoUrl: string;
@@ -66,6 +69,9 @@ export type MerchantApplication = {
   phone?: string;
   logoUrl?: string;
   openingHours?: string;
+  restaurantType?: string;
+  mainDishType?: string;
+  priceRange?: string;
   latitude?: number;
   longitude?: number;
   type?: string;
