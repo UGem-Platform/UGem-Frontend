@@ -372,7 +372,12 @@ export default function CustomerOrderDetailPage() {
     normalizeString(summaryOrder?.notes).includes("offline");
   const reviewLocked = hasReviewed || submittingReview;
 
-  if (loading) return <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] p-5 text-center text-slate-500 font-medium">Đang tải chi tiết đơn hàng...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] p-5 text-center text-slate-500 font-medium">
+        Đang tải chi tiết đơn hàng...
+      </div>
+    );
 
   return (
     <div className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-8 text-slate-950">
@@ -401,12 +406,14 @@ export default function CustomerOrderDetailPage() {
 
         <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl mix-blend-multiply" />
-          
+
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
             Order Summary
           </div>
 
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">{title}</h1>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
+            {title}
+          </h1>
 
           <p className="mt-3 text-[22px] font-black text-cyan-700">
             {total.toLocaleString("vi-VN")}đ
@@ -414,21 +421,39 @@ export default function CustomerOrderDetailPage() {
 
           {summaryOrder && (
             <div className="mt-5 space-y-2 text-[14px] text-slate-500 font-medium">
-              <p className="flex items-center gap-2"><span className="font-bold text-slate-700">Trạng thái:</span> <span className="inline-flex rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-xs font-black text-cyan-700 shadow-sm">{displayOrderStatus ?? summaryOrder.status}</span></p>
-              <p><span className="font-bold text-slate-700">Ngày đặt:</span> {new Date(summaryOrder.orderedAt).toLocaleString("vi-VN")}</p>
+              <p className="flex items-center gap-2">
+                <span className="font-bold text-slate-700">Trạng thái:</span>{" "}
+                <span className="inline-flex rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-xs font-black text-cyan-700 shadow-sm">
+                  {displayOrderStatus ?? summaryOrder.status}
+                </span>
+              </p>
+              <p>
+                <span className="font-bold text-slate-700">Ngày đặt:</span>{" "}
+                {new Date(summaryOrder.orderedAt).toLocaleString("vi-VN")}
+              </p>
               {summaryOrder.deliveryAddress && (
-                <p><span className="font-bold text-slate-700">Địa chỉ:</span> {summaryOrder.deliveryAddress}</p>
+                <p>
+                  <span className="font-bold text-slate-700">Địa chỉ:</span>{" "}
+                  {summaryOrder.deliveryAddress}
+                </p>
               )}
-              {summaryOrder.notes && <p><span className="font-bold text-slate-700">Ghi chú:</span> {summaryOrder.notes}</p>}
+              {summaryOrder.notes && (
+                <p>
+                  <span className="font-bold text-slate-700">Ghi chú:</span>{" "}
+                  {summaryOrder.notes}
+                </p>
+              )}
             </div>
           )}
 
           {effectiveOrderId && isAccepted ? (
             <div className="mt-6 rounded-2xl border border-cyan-200/60 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-5 py-4 text-[14px] text-cyan-900 shadow-sm backdrop-blur">
-              <div className="font-black text-cyan-800 text-lg">Đơn đã được chấp nhận</div>
+              <div className="font-black text-cyan-800 text-lg">
+                Đơn đã được chấp nhận
+              </div>
               <p className="mt-2 text-cyan-800/90 font-medium">
                 {isOfflineOrder
-                  ? "Đơn tại quán đã được merchant xác nhận. Mở bill để kiểm tra món, tổng tiền rồi thanh toán."
+                  ? "Đơn tại quán đã được merchant xác nhận. Sau khi ăn xong, mở bill để kiểm tra món, tổng tiền rồi thanh toán."
                   : "Đơn online đã được Merchant xác nhận. Khi bên giao hàng đưa đơn tới nơi, bấm đã nhận hàng để hệ thống hoàn tất check-in."}
               </p>
               <button
@@ -458,7 +483,9 @@ export default function CustomerOrderDetailPage() {
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-200/50 bg-gradient-to-r from-amber-50/80 to-orange-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-amber-800 ring-1 ring-amber-500/10">
                 Feedback
               </div>
-              <h2 className="text-2xl font-black tracking-tight text-slate-900">Đánh giá quán</h2>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                Đánh giá quán
+              </h2>
               <p className="mt-1.5 text-[14px] font-medium text-slate-500">
                 {merchantId
                   ? `Gửi nhận xét cho ${merchantName || "merchant này"}.`
@@ -480,13 +507,13 @@ export default function CustomerOrderDetailPage() {
           <div className="relative">
             {!effectiveOrderId ? (
               <p className="mt-4 rounded-2xl border border-dashed border-slate-200/60 bg-slate-50/80 px-5 py-4 text-[14px] font-medium text-slate-500 backdrop-blur">
-                Chưa ghép được mã đơn thật từ dữ liệu danh sách, nên trang này chỉ
-                hiển thị thông tin tóm tắt.
+                Chưa ghép được mã đơn thật từ dữ liệu danh sách, nên trang này
+                chỉ hiển thị thông tin tóm tắt.
               </p>
             ) : !isCompleted ? (
               <p className="mt-4 rounded-2xl border border-dashed border-amber-200/60 bg-amber-50/80 px-5 py-4 text-[14px] font-bold text-amber-800 backdrop-blur">
-                Bạn chỉ có thể gửi đánh giá sau khi đơn hàng đã được xác nhận hoàn
-                tất.
+                Bạn chỉ có thể gửi đánh giá sau khi đơn hàng đã được xác nhận
+                hoàn tất.
               </p>
             ) : hasReviewed ? (
               <p className="mt-4 rounded-2xl border border-dashed border-emerald-200/60 bg-emerald-50/80 px-5 py-4 text-[14px] font-bold text-emerald-800 backdrop-blur">
@@ -553,8 +580,8 @@ export default function CustomerOrderDetailPage() {
                         Đánh giá từng món
                       </h3>
                       <p className="mt-1.5 text-[13px] font-medium text-slate-500">
-                        Không bắt buộc. Món nào không chọn sao sẽ không gửi review
-                        riêng.
+                        Không bắt buộc. Món nào không chọn sao sẽ không gửi
+                        review riêng.
                       </p>
                     </div>
 
@@ -580,7 +607,10 @@ export default function CustomerOrderDetailPage() {
                                   {item.name || "Món ăn"}
                                 </p>
                                 <p className="mt-1 text-[13px] font-bold text-slate-500">
-                                  Số lượng: <span className="text-slate-700">{item.quantity || 0}</span>
+                                  Số lượng:{" "}
+                                  <span className="text-slate-700">
+                                    {item.quantity || 0}
+                                  </span>
                                 </p>
                               </div>
 
@@ -614,7 +644,9 @@ export default function CustomerOrderDetailPage() {
                                         onClick={() =>
                                           updateFoodReviewDraft(orderDetailId, {
                                             rating:
-                                              draft.rating === value ? 0 : value,
+                                              draft.rating === value
+                                                ? 0
+                                                : value,
                                           })
                                         }
                                         disabled={reviewLocked}
@@ -680,7 +712,9 @@ export default function CustomerOrderDetailPage() {
 
         <div className="mt-6 relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-blue-300/20 blur-3xl mix-blend-multiply" />
-          <h2 className="mb-4 text-xl font-black tracking-tight text-slate-900">Món đã đặt</h2>
+          <h2 className="mb-4 text-xl font-black tracking-tight text-slate-900">
+            Món đã đặt
+          </h2>
 
           <div className="space-y-3">
             {items.map((item) => (
@@ -689,9 +723,12 @@ export default function CustomerOrderDetailPage() {
                 className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/50 p-4 shadow-sm backdrop-blur transition-all duration-300 hover:shadow-md hover:bg-white/70"
               >
                 <div className="min-w-0 pr-4">
-                  <p className="text-[16px] font-bold text-slate-900 truncate">{item.name || "Món ăn"}</p>
+                  <p className="text-[16px] font-bold text-slate-900 truncate">
+                    {item.name || "Món ăn"}
+                  </p>
                   <p className="mt-1 text-[13px] font-bold text-slate-500">
-                    Số lượng: <span className="text-slate-700">{item.quantity}</span>
+                    Số lượng:{" "}
+                    <span className="text-slate-700">{item.quantity}</span>
                   </p>
                   {getOrderItemToppings(item).length > 0 && (
                     <div className="mt-2.5 flex flex-wrap gap-2">

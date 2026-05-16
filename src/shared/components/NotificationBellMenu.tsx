@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import {
   getNotifications,
+  markNotificationAsRead,
   type NotificationItem,
 } from "@/features/notifications/services";
 import {
@@ -48,6 +49,24 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId?: string) => {
+    if (!notificationId) return;
+
+    setNotifications((current) =>
+      current.map((item) =>
+        item.id === notificationId ? { ...item, isRead: true } : item,
+      ),
+    );
+
+    try {
+      await markNotificationAsRead(notificationId);
+    } catch (error) {
+      console.error(error);
+      notify.error("Không thể đánh dấu thông báo đã đọc.");
+      void loadNotifications(false);
     }
   };
 
@@ -140,6 +159,7 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
                 <BellNotificationItem
                   key={item.id ?? `${item.title}-${index}`}
                   item={item}
+                  onMarkAsRead={handleMarkAsRead}
                 />
               ))}
             </div>
@@ -158,7 +178,13 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
   );
 }
 
-function BellNotificationItem({ item }: { item: NotificationItem }) {
+function BellNotificationItem({
+  item,
+  onMarkAsRead,
+}: {
+  item: NotificationItem;
+  onMarkAsRead: (notificationId?: string) => void;
+}) {
   const meta = getNotificationMeta(item);
   const tone = getToneClasses(meta.tone);
   const Icon = meta.icon;
@@ -207,25 +233,37 @@ function BellNotificationItem({ item }: { item: NotificationItem }) {
             </p>
           ) : null}
 
-          <div className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-500">
             <span>{time || "Mới cập nhật"}</span>
-            {meta.actionTo ? (
-              <span className="inline-flex items-center gap-1 text-cyan-700">
-                {meta.actionLabel}
-                <ExternalLink className="h-3 w-3" />
-              </span>
-            ) : null}
+            <div className="flex items-center gap-2">
+              {!item.isRead ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onMarkAsRead(item.id);
+                  }}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-black text-slate-600 transition hover:bg-slate-50 hover:text-cyan-700"
+                >
+                  Đã đọc
+                </button>
+              ) : null}
+              {meta.actionTo ? (
+                <Link
+                  to={meta.actionTo}
+                  className="inline-flex items-center gap-1 text-cyan-700"
+                >
+                  {meta.actionLabel}
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 
-  if (!meta.actionTo) return content;
-
-  return (
-    <Link to={meta.actionTo} className="block">
-      {content}
-    </Link>
-  );
+  return content;
 }

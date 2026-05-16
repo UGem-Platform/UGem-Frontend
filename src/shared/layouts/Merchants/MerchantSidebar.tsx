@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   BarChart3,
+  ClipboardPlus,
   Home,
   Megaphone,
   UserRound,
@@ -14,6 +15,11 @@ const menuItems = [
     label: "Nhà hàng của bạn",
     icon: Store,
     path: "/merchant/restaurant",
+  },
+  {
+    label: "Tạo đơn tại quán",
+    icon: ClipboardPlus,
+    path: "/merchant/create-order",
   },
   {
     label: "Hồ sơ quán",

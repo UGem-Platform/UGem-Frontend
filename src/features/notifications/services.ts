@@ -26,3 +26,11 @@ export async function getNotifications() {
   const res = await api.get<ApiResponse<NotificationItem[]>>("/notifications");
   return res.data.data ?? [];
 }
+
+export async function markNotificationAsRead(notificationId: string) {
+  const res = await api.patch<ApiResponse<null>>(
+    `/notifications/${notificationId}/read`,
+  );
+
+  return res.data;
+}

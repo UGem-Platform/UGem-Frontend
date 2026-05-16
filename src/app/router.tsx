@@ -28,6 +28,7 @@ import {
   MerchantViewStatisticsPage,
 } from "@/features/merchantPortal";
 import MerchantOrdersPage from "@/features/merchantPortal/pages/MerchantOrdersPage";
+import MerchantCreateOrderPage from "@/features/merchantPortal/pages/MerchantCreateOrderPage";
 import MerchantProfilePage from "@/features/merchantPortal/pages/MerchantProfilePage";
 import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import ReviewsPage from "@/features/review/pages/ReviewsPage";
@@ -165,6 +166,14 @@ const routers = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["Merchant"]}>
             <MerchantOrdersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/merchant/create-order",
+        element: (
+          <ProtectedRoute allowedRoles={["Merchant"]}>
+            <MerchantCreateOrderPage />
           </ProtectedRoute>
         ),
       },
