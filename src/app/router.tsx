@@ -312,6 +312,8 @@ const routers = createBrowserRouter([
               shell="admin"
               fallbackName="Admin"
               canReview={false}
+              backTo="/admin/dashboard"
+              backLabel="Back"
             />
           </ProtectedRoute>
         ),

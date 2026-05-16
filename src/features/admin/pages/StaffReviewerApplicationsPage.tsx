@@ -9,7 +9,7 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/shared/components/ui/button";
 import { UserAccountMenu } from "@/shared/components";
@@ -28,6 +28,8 @@ type StaffReviewerApplicationsPageProps = {
   shell?: "staff" | "admin";
   fallbackName?: string;
   canReview?: boolean;
+  backTo?: string;
+  backLabel?: string;
 };
 
 function formatDate(value?: string | null) {
@@ -72,8 +74,9 @@ export default function StaffReviewerApplicationsPage({
   shell = "staff",
   fallbackName = "Staff",
   canReview = true,
+  backTo,
+  backLabel = "Back",
 }: StaffReviewerApplicationsPageProps) {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<{
@@ -141,6 +144,8 @@ export default function StaffReviewerApplicationsPage({
   const reviewed = apps.filter(
     (a) => a.status && a.status.toLowerCase() !== "pending",
   );
+  const resolvedBackTo =
+    backTo ?? (shell === "admin" ? "/admin/dashboard" : "/staff/dashboard");
 
   const reviewerContent: ReactNode = (
     <>
@@ -159,13 +164,15 @@ export default function StaffReviewerApplicationsPage({
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
             <Button
+              asChild
               type="button"
               variant="outline"
               className="h-10 gap-2 rounded-2xl border-white/70 bg-white/80 px-4 font-black shadow-sm ring-1 ring-slate-950/5"
-              onClick={() => navigate(-1)}
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back
+              <Link to={resolvedBackTo}>
+                <ArrowLeft className="h-4 w-4" />
+                {backLabel}
+              </Link>
             </Button>
 
             {shell === "admin" ? (

@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
 import { createFood, deleteFood, getFoods } from "../services/foodService";
 import type { Food } from "../types";
 import { getCategories } from "@/shared/services/categoryService";
 import type { Category } from "@/shared/types";
+import {
+  IMAGE_UPLOAD_ACCEPT,
+  uploadImage,
+  validateImageFile,
+} from "@/shared/services/mediaService";
 import {
   createFoodTopping,
   deleteFoodTopping,
@@ -20,6 +25,9 @@ export function MerchantFoodsPage() {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deletingFoodId, setDeletingFoodId] = useState<string | null>(null);
+  const [uploadingFoodImage, setUploadingFoodImage] = useState(false);
+  const [foodImageFileName, setFoodImageFileName] = useState("");
+  const [foodImagePreview, setFoodImagePreview] = useState("");
   const [expandedFoodId, setExpandedFoodId] = useState<string | null>(null);
   const [toppingsByFoodId, setToppingsByFoodId] = useState<
     Record<string, FoodTopping[]>
@@ -70,11 +78,60 @@ export function MerchantFoodsPage() {
     });
   }, []);
 
+  async function handleFoodImageUpload(file?: File) {
+    if (!file) return;
+
+    setUploadingFoodImage(true);
+    setFoodImageFileName(file.name);
+
+    try {
+      validateImageFile(file);
+
+      const preview = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Khong the doc file anh."));
+        reader.onload = () =>
+          resolve(typeof reader.result === "string" ? reader.result : "");
+        reader.readAsDataURL(file);
+      });
+
+      setFoodImagePreview(preview);
+
+      const imageUrl = await uploadImage(file);
+      setForm((prev) => ({ ...prev, imageUrl }));
+      setFoodImagePreview(imageUrl);
+      notify.success("Tai anh mon thanh cong.");
+    } catch (error) {
+      console.error(error);
+      setForm((prev) => ({ ...prev, imageUrl: "" }));
+      setFoodImagePreview("");
+      setFoodImageFileName("");
+      notify.error(
+        error instanceof Error
+          ? error.message
+          : "Tai anh that bai. Vui long thu lai.",
+      );
+    } finally {
+      setUploadingFoodImage(false);
+    }
+  }
+
+  function clearFoodImage() {
+    setForm((prev) => ({ ...prev, imageUrl: "" }));
+    setFoodImagePreview("");
+    setFoodImageFileName("");
+  }
+
   async function handleCreateFood(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!form.name.trim()) {
       notify.error("Vui lòng nhập tên món.");
+      return;
+    }
+
+    if (uploadingFoodImage) {
+      notify.error("Vui long doi anh tai len xong.");
       return;
     }
 
@@ -99,6 +156,8 @@ export function MerchantFoodsPage() {
         imageUrl: "",
         categoryIds: [],
       });
+      setFoodImagePreview("");
+      setFoodImageFileName("");
 
       await loadData();
     } catch (error) {
@@ -273,17 +332,77 @@ export function MerchantFoodsPage() {
                 />
               </label>
 
-              <label className="space-y-1.5 md:col-span-2">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Ảnh URL</span>
-                <input
-                  value={form.imageUrl}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, imageUrl: e.target.value }))
-                  }
-                  placeholder="https://..."
-                  className="w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
-                />
-              </label>
+              <div className="space-y-2 md:col-span-2">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
+                  Ảnh món ăn
+                </span>
+
+                <div className="rounded-2xl border border-dashed border-cyan-200/80 bg-white/60 p-4 shadow-sm backdrop-blur">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                    <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-cyan-50 text-cyan-700 shadow-sm">
+                      {foodImagePreview ? (
+                        <img
+                          src={foodImagePreview}
+                          alt="Ảnh món đang chọn"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <ImagePlus className="h-8 w-8" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-slate-800">
+                        Chọn ảnh từ máy để tải lên
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-slate-500">
+                        Hỗ trợ JPG, PNG, GIF hoặc WebP nhỏ hơn 5MB. FE sẽ upload
+                        ảnh và tự gắn URL vào món.
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <input
+                          id="food-image-upload"
+                          type="file"
+                          accept={IMAGE_UPLOAD_ACCEPT}
+                          className="sr-only"
+                          onChange={(event) => {
+                            void handleFoodImageUpload(event.target.files?.[0]);
+                            event.currentTarget.value = "";
+                          }}
+                        />
+                        <label
+                          htmlFor="food-image-upload"
+                          className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-cyan-600 px-4 text-sm font-black text-white shadow-lg shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-700"
+                        >
+                          {uploadingFoodImage ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <ImagePlus className="h-4 w-4" />
+                          )}
+                          {uploadingFoodImage ? "Đang tải ảnh..." : "Chọn ảnh"}
+                        </label>
+
+                        {foodImagePreview ? (
+                          <button
+                            type="button"
+                            onClick={clearFoodImage}
+                            disabled={uploadingFoodImage}
+                            className="inline-flex h-11 items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 text-sm font-black text-rose-700 shadow-sm transition hover:bg-rose-50 disabled:opacity-60"
+                          >
+                            <X className="h-4 w-4" />
+                            Xóa ảnh
+                          </button>
+                        ) : null}
+                      </div>
+
+                      <p className="mt-2 truncate text-xs font-semibold text-slate-500">
+                        {foodImageFileName || "Chưa chọn ảnh"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <label className="space-y-1.5 md:col-span-2">
                 <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Danh mục</span>
@@ -310,11 +429,19 @@ export function MerchantFoodsPage() {
 
             <button
               type="submit"
-              disabled={creating}
+              disabled={creating || uploadingFoodImage}
               className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-6 py-3.5 text-[14px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Plus size={18} />
-              {creating ? "Đang tạo..." : "Thêm món"}
+              {creating || uploadingFoodImage ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Plus size={18} />
+              )}
+              {uploadingFoodImage
+                ? "Đang tải ảnh..."
+                : creating
+                  ? "Đang tạo..."
+                  : "Thêm món"}
             </button>
           </form>
 

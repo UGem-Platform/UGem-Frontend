@@ -7,16 +7,22 @@ type ApiResponse<T> = {
 };
 
 export type NotificationItem = {
-  id: string;
+  id?: string;
   title?: string;
   message?: string;
   content?: string;
+  body?: string;
   createdAt?: string;
-  type?: "info" | "success" | "warning" | "error";
+  updatedAt?: string;
+  type?: string;
   isRead?: boolean;
+  actionUrl?: string;
+  targetUrl?: string;
+  url?: string;
+  metadata?: Record<string, unknown>;
 };
 
 export async function getNotifications() {
   const res = await api.get<ApiResponse<NotificationItem[]>>("/notifications");
-  return res.data.data;
+  return res.data.data ?? [];
 }

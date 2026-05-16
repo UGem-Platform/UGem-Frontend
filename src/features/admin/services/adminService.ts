@@ -75,11 +75,42 @@ export async function createAdmin(payload: unknown) {
 export type AdminDashboard = {
   totalUsers: number;
   totalMerchants: number;
-  totalOrders: number;
   totalRevenue: number;
+  totalPlatformFee: number;
+  totalReviewerFee: number;
+  totalCompletedOrders: number;
+  averageOrderValue: number;
   newUsersToday: number;
   pendingApplications: number;
   pendingReviewerApplications: number;
+  totalOrders?: number;
+};
+
+export type AdminMerchantRevenue = {
+  merchantId: string;
+  merchantName: string;
+  logoUrl?: string | null;
+  completedOrders: number;
+  totalRevenue: number;
+  platformFee: number;
+  reviewerFee: number;
+  merchantReceive: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  revenueGrowth: number;
+};
+
+const EMPTY_ADMIN_DASHBOARD: AdminDashboard = {
+  totalUsers: 0,
+  totalMerchants: 0,
+  totalRevenue: 0,
+  totalPlatformFee: 0,
+  totalReviewerFee: 0,
+  totalCompletedOrders: 0,
+  averageOrderValue: 0,
+  newUsersToday: 0,
+  pendingApplications: 0,
+  pendingReviewerApplications: 0,
 };
 
 export async function getAdminDashboard() {
@@ -92,15 +123,34 @@ export async function getAdminDashboard() {
       ),
   );
 
-  return (
-    unwrapData(data) ?? {
-      totalUsers: 0,
-      totalMerchants: 0,
-      totalOrders: 0,
-      totalRevenue: 0,
-      newUsersToday: 0,
-      pendingApplications: 0,
-      pendingReviewerApplications: 0,
-    }
+  return unwrapData(data) ?? EMPTY_ADMIN_DASHBOARD;
+}
+
+export async function getAdminMerchantRevenues(params?: {
+  searchTerm?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}) {
+  const requestConfig = {
+    params: {
+      searchTerm: params?.searchTerm || undefined,
+      pageIndex: params?.pageIndex ?? 1,
+      pageSize: params?.pageSize ?? 10,
+    },
+  };
+
+  const { data } = await requestWithFallback(
+    () =>
+      api.get<ApiResponse<AdminMerchantRevenue[]> | AdminMerchantRevenue[]>(
+        "/admin/merchant-revenues",
+        requestConfig,
+      ),
+    () =>
+      api.get<ApiResponse<AdminMerchantRevenue[]> | AdminMerchantRevenue[]>(
+        "/admins/merchant-revenues",
+        requestConfig,
+      ),
   );
+
+  return unwrapData(data) ?? [];
 }

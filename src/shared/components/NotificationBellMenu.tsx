@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
-import { Bell, Loader2, RefreshCw } from "lucide-react";
+import { Bell, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
   getNotifications,
   type NotificationItem,
 } from "@/features/notifications/services";
+import {
+  formatNotificationTime,
+  getNotificationBody,
+  getNotificationMeta,
+  getNotificationTitle,
+  getToneClasses,
+} from "@/features/notifications/notificationPresentation";
+import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -14,16 +22,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { notify } from "@/shared/lib/notify";
 
 type NotificationBellMenuProps = {
   className?: string;
 };
-
-function formatNotificationText(item: NotificationItem) {
-  return item.title || item.message || "Thông báo";
-}
 
 export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -32,7 +35,7 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
 
   const unreadCount = notifications.filter((item) => !item.isRead).length;
 
-  const loadNotifications = async () => {
+  const loadNotifications = async (showError = true) => {
     setLoading(true);
 
     try {
@@ -40,17 +43,29 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
       setNotifications(data ?? []);
     } catch (error) {
       console.error(error);
-      notify.error("Không tải được thông báo.");
+      if (showError) {
+        notify.error("Không tải được thông báo.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    void loadNotifications(false);
+
+    const interval = window.setInterval(() => {
+      void loadNotifications(false);
+    }, 30000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
 
     queueMicrotask(() => {
-      void loadNotifications();
+      void loadNotifications(false);
     });
   }, [open]);
 
@@ -76,14 +91,16 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-96 rounded-2xl p-0">
+      <DropdownMenuContent align="end" className="w-[26rem] rounded-2xl p-0">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <DropdownMenuLabel className="p-0 text-sm font-semibold text-slate-900">
               Thông báo
             </DropdownMenuLabel>
             <p className="text-xs text-slate-500">
-              Tất cả thông báo của tài khoản hiện tại
+              {unreadCount > 0
+                ? `${unreadCount} thông báo chưa đọc`
+                : "Tất cả thông báo của tài khoản hiện tại"}
             </p>
           </div>
 
@@ -120,34 +137,10 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
           ) : (
             <div className="space-y-2">
               {notifications.map((item, index) => (
-                <div
-                  key={`${item.title}-${index}`}
-                  className={cn(
-                    "rounded-xl border p-3 transition-colors",
-                    item.isRead
-                      ? "border-slate-200 bg-white"
-                      : "border-cyan-200 bg-cyan-50/80",
-                  )}
-                >
-                  <div className="flex items-start gap-2">
-                    <span
-                      className={cn(
-                        "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
-                        item.isRead ? "bg-slate-300" : "bg-cyan-500",
-                      )}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-900">
-                        {formatNotificationText(item)}
-                      </p>
-                      {item.message ? (
-                        <p className="mt-1 line-clamp-3 text-sm text-slate-600">
-                          {item.message}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
+                <BellNotificationItem
+                  key={item.id ?? `${item.title}-${index}`}
+                  item={item}
+                />
               ))}
             </div>
           )}
@@ -162,5 +155,77 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function BellNotificationItem({ item }: { item: NotificationItem }) {
+  const meta = getNotificationMeta(item);
+  const tone = getToneClasses(meta.tone);
+  const Icon = meta.icon;
+  const body = getNotificationBody(item);
+  const time = formatNotificationTime(item.createdAt);
+  const content = (
+    <div
+      className={cn(
+        "rounded-xl border p-3 transition-colors",
+        item.isRead ? "border-slate-200 bg-white" : tone.border,
+        !item.isRead && tone.panel,
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={cn(
+            "grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1",
+            tone.icon,
+          )}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[10px] font-black ring-1",
+                tone.badge,
+              )}
+            >
+              {meta.categoryLabel}
+            </span>
+            {!item.isRead ? (
+              <span className="h-2 w-2 rounded-full bg-cyan-500" />
+            ) : null}
+          </div>
+
+          <p className="mt-1 text-sm font-black text-slate-950">
+            {getNotificationTitle(item)}
+          </p>
+
+          {body ? (
+            <p className="mt-1 line-clamp-3 text-sm leading-5 text-slate-600">
+              {body}
+            </p>
+          ) : null}
+
+          <div className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+            <span>{time || "Mới cập nhật"}</span>
+            {meta.actionTo ? (
+              <span className="inline-flex items-center gap-1 text-cyan-700">
+                {meta.actionLabel}
+                <ExternalLink className="h-3 w-3" />
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!meta.actionTo) return content;
+
+  return (
+    <Link to={meta.actionTo} className="block">
+      {content}
+    </Link>
   );
 }
