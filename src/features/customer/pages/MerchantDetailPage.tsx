@@ -220,14 +220,21 @@ export default function MerchantDetailPage() {
     void load();
   }, [id]);
 
+  useEffect(() => {
+    if (!isOfflineOrder) return;
+
+    setCart([]);
+    setCartOpen(false);
+    closeAddFoodModal();
+  }, [isOfflineOrder]);
+
   async function handleCreateOrder() {
     if (!merchant?.id || cart.length === 0) return;
 
     if (isOfflineOrder) {
-      notify.success(
-        "Đã lưu danh sách món tại quán. Khi tính tiền, merchant sẽ tạo QR check-in/thanh toán cho bạn.",
+      notify.error(
+        "Đơn tại quán sẽ do merchant tạo. Khi tính tiền, bạn quét QR để check-in.",
       );
-      setCartOpen(false);
       return;
     }
 
@@ -506,7 +513,7 @@ export default function MerchantDetailPage() {
         {/* hero */}
         <section className="relative overflow-hidden rounded-[36px] border border-white/50 bg-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-300/10 via-transparent to-amber-300/10 opacity-50" />
-          
+
           <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl mix-blend-multiply" />
           <div className="absolute -right-20 -bottom-20 h-56 w-56 rounded-full bg-amber-400/20 blur-3xl mix-blend-multiply" />
 
@@ -607,6 +614,12 @@ export default function MerchantDetailPage() {
             </div>
           </div>
 
+          {isOfflineOrder && (
+            <div className="mb-5 rounded-2xl border border-cyan-200/70 bg-cyan-50/80 px-5 py-4 text-sm font-bold text-cyan-900 shadow-sm backdrop-blur">
+              Bạn đang xem menu tại quán.
+            </div>
+          )}
+
           {menuItems.length > 0 ? (
             <div
               className={
@@ -671,10 +684,11 @@ export default function MerchantDetailPage() {
                         <button
                           type="button"
                           onClick={() => openAddFoodModal(food)}
-                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
+                          disabled={isOfflineOrder}
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                         >
                           <Plus className="h-4 w-4" />
-                          Thêm
+                          {isOfflineOrder ? "Gọi tại quán" : "Thêm"}
                         </button>
                       </div>
                     </div>
@@ -1251,7 +1265,7 @@ export default function MerchantDetailPage() {
                       {ordering
                         ? "Đang đặt..."
                         : isOfflineOrder
-                          ? "Lưu món tại quán"
+                          ? "Gọi tại quán"
                           : "Đặt món"}
                     </button>
                   </div>
@@ -1295,7 +1309,7 @@ export default function MerchantDetailPage() {
                     {ordering
                       ? "Đang đặt..."
                       : isOfflineOrder
-                        ? "Lưu món tại quán"
+                        ? "Gọi tại quán"
                         : "Đặt món ngay"}
                   </button>
                 </div>
