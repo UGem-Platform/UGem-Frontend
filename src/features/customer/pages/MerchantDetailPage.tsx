@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import {
   getReviewsByMerchantId,
@@ -32,6 +32,8 @@ import type {
 import { addWishlist } from "../services/wishlistService";
 import { createOrder } from "../services/orderService";
 import { notify } from "@/shared/lib/notify";
+
+type OnlinePaymentMethod = "COD" | "BankTransfer";
 
 type CartItem = {
   food: MerchantMenuItem;
@@ -149,8 +151,10 @@ function getCartQuantity(cart: CartItem[], foodId: string) {
 
 export default function MerchantDetailPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
+  const isOfflineOrder = searchParams.get("mode") === "offline";
 
   const reviewSectionRef = useRef<HTMLElement | null>(null);
 
@@ -174,6 +178,8 @@ export default function MerchantDetailPage() {
   const [loading, setLoading] = useState(false);
 
   const [ordering, setOrdering] = useState(false);
+  const [onlinePaymentMethod, setOnlinePaymentMethod] =
+    useState<OnlinePaymentMethod>("COD");
 
   const total = useMemo(() => {
     return cart.reduce((sum, item) => {
@@ -217,12 +223,22 @@ export default function MerchantDetailPage() {
   async function handleCreateOrder() {
     if (!merchant?.id || cart.length === 0) return;
 
+    if (isOfflineOrder) {
+      notify.success(
+        "Đã lưu danh sách món tại quán. Khi tính tiền, merchant sẽ tạo QR check-in/thanh toán cho bạn.",
+      );
+      setCartOpen(false);
+      return;
+    }
+
     setOrdering(true);
 
     try {
       await createOrder({
         name: `Order from ${merchant.name || "Unnamed merchant"}`,
         deliveryAddress: merchant.address || "No address",
+        orderType: "Online",
+        paymentMethod: onlinePaymentMethod,
         notes: "",
         finalPrice: total,
         foods: cart.map((item) => ({
@@ -234,7 +250,7 @@ export default function MerchantDetailPage() {
         })),
       });
 
-      notify.success("Đặt món thành công.");
+      notify.success("Đặt món giao hàng thành công.");
 
       setCart([]);
       setCartOpen(false);
@@ -1173,6 +1189,38 @@ export default function MerchantDetailPage() {
               </div>
 
               <div className="border-t border-slate-100 px-5 py-4">
+                {!isOfflineOrder && (
+                  <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+                    <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                      Phương thức thanh toán
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => setOnlinePaymentMethod("COD")}
+                        className={`rounded-xl border px-3 py-2.5 text-left text-sm font-bold transition ${
+                          onlinePaymentMethod === "COD"
+                            ? "border-cyan-300 bg-cyan-50 text-cyan-800"
+                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        Thanh toán khi nhận hàng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOnlinePaymentMethod("BankTransfer")}
+                        className={`rounded-xl border px-3 py-2.5 text-left text-sm font-bold transition ${
+                          onlinePaymentMethod === "BankTransfer"
+                            ? "border-cyan-300 bg-cyan-50 text-cyan-800"
+                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        Chuyển khoản
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-bold text-slate-500">
@@ -1200,7 +1248,11 @@ export default function MerchantDetailPage() {
                       disabled={ordering || cart.length === 0}
                       className="rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-black text-white shadow-xl shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {ordering ? "Đang đặt..." : "Đặt món"}
+                      {ordering
+                        ? "Đang đặt..."
+                        : isOfflineOrder
+                          ? "Lưu món tại quán"
+                          : "Đặt món"}
                     </button>
                   </div>
                 </div>
@@ -1240,7 +1292,11 @@ export default function MerchantDetailPage() {
                     disabled={ordering || cart.length === 0}
                     className="rounded-2xl bg-cyan-600 px-6 py-3 text-sm font-black text-white shadow-xl shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:opacity-50"
                   >
-                    {ordering ? "Đang đặt..." : "Đặt món ngay"}
+                    {ordering
+                      ? "Đang đặt..."
+                      : isOfflineOrder
+                        ? "Lưu món tại quán"
+                        : "Đặt món ngay"}
                   </button>
                 </div>
               </div>

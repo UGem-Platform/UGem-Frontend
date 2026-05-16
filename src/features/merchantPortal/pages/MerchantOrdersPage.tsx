@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Eye, QrCode, RefreshCw, X } from "lucide-react";
+import { Check, Eye, Minus, Plus, QrCode, RefreshCw, X } from "lucide-react";
 import {
   acceptOrder,
   confirmCashPayment,
@@ -16,6 +16,16 @@ import type {
 import { notify } from "@/shared/lib/notify";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
+import {
+  createMerchantOrder,
+  type CreateMerchantOrderItem,
+} from "@/shared/services/merchantOrderService";
+import { getFoods } from "../services/foodService";
+import {
+  getFoodToppings,
+  type FoodTopping,
+} from "@/shared/services/foodToppingService";
+import type { Food } from "../types";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +60,13 @@ type MerchantOrderDetailPayload =
       totalPrice?: number;
       TotalPrice?: number;
     };
+
+type OfflineOrderItem = {
+  foodId: string;
+  quantity: number;
+  notes: string;
+  toppingIds: string[];
+};
 
 function formatCurrency(value?: number | null) {
   return `${Number(value ?? 0).toLocaleString("vi-VN")}đ`;
@@ -93,8 +110,12 @@ function getOrderStatusChipClass(status?: string | null) {
   return "border-slate-200 bg-slate-50 text-slate-700";
 }
 
-function canGenerateCheckInQr(status?: string | null) {
+function canGenerateCheckInQr(status?: string | null, orderType?: string | null) {
   const statusKey = getOrderStatusKey(status);
+
+  if (orderType?.trim().toLowerCase() !== "offline") {
+    return false;
+  }
 
   return (
     statusKey === "accepted" ||
@@ -196,6 +217,15 @@ export default function MerchantOrdersPage() {
   const [orderDetail, setOrderDetail] =
     useState<MerchantOrderDetailPayload | null>(null);
   const [qrUrls, setQrUrls] = useState<Record<string, string>>({});
+  const [offlineOpen, setOfflineOpen] = useState(false);
+  const [offlineFoods, setOfflineFoods] = useState<Food[]>([]);
+  const [offlineItems, setOfflineItems] = useState<OfflineOrderItem[]>([]);
+  const [offlineCustomerName, setOfflineCustomerName] = useState("Khach tai quan");
+  const [offlineLoading, setOfflineLoading] = useState(false);
+  const [offlineQrUrl, setOfflineQrUrl] = useState<string | null>(null);
+  const [toppingsByFoodId, setToppingsByFoodId] = useState<
+    Record<string, FoodTopping[]>
+  >({});
 
   const selectedOrder = orders.find(
     (order) => order.orderId === selectedOrderId,
@@ -222,7 +252,13 @@ export default function MerchantOrdersPage() {
               (order) => order.orderId === orderId,
             );
 
-            if (!matchingOrder || !canGenerateCheckInQr(matchingOrder.status)) {
+            if (
+              !matchingOrder ||
+              !canGenerateCheckInQr(
+                matchingOrder.status,
+                matchingOrder.orderType,
+              )
+            ) {
               delete next[orderId];
             }
           }
@@ -294,6 +330,136 @@ export default function MerchantOrdersPage() {
     setDetailError(null);
     setOrderDetail(null);
     setDetailOpen(true);
+  }
+
+  async function openOfflineOrderDialog() {
+    setOfflineOpen(true);
+    setOfflineQrUrl(null);
+
+    if (offlineFoods.length > 0) {
+      return;
+    }
+
+    setOfflineLoading(true);
+
+    try {
+      const foods = await getFoods();
+      setOfflineFoods(foods);
+
+      if (foods[0]) {
+        setOfflineItems([
+          { foodId: foods[0].id, quantity: 1, notes: "", toppingIds: [] },
+        ]);
+        await loadToppingsForFood(foods[0].id);
+      }
+    } catch (error) {
+      console.error(error);
+      notify.error("Khong tai duoc menu de tao don offline.");
+    } finally {
+      setOfflineLoading(false);
+    }
+  }
+
+  async function loadToppingsForFood(foodId: string) {
+    if (toppingsByFoodId[foodId]) return;
+
+    try {
+      const toppings = await getFoodToppings(foodId);
+      setToppingsByFoodId((current) => ({ ...current, [foodId]: toppings }));
+    } catch (error) {
+      console.error(error);
+      setToppingsByFoodId((current) => ({ ...current, [foodId]: [] }));
+    }
+  }
+
+  function updateOfflineItem(index: number, patch: Partial<OfflineOrderItem>) {
+    setOfflineItems((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item,
+      ),
+    );
+  }
+
+  function addOfflineItem() {
+    const firstFood = offlineFoods[0];
+    if (!firstFood) return;
+
+    setOfflineItems((current) => [
+      ...current,
+      { foodId: firstFood.id, quantity: 1, notes: "", toppingIds: [] },
+    ]);
+    void loadToppingsForFood(firstFood.id);
+  }
+
+  function removeOfflineItem(index: number) {
+    setOfflineItems((current) =>
+      current.length <= 1
+        ? current
+        : current.filter((_, itemIndex) => itemIndex !== index),
+    );
+  }
+
+  function getOfflineTotal() {
+    return offlineItems.reduce((sum, item) => {
+      const food = offlineFoods.find((candidate) => candidate.id === item.foodId);
+      const toppings = toppingsByFoodId[item.foodId] ?? [];
+      const toppingTotal = item.toppingIds.reduce((toppingSum, toppingId) => {
+        const topping = toppings.find((candidate) => candidate.id === toppingId);
+        return toppingSum + Number(topping?.price ?? 0);
+      }, 0);
+
+      return sum + (Number(food?.price ?? 0) + toppingTotal) * item.quantity;
+    }, 0);
+  }
+
+  async function handleCreateOfflineOrder() {
+    const validItems = offlineItems.filter(
+      (item) => item.foodId && item.quantity > 0,
+    );
+
+    if (validItems.length === 0) {
+      notify.error("Vui long chon it nhat mot mon.");
+      return;
+    }
+
+    setOfflineLoading(true);
+    setOfflineQrUrl(null);
+
+    const foods: CreateMerchantOrderItem[] = validItems.map((item) => ({
+      foodId: item.foodId,
+      quantity: item.quantity,
+      notes: item.notes || null,
+      foodToppingIds: item.toppingIds,
+    }));
+
+    try {
+      const createdOrder = await createMerchantOrder({
+        name: offlineCustomerName.trim() || "Khach tai quan",
+        deliveryAddress: "Tai quan",
+        orderType: "Offline",
+        paymentMethod: "Cash",
+        notes: "Offline check-in",
+        foods,
+      });
+
+      const createdOrderId = createdOrder.data?.orderId;
+
+      if (createdOrderId) {
+        await acceptOrder(createdOrderId);
+      }
+
+      notify.success("Da tao don offline va san sang QR cho khach quet.");
+      await loadOrders(undefined, { silent: true });
+
+      if (createdOrderId) {
+        setOfflineQrUrl(await getMerchantCheckInQr(createdOrderId));
+      }
+    } catch (error) {
+      console.error(error);
+      notify.error("Tao don offline that bai.");
+    } finally {
+      setOfflineLoading(false);
+    }
   }
 
   async function handleAcceptOrder(order: MerchantOrderSummary) {
@@ -574,6 +740,14 @@ export default function MerchantOrdersPage() {
               />
               Refresh
             </button>
+            <button
+              type="button"
+              onClick={() => void openOfflineOrderDialog()}
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-200 bg-white/80 px-5 text-[13px] font-black text-emerald-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-md"
+            >
+              <QrCode className="h-4 w-4" />
+              Tao QR offline
+            </button>
           </div>
 
           {loading ? (
@@ -820,7 +994,10 @@ export default function MerchantOrdersPage() {
                         </button>
                       ) : null}
 
-                      {canGenerateCheckInQr(selectedOrder.status) ? (
+                      {canGenerateCheckInQr(
+                        selectedOrder.status,
+                        selectedOrder.orderType,
+                      ) ? (
                         <button
                           type="button"
                           onClick={() =>
@@ -876,6 +1053,203 @@ export default function MerchantOrdersPage() {
                   ) : null}
                 </div>
               ) : null}
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={offlineOpen} onOpenChange={setOfflineOpen}>
+            <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto border-white/80 bg-slate-50/95 shadow-2xl shadow-slate-950/25 backdrop-blur-xl">
+              <DialogHeader>
+                <DialogTitle>Tao QR check-in offline</DialogTitle>
+                <DialogDescription>
+                  Tao don tai quan voi mon an va topping, sau do dua QR cho
+                  customer quet de xac nhan hoa don va thanh toan.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-5">
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Ten khach
+                  </span>
+                  <input
+                    value={offlineCustomerName}
+                    onChange={(event) =>
+                      setOfflineCustomerName(event.target.value)
+                    }
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+                  />
+                </label>
+
+                {offlineLoading && offlineFoods.length === 0 ? (
+                  <p className="text-sm font-semibold text-slate-500">
+                    Dang tai menu...
+                  </p>
+                ) : null}
+
+                <div className="space-y-3">
+                  {offlineItems.map((item, index) => {
+                    const toppings = toppingsByFoodId[item.foodId] ?? [];
+
+                    return (
+                      <div
+                        key={`${item.foodId}-${index}`}
+                        className="rounded-2xl border border-white/80 bg-white p-4 shadow-sm ring-1 ring-slate-950/5"
+                      >
+                        <div className="grid gap-3 md:grid-cols-[1fr_120px_auto]">
+                          <label className="space-y-1.5">
+                            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                              Mon
+                            </span>
+                            <select
+                              value={item.foodId}
+                              onChange={(event) => {
+                                const foodId = event.target.value;
+                                updateOfflineItem(index, {
+                                  foodId,
+                                  toppingIds: [],
+                                });
+                                void loadToppingsForFood(foodId);
+                              }}
+                              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+                            >
+                              {offlineFoods.map((food) => (
+                                <option key={food.id} value={food.id}>
+                                  {food.name} - {formatCurrency(food.price)}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="space-y-1.5">
+                            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                              So luong
+                            </span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(event) =>
+                                updateOfflineItem(index, {
+                                  quantity: Math.max(
+                                    1,
+                                    Number(event.target.value || 1),
+                                  ),
+                                })
+                              }
+                              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+                            />
+                          </label>
+
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              onClick={() => removeOfflineItem(index)}
+                              disabled={offlineItems.length <= 1}
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-rose-200 bg-white text-rose-700 transition hover:bg-rose-50 disabled:opacity-40"
+                              aria-label="Xoa mon"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {toppings.length > 0 ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {toppings.map((topping) => {
+                              const toppingId = topping.id ?? "";
+                              const checked = item.toppingIds.includes(toppingId);
+
+                              return (
+                                <label
+                                  key={toppingId || topping.name}
+                                  className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                                    checked
+                                      ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={checked}
+                                    onChange={(event) => {
+                                      updateOfflineItem(index, {
+                                        toppingIds: event.target.checked
+                                          ? [...item.toppingIds, toppingId]
+                                          : item.toppingIds.filter(
+                                              (id) => id !== toppingId,
+                                            ),
+                                      });
+                                    }}
+                                  />
+                                  +{topping.name} {formatCurrency(topping.price)}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+
+                        <input
+                          value={item.notes}
+                          onChange={(event) =>
+                            updateOfflineItem(index, {
+                              notes: event.target.value,
+                            })
+                          }
+                          placeholder="Ghi chu mon neu co"
+                          className="mt-3 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+                  <button
+                    type="button"
+                    onClick={addOfflineItem}
+                    className="inline-flex items-center gap-2 rounded-xl border border-cyan-200 bg-white px-4 py-2 text-sm font-black text-cyan-700 transition hover:bg-cyan-50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Them mon
+                  </button>
+                  <div className="text-xl font-black text-cyan-800">
+                    Tong: {formatCurrency(getOfflineTotal())}
+                  </div>
+                </div>
+
+                {offlineQrUrl ? (
+                  <div className="rounded-3xl border border-emerald-100 bg-emerald-50/80 p-5 text-center">
+                    <div className="mb-3 text-sm font-black text-emerald-800">
+                      QR cho customer quet
+                    </div>
+                    <img
+                      src={offlineQrUrl}
+                      alt="QR check-in offline"
+                      className="mx-auto h-56 w-56 rounded-2xl bg-white object-contain p-2 shadow-sm"
+                    />
+                  </div>
+                ) : null}
+              </div>
+
+              <DialogFooter>
+                <button
+                  type="button"
+                  onClick={() => setOfflineOpen(false)}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Dong
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleCreateOfflineOrder()}
+                  disabled={offlineLoading || offlineFoods.length === 0}
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
+                >
+                  <QrCode className="h-4 w-4" />
+                  Tao don va QR
+                </button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>

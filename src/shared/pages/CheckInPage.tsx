@@ -8,14 +8,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { getCurrentUser } from "@/features/auth";
-import { getMerchantDetail } from "@/features/customer/services/merchantService";
 import { verifyCheckIn } from "@/shared/services/checkInService";
 
 export default function CheckInPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const merchantId =
-    searchParams.get("merchantId") ?? searchParams.get("MerchantId");
   const orderId = searchParams.get("orderId") ?? searchParams.get("OrderId");
   const success = searchParams.get("success") === "1";
   const queryString = searchParams.toString();
@@ -25,7 +22,7 @@ export default function CheckInPage() {
 
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [merchantName, setMerchantName] = useState<string | null>(null);
+  const merchantName = null;
 
   useEffect(() => {
     let active = true;
@@ -43,23 +40,14 @@ export default function CheckInPage() {
         // Order QR should open the bill confirmation flow first. Check-in/payment
         // confirmation happens after the customer accepts the bill.
         if (orderId) {
+          await verifyCheckIn({ orderId });
           if (!active) return;
 
           navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId!)}`);
           return;
         }
 
-        const merchant = merchantId
-          ? await getMerchantDetail(merchantId).catch(() => null)
-          : null;
-
-        await verifyCheckIn({ merchantId: merchantId ?? undefined });
-
-        if (!active) return;
-
-        setMerchantName(merchant?.name || null);
-        setMessage("Check-in thành công.");
-        setStatus("success");
+        throw new Error("Missing orderId");
       } catch (error) {
         console.error(error);
 
@@ -82,7 +70,7 @@ export default function CheckInPage() {
     return () => {
       active = false;
     };
-  }, [checkInReturnPath, merchantId, navigate, orderId, success]);
+  }, [checkInReturnPath, navigate, orderId, success]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.16),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ecfeff_52%,#fff7ed_100%)] px-5 py-10">

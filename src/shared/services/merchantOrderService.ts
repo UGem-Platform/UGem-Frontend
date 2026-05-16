@@ -5,18 +5,33 @@ export type CreateMerchantOrderItem = {
   foodId: string;
   quantity: number;
   notes?: string | null;
+  foodToppingIds?: string[];
 };
 
 export type CreateMerchantOrderRequest = {
   name: string;
   deliveryAddress?: string;
   notes?: string;
+  orderType?: "Online" | "Offline";
   paymentMethod?: string;
   foods: CreateMerchantOrderItem[];
 };
 
+export type CreateMerchantOrderResponse = {
+  orderId?: string;
+  totalAmount?: number;
+  bankName?: string;
+  bankAccount?: string;
+  description?: string;
+  code?: string;
+  qrCode?: string | null;
+};
+
 export async function createMerchantOrder(payload: CreateMerchantOrderRequest) {
-  const res = await api.post<ApiResponse<null>>("/orders/merchant", payload);
+  const res = await api.post<ApiResponse<CreateMerchantOrderResponse>>(
+    "/orders/merchant",
+    payload,
+  );
   return res.data;
 }
 

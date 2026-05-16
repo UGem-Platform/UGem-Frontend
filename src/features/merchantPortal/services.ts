@@ -7,6 +7,7 @@ import {
   acceptMerchantOrder,
   rejectMerchantOrder,
 } from "@/shared/services/merchantOrderService";
+import { generateCheckInQr } from "@/shared/services/checkInService";
 
 const APPLICATION_TYPE = "Merchant";
 
@@ -61,6 +62,9 @@ function mapPayloadToFormData(payload: CreateApplicationPayload) {
 
   appendString(formData, "Name", payload.name);
   appendString(formData, "Description", payload.description);
+  appendString(formData, "RestaurantType", payload.restaurantType);
+  appendString(formData, "MainDishType", payload.mainDishType);
+  appendString(formData, "PriceRange", payload.priceRange);
   appendString(formData, "Email", payload.email);
   appendString(formData, "Phone", payload.phone);
   appendString(formData, "LogoUrl", payload.logoUrl);
@@ -86,6 +90,9 @@ function mapPayloadToJsonRequest(payload: CreateApplicationPayload) {
     type: APPLICATION_TYPE,
     name: payload.name,
     description: payload.description,
+    restaurantType: payload.restaurantType || "",
+    mainDishType: payload.mainDishType || "",
+    priceRange: payload.priceRange || "",
     email: payload.email,
     phone: payload.phone,
     logoUrl: payload.logoUrl || "",
@@ -218,12 +225,10 @@ export async function confirmCashPayment(orderId: string) {
 
 export async function getMerchantCheckInQr(
   orderId: string,
-  billAlreadyConfirmed = false,
+  _billAlreadyConfirmed = false,
 ) {
-  const target = `https://u-gem.vercel.app/orders/confirm?orderId=${encodeURIComponent(orderId)}${
-    billAlreadyConfirmed ? "&billConfirmed=1" : ""
-  }`;
-  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(target)}`;
+  const blob = await generateCheckInQr({ orderId });
+  return URL.createObjectURL(blob);
 }
 
 export type UpdateMerchantPayload = {

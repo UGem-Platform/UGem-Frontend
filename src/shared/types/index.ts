@@ -75,6 +75,7 @@ export type MerchantOrderSummary = {
   finalPrice: number;
   deliveryAddress: string;
   paymentMethod: string;
+  orderType?: string;
   status: string;
   customerName: string;
   createdAt: string;

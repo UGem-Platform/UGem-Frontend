@@ -109,6 +109,17 @@ export default function ConfirmBillPage() {
         setShowQr(false);
         setBill(billData as Bill);
 
+        const billPaymentMethod = (
+          ((billData as Bill)?.paymentMethod ?? (billData as Bill)?.PaymentMethod) ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+        if (billPaymentMethod === "cash") {
+          setMethod("cash");
+        }
+
         const currentOrder = orders.find(
           (order) => getCustomerOrderId(order) === orderId,
         );

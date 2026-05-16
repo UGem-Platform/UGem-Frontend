@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Check, Star } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
+  confirmReceived,
   getCustomerOrderDetail,
   getCustomerOrderId,
   getCustomerOrders,
@@ -55,7 +56,7 @@ function getCustomerConfirmMessage(status?: string | null) {
   }
 
   if (normalizedStatus === "accepted") {
-    return "Đơn đã được Merchant chấp nhận. Vui lòng mở màn hình check-in để hoàn tất QR.";
+    return "Đơn đã được Merchant xác nhận và đang giao. Khi nhận được hàng, bấm xác nhận để hoàn tất check-in.";
   }
 
   return "Bạn chỉ có thể xác nhận đơn sau khi Merchant chấp nhận đơn hàng.";
@@ -85,6 +86,7 @@ export default function CustomerOrderDetailPage() {
     null,
   );
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -307,12 +309,28 @@ export default function CustomerOrderDetailPage() {
     window.location.reload();
   }
 
-  function handleOpenCheckIn() {
+  async function handleOpenCheckIn() {
     const orderId = effectiveOrderId;
 
     if (!orderId) return;
 
-    navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId)}`);
+    if (isOfflineOrder) {
+      navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId)}`);
+      return;
+    }
+
+    setConfirmingDelivery(true);
+
+    try {
+      await confirmReceived(orderId);
+      notify.success("Đã xác nhận nhận hàng và check-in.");
+      navigate("/check-in?success=1", { replace: true });
+    } catch (error) {
+      console.error(error);
+      notify.error("Không thể xác nhận nhận hàng. Vui lòng thử lại.");
+    } finally {
+      setConfirmingDelivery(false);
+    }
   }
 
   function updateFoodReviewDraft(
@@ -349,6 +367,9 @@ export default function CustomerOrderDetailPage() {
   const normalizedOrderStatus = displayOrderStatus?.trim().toLowerCase();
   const isAccepted = normalizedOrderStatus === "accepted";
   const isCompleted = normalizedOrderStatus === "completed";
+  const isOfflineOrder =
+    normalizeString(summaryOrder?.deliveryAddress) === "tai quan" ||
+    normalizeString(summaryOrder?.notes).includes("offline");
   const reviewLocked = hasReviewed || submittingReview;
 
   if (loading) return <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] p-5 text-center text-slate-500 font-medium">Đang tải chi tiết đơn hàng...</div>;
@@ -406,16 +427,18 @@ export default function CustomerOrderDetailPage() {
             <div className="mt-6 rounded-2xl border border-cyan-200/60 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-5 py-4 text-[14px] text-cyan-900 shadow-sm backdrop-blur">
               <div className="font-black text-cyan-800 text-lg">Đơn đã được chấp nhận</div>
               <p className="mt-2 text-cyan-800/90 font-medium">
-                Merchant cần tạo QR check-in. Bạn chưa cần xác nhận “đã nhận
-                hàng” ở màn này.
+                {isOfflineOrder
+                  ? "Đơn tại quán đã được merchant xác nhận. Mở bill để kiểm tra món, tổng tiền rồi thanh toán."
+                  : "Đơn online đã được Merchant xác nhận. Khi bên giao hàng đưa đơn tới nơi, bấm đã nhận hàng để hệ thống hoàn tất check-in."}
               </p>
               <button
                 type="button"
-                onClick={handleOpenCheckIn}
+                onClick={() => void handleOpenCheckIn()}
+                disabled={confirmingDelivery}
                 className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-2.5 text-[14px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
               >
                 <Check size={18} />
-                Mở màn hình check-in
+                {isOfflineOrder ? "Xác nhận bill" : "Đã nhận hàng"}
               </button>
             </div>
           ) : effectiveOrderId ? (
