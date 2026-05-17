@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  IdCard,
   ImagePlus,
   Loader2,
   Mail,
@@ -77,8 +76,6 @@ export default function CustomerProfilePage() {
   const baseRoleLabel = profile?.role || currentUser?.Role || "Customer";
 
   const phoneNumber = profile?.phoneNumber || "Chưa cập nhật";
-
-  const userId = currentUser?.UserId || profile?.userId || profile?.id || "-";
 
   const displayedAvatarUrl = avatarPreviewUrl || avatarUrl;
 
@@ -417,8 +414,6 @@ export default function CustomerProfilePage() {
                   label="Số điện thoại"
                   value={phoneNumber}
                 />
-
-                <ProfileInfoRow icon={IdCard} label="User ID" value={userId} />
               </div>
             </section>
 
