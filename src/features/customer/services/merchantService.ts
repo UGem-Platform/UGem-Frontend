@@ -367,6 +367,13 @@ export async function getMerchantDetail(id: string): Promise<MerchantDetail> {
   };
 }
 
+export async function incrementMerchantView(id: string) {
+  const res = await api.post<ApiResponse<string | null> | string | null>(
+    `/merchants/${id}/views`,
+  );
+  return unwrapApiData(res.data);
+}
+
 /**
  * Use the merchant map endpoint from the backend contract.
  */

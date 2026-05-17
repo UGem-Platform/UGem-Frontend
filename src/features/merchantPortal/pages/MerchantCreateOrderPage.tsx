@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Check, Minus, Plus, QrCode, ReceiptText, Utensils } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Minus, Plus, ReceiptText, Utensils } from "lucide-react";
 
 import { notify } from "@/shared/lib/notify";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
@@ -13,7 +13,6 @@ import {
   type FoodTopping,
 } from "@/shared/services/foodToppingService";
 import { getFoods } from "../services/foodService";
-import { acceptOrder, getMerchantCheckInQr } from "../services";
 import type { Food } from "../types";
 
 type OfflineOrderItem = {
@@ -32,8 +31,8 @@ export default function MerchantCreateOrderPage() {
   const [items, setItems] = useState<OfflineOrderItem[]>([]);
   const [customerName, setCustomerName] = useState("Khach tai quan");
   const [loading, setLoading] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const creatingOrderRef = useRef(false);
   const [toppingsByFoodId, setToppingsByFoodId] = useState<
     Record<string, FoodTopping[]>
   >({});
@@ -97,7 +96,6 @@ export default function MerchantCreateOrderPage() {
   }
 
   function resetCreatedQr() {
-    setQrUrl(null);
     setCreatedOrderId(null);
   }
 
@@ -154,6 +152,10 @@ export default function MerchantCreateOrderPage() {
   }
 
   async function handleCreateOrder() {
+    if (creatingOrderRef.current) {
+      return;
+    }
+
     const validItems = items.filter((item) => item.foodId && item.quantity > 0);
 
     if (validItems.length === 0) {
@@ -168,8 +170,8 @@ export default function MerchantCreateOrderPage() {
       foodToppingIds: item.toppingIds,
     }));
 
+    creatingOrderRef.current = true;
     setLoading(true);
-    setQrUrl(null);
     setCreatedOrderId(null);
 
     try {
@@ -185,16 +187,13 @@ export default function MerchantCreateOrderPage() {
       const orderId = createdOrder.data?.orderId;
       setCreatedOrderId(orderId ?? null);
 
-      if (orderId) {
-        await acceptOrder(orderId);
-        setQrUrl(await getMerchantCheckInQr(orderId));
-      }
 
       notify.success("Đã tạo đơn tại quán.");
     } catch (error) {
       console.error(error);
       notify.error("Tạo đơn tại quán thất bại.");
     } finally {
+      creatingOrderRef.current = false;
       setLoading(false);
     }
   }
@@ -228,7 +227,10 @@ export default function MerchantCreateOrderPage() {
                 </span>
                 <input
                   value={customerName}
-                  onChange={(event) => setCustomerName(event.target.value)}
+                  onChange={(event) => {
+                    resetCreatedQr();
+                    setCustomerName(event.target.value);
+                  }}
                   className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
                 />
               </label>
@@ -436,17 +438,15 @@ export default function MerchantCreateOrderPage() {
                 </div>
               </div>
 
-              {qrUrl ? (
+              {createdOrderId ? (
                 <div className="mt-5 rounded-3xl border border-emerald-100 bg-emerald-50/80 p-5 text-center">
                   <div className="mb-2 inline-flex items-center gap-2 text-sm font-black text-emerald-800">
                     <ReceiptText className="h-4 w-4" />
                     Order {createdOrderId}
                   </div>
-                  <img
-                    src={qrUrl}
-                    alt="QR check-in offline"
-                    className="mx-auto h-56 w-56 rounded-2xl bg-white object-contain p-2 shadow-sm"
-                  />
+                  <p className="text-sm font-semibold text-emerald-800">
+                    Đơn đã được tạo. Vào trang Đơn hàng để xác nhận và tạo QR.
+                  </p>
                 </div>
               ) : null}
 
@@ -454,11 +454,16 @@ export default function MerchantCreateOrderPage() {
                 <button
                   type="button"
                   onClick={() => void handleCreateOrder()}
-                  disabled={loading || foods.length === 0 || items.length === 0}
+                  disabled={
+                    loading ||
+                    foods.length === 0 ||
+                    items.length === 0 ||
+                    Boolean(createdOrderId)
+                  }
                   className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <QrCode className="h-4 w-4" />
-                  Tạo đơn và QR
+                  <ReceiptText className="h-4 w-4" />
+                  {createdOrderId ? "Đã tạo đơn" : "Tạo đơn"}
                 </button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Eye, QrCode, RefreshCw, X } from "lucide-react";
 import {
   acceptOrder,
@@ -212,6 +212,7 @@ export default function MerchantOrdersPage() {
   const [orderDetail, setOrderDetail] =
     useState<MerchantOrderDetailPayload | null>(null);
   const [qrUrls, setQrUrls] = useState<Record<string, string>>({});
+  const generatingQrRef = useRef(new Set<string>());
 
   const selectedOrder = orders.find(
     (order) => order.orderId === selectedOrderId,
@@ -370,6 +371,11 @@ export default function MerchantOrdersPage() {
     orderId: string,
     billAlreadyConfirmed = false,
   ) {
+    if (generatingQrRef.current.has(orderId) || qrUrls[orderId]) {
+      return;
+    }
+
+    generatingQrRef.current.add(orderId);
     setActionOrderId(orderId);
 
     try {
@@ -382,6 +388,7 @@ export default function MerchantOrdersPage() {
       console.error(error);
       notify.error("Không tạo được QR check-in.");
     } finally {
+      generatingQrRef.current.delete(orderId);
       setActionOrderId(null);
     }
   }
@@ -872,11 +879,16 @@ export default function MerchantOrdersPage() {
                                 "billconfirmed",
                             )
                           }
-                          disabled={actionOrderId === selectedOrder.orderId}
+                          disabled={
+                            actionOrderId === selectedOrder.orderId ||
+                            Boolean(qrUrls[selectedOrder.orderId])
+                          }
                           className="inline-flex items-center gap-2 rounded-2xl border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:-translate-y-px hover:bg-cyan-50 disabled:opacity-50"
                         >
                           <QrCode size={16} />
-                          Tạo mã QR check-in
+                          {qrUrls[selectedOrder.orderId]
+                            ? "Đã tạo QR"
+                            : "Tạo mã QR check-in"}
                         </button>
                       ) : null}
 

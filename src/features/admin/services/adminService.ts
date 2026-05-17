@@ -100,6 +100,40 @@ export type AdminMerchantRevenue = {
   revenueGrowth: number;
 };
 
+export type AdminRevenueByPeriod = {
+  period: string;
+  periodType: string;
+  revenue: number;
+  orderCount: number;
+};
+
+export type AdminTopFood = {
+  foodId: string;
+  foodName: string;
+  totalSold: number;
+  totalRevenue: number;
+};
+
+export type AdminMerchantRevenueDetail = {
+  merchantId: string;
+  merchantName: string;
+  logoUrl?: string | null;
+  totalRevenue: number;
+  platformFee: number;
+  reviewerFee: number;
+  merchantReceive: number;
+  averageOrderValue: number;
+  pendingOrders: number;
+  acceptedOrders: number;
+  rejectedOrders: number;
+  completedOrders: number;
+  cancellationRate: number;
+  totalUniqueCustomers: number;
+  lastOrderAt?: string | null;
+  revenueChart: AdminRevenueByPeriod[];
+  topFoods: AdminTopFood[];
+};
+
 const EMPTY_ADMIN_DASHBOARD: AdminDashboard = {
   totalUsers: 0,
   totalMerchants: 0,
@@ -153,4 +187,26 @@ export async function getAdminMerchantRevenues(params?: {
   );
 
   return unwrapData(data) ?? [];
+}
+
+export async function getAdminMerchantRevenueDetail(
+  merchantId: string,
+  periodType: "Day" | "Week" | "Month" | "Year" | string = "Month",
+) {
+  const requestConfig = {
+    params: { periodType },
+  };
+
+  const { data } = await requestWithFallback(
+    () =>
+      api.get<
+        ApiResponse<AdminMerchantRevenueDetail> | AdminMerchantRevenueDetail
+      >(`/admin/merchant-revenues/${merchantId}`, requestConfig),
+    () =>
+      api.get<
+        ApiResponse<AdminMerchantRevenueDetail> | AdminMerchantRevenueDetail
+      >(`/admins/merchant-revenues/${merchantId}`, requestConfig),
+  );
+
+  return unwrapData(data);
 }

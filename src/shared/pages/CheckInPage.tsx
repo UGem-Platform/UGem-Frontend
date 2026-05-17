@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
@@ -9,6 +9,36 @@ import {
 } from "lucide-react";
 import { getCurrentUser } from "@/features/auth";
 import { verifyCheckIn } from "@/shared/services/checkInService";
+
+const checkInRequests = new Map<string, Promise<unknown>>();
+
+function verifyCheckInOnce(orderId: string) {
+  const existingRequest = checkInRequests.get(orderId);
+
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = verifyCheckIn({ orderId }).finally(() => {
+    checkInRequests.delete(orderId);
+  });
+
+  checkInRequests.set(orderId, request);
+  return request;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "";
+}
+
+function isOrderAlreadyClaimedError(error: unknown) {
+  const message = getErrorMessage(error).toLowerCase();
+  return message.includes("already claimed") || message.includes("claimed");
+}
+
+function isAlreadyCheckedInError(error: unknown) {
+  return getErrorMessage(error).toLowerCase().includes("already checked in");
+}
 
 export default function CheckInPage() {
   const [searchParams] = useSearchParams();
@@ -32,7 +62,7 @@ export default function CheckInPage() {
         if (success) {
           if (!active) return;
 
-          setMessage("Thanh toán và check-in thành công.");
+          setMessage("Thanh toÃ¡n vÃ  check-in thÃ nh cÃ´ng.");
           setStatus("success");
           return;
         }
@@ -40,7 +70,7 @@ export default function CheckInPage() {
         // Order QR should open the bill confirmation flow first. Check-in/payment
         // confirmation happens after the customer accepts the bill.
         if (orderId) {
-          await verifyCheckIn({ orderId });
+          await verifyCheckInOnce(orderId);
           if (!active) return;
 
           navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId!)}`);
@@ -53,13 +83,27 @@ export default function CheckInPage() {
 
         if (!active) return;
 
-        setMessage("Không thể ghi nhận check-in. Vui lòng thử lại.");
+        if (orderId && isOrderAlreadyClaimedError(error)) {
+          navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId)}`, {
+            replace: true,
+          });
+          return;
+        }
+
+        if (isAlreadyCheckedInError(error)) {
+          setMessage("Ban da check-in quan nay gan day. Vui long thu lai.");
+        } else {
+          setMessage(
+            getErrorMessage(error) ||
+              "Khong the ghi nhan check-in. Vui long thu lai.",
+          );
+        }
         setStatus("error");
       }
     }
 
     const user = getCurrentUser();
-    if (!user) {
+    if (!user || user.Role !== "Customer") {
       const returnUrl = encodeURIComponent(checkInReturnPath);
       navigate(`/login?returnUrl=${returnUrl}`, { replace: true });
       return;
@@ -89,19 +133,19 @@ export default function CheckInPage() {
               <CheckCircle2 className="h-12 w-12 stroke-[2.4]" />
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-950">
-              Check-in thành công
+              Check-in thanh cong
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-slate-600">
               {merchantName
-                ? `Cảm ơn bạn đã ghé ${merchantName}. Lượt check-in của bạn đã được ghi nhận.`
-                : "Cảm ơn bạn đã ghé quán. Lượt check-in của bạn đã được ghi nhận."}
+                ? `Cáº£m Æ¡n báº¡n Ä‘Ã£ ghÃ© ${merchantName}. LÆ°á»£t check-in cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c ghi nháº­n.`
+                : "Cáº£m Æ¡n báº¡n Ä‘Ã£ ghÃ© quÃ¡n. LÆ°á»£t check-in cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c ghi nháº­n."}
             </p>
             <button
               type="button"
               onClick={() => navigate("/customer", { replace: true })}
               className="mt-7 inline-flex h-11 items-center justify-center rounded-xl bg-cyan-700 px-5 text-sm font-bold text-white shadow-lg shadow-cyan-900/15 transition hover:-translate-y-0.5 hover:bg-cyan-800"
             >
-              Khám phá quán gần bạn
+              Khám phá thêm các quán ăn khác
             </button>
           </>
         )}
@@ -112,7 +156,7 @@ export default function CheckInPage() {
               <XCircle className="h-12 w-12 stroke-[2.4]" />
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-950">
-              Không thể check-in
+              Check-in thất bại
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-slate-600">
               {message}
@@ -126,7 +170,7 @@ export default function CheckInPage() {
               }}
             >
               <RotateCcw className="h-4 w-4" />
-              Đăng nhập để thử lại
+              Thử lại
             </button>
           </>
         )}
@@ -137,10 +181,11 @@ export default function CheckInPage() {
               <Loader2 className="h-11 w-11 animate-spin" />
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-950">
-              Đang check-in
+              Đang ghi nhận check-in...
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-slate-600">
-              UGem đang ghi nhận lượt ghé quán của bạn.
+              Ugem đang cố gắng ghi nhận check-in của bạn. Vui lòng đợi trong
+              giây lát.
             </p>
           </>
         )}

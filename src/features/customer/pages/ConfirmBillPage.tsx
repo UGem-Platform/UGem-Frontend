@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, QrCode } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser } from "@/features/auth";
 import {
   confirmBill,
-  confirmReceived,
   getCustomerOrderId,
   getCustomerOrders,
   getBill,
@@ -74,10 +73,8 @@ export default function ConfirmBillPage() {
     orderId ? null : "Mã đơn hàng không hợp lệ.",
   );
   const [bill, setBill] = useState<Bill | null>(null);
-  const [method, setMethod] = useState<"transfer" | "cash">("transfer");
   const [submitting, setSubmitting] = useState(false);
   const [billConfirmed, setBillConfirmed] = useState(billConfirmedFromQr);
-  const [showQr, setShowQr] = useState(false);
   const [cashRequested, setCashRequested] = useState(() =>
     getPersistedCashRequest(orderId),
   );
@@ -106,19 +103,7 @@ export default function ConfirmBillPage() {
 
         setError(null);
         setBillConfirmed(billConfirmedFromQr);
-        setShowQr(false);
         setBill(billData as Bill);
-
-        const billPaymentMethod = (
-          ((billData as Bill)?.paymentMethod ?? (billData as Bill)?.PaymentMethod) ||
-          ""
-        )
-          .trim()
-          .toLowerCase();
-
-        if (billPaymentMethod === "cash") {
-          setMethod("cash");
-        }
 
         const currentOrder = orders.find(
           (order) => getCustomerOrderId(order) === orderId,
@@ -239,7 +224,6 @@ export default function ConfirmBillPage() {
 
     setSubmitting(true);
     setError(null);
-    setShowQr(false);
     setCashRequested(false);
 
     try {
@@ -256,29 +240,14 @@ export default function ConfirmBillPage() {
     }
   }
 
-  function getQrUrl() {
-    const amount = Number(finalPrice || 0);
-    const orderCode = String(billOrderId ?? "").replace(/-/g, "");
-    const description = `UGem-${orderCode}`;
-
-    return `https://qr.sepay.vn/img?acc=VQRQAIDAX4356&bank=MBBank&amount=${encodeURIComponent(String(Math.round(amount)))}&des=${encodeURIComponent(description)}&template=qronly`;
-  }
-
   function handleStartPayment() {
     setError(null);
-
-    if (method === "transfer") {
-      setShowQr(true);
-      setCashRequested(false);
-      return;
-    }
-
-    setShowQr(false);
     void handleCashPaymentRequested();
   }
 
   async function handleCashPaymentRequested() {
     if (!orderId) return;
+    if (cashRequested) return;
 
     setSubmitting(true);
     setError(null);
@@ -292,28 +261,6 @@ export default function ConfirmBillPage() {
         getServerMessage(
           err,
           "Không thể gửi yêu cầu xác nhận tiền mặt. Vui lòng thử lại.",
-        ),
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleTransferPaymentCompleted() {
-    if (!orderId) return;
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      await confirmReceived(orderId);
-      navigate("/check-in?success=1", { replace: true });
-    } catch (err) {
-      console.error(err);
-      setError(
-        getServerMessage(
-          err,
-          "Không thể hoàn tất thanh toán/check-in. Vui lòng thử lại.",
         ),
       );
     } finally {
@@ -438,96 +385,24 @@ export default function ConfirmBillPage() {
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <div className="mb-3 text-[13px] font-black uppercase tracking-[0.18em] text-slate-500">
-                    Chọn phương thức thanh toán
-                  </div>
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <label
-                      className={`group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border p-4 text-[15px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                        method === "transfer"
-                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 shadow-sm"
-                          : "border-white/60 bg-white/50 text-slate-600 hover:border-cyan-300 hover:bg-white/80"
-                      }`}
-                    >
-                      <input
-                        className="peer sr-only"
-                        type="radio"
-                        name="method"
-                        checked={method === "transfer"}
-                        onChange={() => {
-                          setMethod("transfer");
-                          setCashRequested(false);
-                        }}
-                      />
-                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${method === 'transfer' ? 'border-cyan-600' : 'border-slate-400 group-hover:border-cyan-400'}`}>
-                        {method === 'transfer' && <div className="h-2 w-2 rounded-full bg-cyan-600" />}
-                      </div>
-                      Chuyển khoản (QR)
-                    </label>
-                    <label
-                      className={`group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border p-4 text-[15px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                        method === "cash"
-                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 shadow-sm"
-                          : "border-white/60 bg-white/50 text-slate-600 hover:border-cyan-300 hover:bg-white/80"
-                      }`}
-                    >
-                      <input
-                        className="peer sr-only"
-                        type="radio"
-                        name="method"
-                        checked={method === "cash"}
-                        onChange={() => {
-                          setMethod("cash");
-                          setShowQr(false);
-                        }}
-                      />
-                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${method === 'cash' ? 'border-cyan-600' : 'border-slate-400 group-hover:border-cyan-400'}`}>
-                        {method === 'cash' && <div className="h-2 w-2 rounded-full bg-cyan-600" />}
-                      </div>
-                      Tiền mặt
-                    </label>
+                <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
+                  <div className="mb-2 font-bold text-amber-800">Thanh toán tiền mặt</div>
+                  <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
+                    Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
+                    toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
                   </div>
                 </div>
-
-                {method === "transfer" && (
-                  <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
-                    <div className="mb-2 font-bold text-amber-800">
-                      Thanh toán chuyển khoản
-                    </div>
-                    <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
-                      Tạo mã QR chuyển khoản ngân hàng. Sau khi chuyển xong, bấm
-                      Đã chuyển khoản để hoàn tất check-in.
-                    </div>
-                  </div>
-                )}
-
-                {method === "cash" && (
-                  <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
-                    <div className="mb-2 font-bold text-amber-800">Thanh toán tiền mặt</div>
-                    <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
-                      Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
-                      toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
-                    </div>
-                  </div>
-                )}
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
-                    onClick={() =>
-                      method === "transfer"
-                        ? handleStartPayment()
-                        : void handleCashPaymentRequested()
-                    }
-                    disabled={submitting}
+                    onClick={handleStartPayment}
+                    disabled={submitting || cashRequested}
                     className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                   >
-                    {method === "transfer"
-                      ? "Tạo mã QR thanh toán"
-                      : cashRequested
-                        ? "Đang chờ merchant xác nhận"
-                        : "Đã thanh toán tiền mặt"}
+                    {cashRequested
+                      ? "Đang chờ merchant xác nhận"
+                      : "Đã thanh toán tiền mặt"}
                   </button>
                   <button
                     type="button"
@@ -538,37 +413,7 @@ export default function ConfirmBillPage() {
                   </button>
                 </div>
 
-                {showQr && method === "transfer" && (
-                  <div className="mt-8 rounded-3xl border border-white/60 bg-white/80 p-6 text-center shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl">
-                    <div className="mb-4 flex items-center justify-center gap-2 text-lg font-black text-cyan-800">
-                      <QrCode className="h-6 w-6" />
-                      Mã QR thanh toán
-                    </div>
-                    <div className="mx-auto rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-100 max-w-fit">
-                      <img
-                        src={getQrUrl()}
-                        alt="Mã QR thanh toán"
-                        className="h-64 w-64 max-w-full object-contain"
-                      />
-                    </div>
-                    <div className="mt-4 text-[15px] font-medium text-slate-500">
-                      Số tiền:{" "}
-                      <span className="font-black text-cyan-700 text-lg">
-                        {formatCurrency(finalPrice)}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="mt-6 w-full rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
-                      disabled={submitting}
-                      onClick={() => void handleTransferPaymentCompleted()}
-                    >
-                      {submitting ? "Đang hoàn tất..." : "Đã chuyển khoản"}
-                    </button>
-                  </div>
-                )}
-
-                {cashRequested && method === "cash" && (
+                {cashRequested && (
                   <div className="mt-8 rounded-2xl border border-cyan-200/60 bg-cyan-50/80 p-4 text-[14px] font-semibold text-cyan-800 shadow-sm backdrop-blur">
                     Đã ghi nhận thanh toán tiền mặt. Đang chờ merchant xác nhận
                     để hoàn tất check-in.
