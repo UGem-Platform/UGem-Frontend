@@ -1,6 +1,11 @@
 import { api } from "@/lib/axios";
 import type { CreateFoodPayload, CreateFoodResponse, Food } from "../types";
-import { getMyMerchantDetail } from "../services";
+import { getMyApplications, getMyMerchantDetail } from "../services";
+import {
+  getMapMerchants,
+  getMerchantDetail,
+} from "@/features/customer/services/merchantService";
+import type { MerchantDetail } from "@/features/customer/types";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -25,7 +30,7 @@ export async function getFoods() {
     // The current backend exposes GET /foods but returns an empty response.
   }
 
-  const merchant = await getMyMerchantDetail();
+  const merchant = await getMyMerchantDetail() ?? await resolveMerchantFromApprovedApplication();
   return (merchant?.menu ?? merchant?.foods ?? []).map((item) => ({
     id: item.id,
     name: item.name,
@@ -35,6 +40,45 @@ export async function getFoods() {
     categoryDetail: item.categoryDetail,
     isAvailable: true,
   }));
+}
+
+function normalizeText(value?: string | null) {
+  return (value ?? "").trim().toLowerCase();
+}
+
+async function resolveMerchantFromApprovedApplication(): Promise<MerchantDetail | null> {
+  const applications = await getMyApplications();
+  const approvedApplication = applications.find((application) =>
+    ["approved", "accepted", "accept"].includes(
+      application.status.toLowerCase(),
+    ),
+  );
+
+  if (!approvedApplication) return null;
+
+  const merchants = await getMapMerchants({
+    MinLongitude: -180,
+    MaxLongitude: 180,
+    MinLatitude: -90,
+    MaxLatitude: 90,
+    ZoomLevel: 20,
+  });
+
+  const applicationName = normalizeText(approvedApplication.name);
+  const applicationAddress = normalizeText(approvedApplication.address);
+
+  const matchedMerchant = merchants.find((merchant) => {
+    const merchantName = normalizeText(merchant.name);
+    const merchantAddress = normalizeText(merchant.address);
+
+    return (
+      merchantName === applicationName ||
+      (applicationName && merchantName.includes(applicationName)) ||
+      (applicationAddress && merchantAddress === applicationAddress)
+    );
+  });
+
+  return matchedMerchant ? getMerchantDetail(matchedMerchant.id) : null;
 }
 
 export async function getFoodById(id: string) {
