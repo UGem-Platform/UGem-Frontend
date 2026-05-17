@@ -8,36 +8,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { getCurrentUser } from "@/features/auth";
-import { verifyCheckIn } from "@/shared/services/checkInService";
-
-const checkInRequests = new Map<string, Promise<unknown>>();
-
-function verifyCheckInOnce(orderId: string) {
-  const existingRequest = checkInRequests.get(orderId);
-
-  if (existingRequest) {
-    return existingRequest;
-  }
-
-  const request = verifyCheckIn({ orderId }).finally(() => {
-    checkInRequests.delete(orderId);
-  });
-
-  checkInRequests.set(orderId, request);
-  return request;
-}
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "";
-}
-
-function isOrderAlreadyClaimedError(error: unknown) {
-  const message = getErrorMessage(error).toLowerCase();
-  return message.includes("already claimed") || message.includes("claimed");
-}
-
-function isAlreadyCheckedInError(error: unknown) {
-  return getErrorMessage(error).toLowerCase().includes("already checked in");
 }
 
 export default function CheckInPage() {
@@ -67,10 +40,9 @@ export default function CheckInPage() {
           return;
         }
 
-        // Order QR should open the bill confirmation flow first. Check-in/payment
-        // confirmation happens after the customer accepts the bill.
+        // Order QR should open the bill confirmation flow first. Check-in is
+        // created only after the order payment is completed.
         if (orderId) {
-          await verifyCheckInOnce(orderId);
           if (!active) return;
 
           navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId!)}`);
@@ -83,21 +55,10 @@ export default function CheckInPage() {
 
         if (!active) return;
 
-        if (orderId && isOrderAlreadyClaimedError(error)) {
-          navigate(`/orders/confirm?orderId=${encodeURIComponent(orderId)}`, {
-            replace: true,
-          });
-          return;
-        }
-
-        if (isAlreadyCheckedInError(error)) {
-          setMessage("Bạn đã check-in quán này gần đây. Vui lòng thử lại.");
-        } else {
-          setMessage(
-            getErrorMessage(error) ||
-              "Không thể ghi nhận check-in. Vui lòng thử lại.",
-          );
-        }
+        setMessage(
+          getErrorMessage(error) ||
+            "Không thể ghi nhận check-in. Vui lòng thử lại.",
+        );
         setStatus("error");
       }
     }
