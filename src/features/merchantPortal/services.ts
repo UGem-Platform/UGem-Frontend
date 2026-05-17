@@ -227,8 +227,39 @@ export async function getMerchantCheckInQr(
   orderId: string,
   _billAlreadyConfirmed = false,
 ) {
+  void _billAlreadyConfirmed;
   const blob = await generateCheckInQr({ orderId });
   return URL.createObjectURL(blob);
+}
+
+export type MerchantViewSummary = {
+  merchantId: string;
+  totalViews: number;
+};
+
+export type MerchantStatistics = {
+  merchantId: string;
+  merchantName: string;
+  totalViews: number;
+  totalOrders: number;
+  totalRevenue: number;
+  avgOrderValue: number;
+  underrateScore: number;
+  platformFeePercent: number;
+};
+
+export async function getMyMerchantViews() {
+  const res = await api.get<
+    ApiResponse<MerchantViewSummary> | MerchantViewSummary
+  >("/merchants/me/views");
+  return unwrapApiResponse(res.data);
+}
+
+export async function getMyMerchantStatistics() {
+  const res = await api.get<
+    ApiResponse<MerchantStatistics> | MerchantStatistics
+  >("/merchants/me/statistics");
+  return unwrapApiResponse(res.data);
 }
 
 export type UpdateMerchantPayload = {
