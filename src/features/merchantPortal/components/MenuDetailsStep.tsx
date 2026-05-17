@@ -225,7 +225,7 @@ export function MenuDetailsStep({
               )}
 
               {(() => {
-                const uploadSrc = menuValues?.[index]?.imageUrl || menuValues?.[index]?.imageUploadDataUrl;
+                const uploadSrc = menuValues?.[index]?.imageUploadDataUrl || menuValues?.[index]?.imageUrl;
                 if (!uploadSrc || (!uploadSrc.trim().startsWith("data:image/") && !uploadSrc.trim().startsWith("http"))) {
                   return null;
                 }

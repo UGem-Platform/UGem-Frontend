@@ -289,7 +289,7 @@ export function BusinessInfoStep({ register, errors, setValue, watch }: Props) {
               </div>
               
               {(() => {
-                const src = watch("logoUrl") || logoUploadDataUrl;
+                const src = logoUploadDataUrl || watch("logoUrl");
                 if (!src || (!src.startsWith("data:image/") && !src.startsWith("http"))) return null;
 
                 return (

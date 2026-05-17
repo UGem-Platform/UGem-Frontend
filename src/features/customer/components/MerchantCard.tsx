@@ -110,20 +110,20 @@ export default function MerchantCard({
       className={cn(
         "group relative block overflow-hidden rounded-xl border bg-white p-3.5 text-slate-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/5",
         selected
-          ? "border-cyan-300 bg-gradient-to-br from-cyan-50/90 to-white shadow-cyan-950/10 ring-2 ring-cyan-400/50"
+          ? "border-cyan-300 bg-linear-to-br from-cyan-50/90 to-white shadow-cyan-950/10 ring-2 ring-cyan-400/50"
           : "border-slate-200/70 hover:border-cyan-200",
       )}
     >
       {/* Subtle indicator line */}
       <div
         className={cn(
-          "absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-cyan-400 to-blue-500 opacity-0 transition-opacity duration-300",
+          "absolute inset-y-0 left-0 w-1.5 bg-linear-to-b from-cyan-400 to-blue-500 opacity-0 transition-opacity duration-300",
           selected ? "opacity-100" : "group-hover:opacity-100",
         )}
       />
 
       {/* Shine effect on hover */}
-      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
+      <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/40 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
 
       <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
         {/* Image Container with overflow hidden for zoom effect */}
@@ -136,7 +136,7 @@ export default function MerchantCard({
               onError={() => setFailedImage(image)}
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-700">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 bg-linear-to-br from-cyan-50 to-blue-50 text-cyan-700">
               <Store className="h-8 w-8 opacity-70" />
               <span className="text-sm font-black tracking-tight">{initials}</span>
             </div>
