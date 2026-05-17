@@ -9,6 +9,7 @@ export type CreateMerchantOrderItem = {
 };
 
 export type CreateMerchantOrderRequest = {
+  customerId: string;
   name: string;
   deliveryAddress?: string;
   notes?: string;

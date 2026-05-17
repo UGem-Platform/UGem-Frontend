@@ -30,6 +30,7 @@ type MerchantOrderDetailItem = CustomerOrderDetailItem & {
   Quantity?: number;
   notes?: string;
   note?: string;
+  Notes?: string;
   subTotal?: number;
   SubTotal?: number;
   unitPrice?: number;
@@ -94,9 +95,7 @@ function getOrderStatusChipClass(status?: string | null) {
 }
 
 function getOrderTypeLabel(orderType?: string | null) {
-  return orderType?.trim().toLowerCase() === "offline"
-    ? "Offline"
-    : "Online";
+  return orderType?.trim().toLowerCase() === "offline" ? "Offline" : "Online";
 }
 
 function getOrderTypeChipClass(orderType?: string | null) {
@@ -105,7 +104,10 @@ function getOrderTypeChipClass(orderType?: string | null) {
     : "border-blue-200 bg-blue-50 text-blue-700";
 }
 
-function canGenerateCheckInQr(status?: string | null, orderType?: string | null) {
+function canGenerateCheckInQr(
+  status?: string | null,
+  orderType?: string | null,
+) {
   const statusKey = getOrderStatusKey(status);
 
   if (orderType?.trim().toLowerCase() !== "offline") {
@@ -119,11 +121,15 @@ function canGenerateCheckInQr(status?: string | null, orderType?: string | null)
   );
 }
 
-function getOrderActionMessage(status?: string | null) {
+function getOrderActionMessage(
+  status?: string | null,
+  orderType?: string | null,
+) {
   const statusKey = getOrderStatusKey(status);
+  const orderTypeKey = orderType?.trim().toLowerCase();
 
   if (statusKey === "accepted") {
-    return "Đơn đã được chấp nhận. Có thể tạo mã QR check-in cho khách.";
+    return "Đơn đã được chấp nhận.";
   }
 
   if (statusKey === "billconfirmed") {
@@ -139,7 +145,9 @@ function getOrderActionMessage(status?: string | null) {
   }
 
   if (statusKey === "completed") {
-    return "Đơn đã hoàn tất, không còn QR check-in.";
+    return orderTypeKey === "offline"
+      ? "Đơn offline đã hoàn tất, không còn QR check-in."
+      : "Đơn online đã hoàn tất.";
   }
 
   if (statusKey === "rejected") {
@@ -536,7 +544,7 @@ export default function MerchantOrdersPage() {
   }
 
   function getItemNote(item: MerchantOrderDetailItem) {
-    return item.notes ?? item.note ?? "";
+    return item.notes ?? item.note ?? item.Notes ?? "";
   }
 
   function getItemToppings(item: MerchantOrderDetailItem) {
@@ -606,7 +614,9 @@ export default function MerchantOrdersPage() {
           </div>
 
           {loading ? (
-            <p className="text-center font-medium text-slate-500 p-8">Đang tải đơn hàng...</p>
+            <p className="text-center font-medium text-slate-500 p-8">
+              Đang tải đơn hàng...
+            </p>
           ) : (
             <div className="space-y-4">
               {orders.map((order) => {
@@ -616,11 +626,13 @@ export default function MerchantOrdersPage() {
                     className="group relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)] hover:border-white/80"
                   >
                     <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100 mix-blend-multiply" />
-                    
+
                     <div className="relative flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
-                          <p className="text-[19px] font-black tracking-tight text-slate-900 group-hover:text-cyan-800 transition-colors">Đơn #{order.orderId}</p>
+                          <p className="text-[19px] font-black tracking-tight text-slate-900 group-hover:text-cyan-800 transition-colors">
+                            Đơn #{order.orderId}
+                          </p>
                           <span
                             className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-wider ${getOrderTypeChipClass(
                               order.orderType,
@@ -633,7 +645,10 @@ export default function MerchantOrdersPage() {
                           Trạng thái: {order.status}
                         </p>
                         <p className="mt-2.5 text-[14px] font-medium text-slate-600">
-                          <span className="font-bold text-slate-700">Khách:</span> {order.customerName || "N/A"}
+                          <span className="font-bold text-slate-700">
+                            Khách:
+                          </span>{" "}
+                          {order.customerName || "N/A"}
                         </p>
                         {order.createdAt ? (
                           <p className="mt-1 text-[12px] font-bold text-slate-400">
@@ -660,7 +675,7 @@ export default function MerchantOrdersPage() {
                       </button>
 
                       <span className="rounded-xl border border-slate-200/60 bg-slate-50/80 px-4 py-2.5 text-[13px] font-bold text-slate-600 shadow-sm backdrop-blur">
-                        {getOrderActionMessage(order.status)}
+                        {getOrderActionMessage(order.status, order.orderType)}
                       </span>
                     </div>
                   </div>
@@ -669,7 +684,9 @@ export default function MerchantOrdersPage() {
 
               {orders.length === 0 && (
                 <div className="rounded-[32px] border border-dashed border-slate-300 bg-white/40 p-12 text-center shadow-sm backdrop-blur">
-                  <p className="text-[15px] font-bold text-slate-500">Chưa có đơn nào.</p>
+                  <p className="text-[15px] font-bold text-slate-500">
+                    Chưa có đơn nào.
+                  </p>
                 </div>
               )}
             </div>
@@ -821,7 +838,10 @@ export default function MerchantOrdersPage() {
                   </div>
 
                   <div className="rounded-2xl border border-cyan-100 bg-white px-4 py-3 text-sm font-semibold text-cyan-800 shadow-sm ring-1 ring-cyan-50">
-                    {getOrderActionMessage(selectedOrder.status)}
+                    {getOrderActionMessage(
+                      selectedOrder.status,
+                      selectedOrder.orderType,
+                    )}
                   </div>
 
                   <DialogFooter className="border-t border-slate-100 pt-4 gap-3 sm:justify-between">
@@ -932,7 +952,6 @@ export default function MerchantOrdersPage() {
               ) : null}
             </DialogContent>
           </Dialog>
-
         </div>
       </section>
     </main>

@@ -21,7 +21,10 @@ import {
   type Review,
 } from "@/features/review/services";
 
-import { getMerchantDetail } from "../services/merchantService";
+import {
+  getMerchantDetail,
+  incrementMerchantView,
+} from "../services/merchantService";
 
 import type {
   MerchantDetail,
@@ -50,6 +53,21 @@ const DESCRIPTION_META_LABELS = [
   "Loại món chính",
   "Khoảng giá trung bình",
 ];
+
+const viewedMerchantIds = new Set<string>();
+
+async function trackMerchantViewOnce(merchantId: string) {
+  if (viewedMerchantIds.has(merchantId)) return;
+
+  viewedMerchantIds.add(merchantId);
+
+  try {
+    await incrementMerchantView(merchantId);
+  } catch (error) {
+    viewedMerchantIds.delete(merchantId);
+    console.error(error);
+  }
+}
 
 function getReviewContent(review: Review) {
   return review.content || review.comment || review.description || "";
@@ -209,6 +227,7 @@ export default function MerchantDetailPage() {
 
         setMerchant(merchantData);
         setReviews(reviewData);
+        void trackMerchantViewOnce(id!);
       } catch (error) {
         console.error(error);
         notify.error("Không tải được chi tiết quán.");

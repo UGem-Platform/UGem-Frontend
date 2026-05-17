@@ -62,7 +62,7 @@ export default function CheckInPage() {
         if (success) {
           if (!active) return;
 
-          setMessage("Thanh toÃ¡n vÃ  check-in thÃ nh cÃ´ng.");
+          setMessage("Thanh toán và check-in thành công.");
           setStatus("success");
           return;
         }
@@ -137,8 +137,8 @@ export default function CheckInPage() {
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-slate-600">
               {merchantName
-                ? `Cáº£m Æ¡n báº¡n Ä‘Ã£ ghÃ© ${merchantName}. LÆ°á»£t check-in cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c ghi nháº­n.`
-                : "Cáº£m Æ¡n báº¡n Ä‘Ã£ ghÃ© quÃ¡n. LÆ°á»£t check-in cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c ghi nháº­n."}
+                ? `Cảm ơn bạn đã ghé ${merchantName}. Lượt check-in của bạn đã được ghi nhận.`
+                : "Cảm ơn bạn đã ghé quán. Lượt check-in của bạn đã được ghi nhận."}
             </p>
             <button
               type="button"
