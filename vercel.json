@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://ugem-test-backend.onrender.com/api/:path*"
+      "destination": "https://ugem-backend.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",

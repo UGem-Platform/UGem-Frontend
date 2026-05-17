@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const apiProxyTarget =
     env.VITE_API_PROXY_TARGET ||
     env.VITE_API_BASE_URL ||
-    "https://ugem-test-backend.onrender.com";
+    "https://ugem-backend.onrender.com";
 
   return {
     plugins: [react()],

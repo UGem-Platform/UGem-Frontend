@@ -531,14 +531,14 @@ export default function MerchantDetailPage() {
 
         {/* hero */}
         <section className="relative overflow-hidden rounded-[36px] border border-white/50 bg-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-300/10 via-transparent to-amber-300/10 opacity-50" />
+          <div className="absolute inset-0 bg-linear-to-br from-cyan-300/10 via-transparent to-amber-300/10 opacity-50" />
 
           <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl mix-blend-multiply" />
           <div className="absolute -right-20 -bottom-20 h-56 w-56 rounded-full bg-amber-400/20 blur-3xl mix-blend-multiply" />
 
           <div className="relative grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr] lg:p-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                 Featured Merchant
               </div>
 
@@ -557,7 +557,7 @@ export default function MerchantDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowReviews(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/60 bg-gradient-to-r from-amber-50/90 to-orange-50/90 px-3.5 py-1.5 text-[13px] font-black text-amber-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/60 bg-linear-to-r from-amber-50/90 to-orange-50/90 px-3.5 py-1.5 text-[13px] font-black text-amber-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                 >
                   <Star
                     className={
@@ -610,7 +610,7 @@ export default function MerchantDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleAddWishlist()}
-                className="group inline-flex items-center gap-3 rounded-2xl border border-white/60 bg-white/70 px-5 py-3.5 text-[15px] font-black text-cyan-700 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 hover:shadow-md"
+                className="group inline-flex items-center gap-3 rounded-2xl border border-white/60 bg-white/70 px-5 py-3.5 text-[15px] font-black text-cyan-700 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:bg-linear-to-r hover:from-cyan-50 hover:to-blue-50 hover:shadow-md"
               >
                 <Heart className="h-5 w-5 transition-transform duration-300 group-hover:scale-125 group-hover:fill-rose-400 group-hover:text-rose-500" />
                 Thêm yêu thích
@@ -652,7 +652,7 @@ export default function MerchantDetailPage() {
                   key={food.id}
                   className="group relative overflow-hidden rounded-[28px] border border-white/50 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)] hover:border-white/80"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full transition-transform duration-1000 group-hover:translate-x-full" />
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full transition-transform duration-1000 group-hover:translate-x-full" />
                   <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
                   <div className="relative flex gap-5">
@@ -665,7 +665,7 @@ export default function MerchantDetailPage() {
                         />
                       </div>
                     ) : (
-                      <div className="grid h-28 w-28 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-700 shadow-sm transition-transform duration-500 group-hover:scale-105">
+                      <div className="grid h-28 w-28 shrink-0 place-items-center rounded-2xl bg-linear-to-br from-cyan-50 to-blue-50 text-cyan-700 shadow-sm transition-transform duration-500 group-hover:scale-105">
                         <Flame className="h-8 w-8" />
                       </div>
                     )}
@@ -704,7 +704,7 @@ export default function MerchantDetailPage() {
                           type="button"
                           onClick={() => openAddFoodModal(food)}
                           disabled={isOfflineOrder}
-                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                          className="inline-flex items-center gap-2 rounded-xl bg-linear-to-br from-cyan-600 to-blue-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                         >
                           <Plus className="h-4 w-4" />
                           {isOfflineOrder ? "Gọi tại quán" : "Thêm"}

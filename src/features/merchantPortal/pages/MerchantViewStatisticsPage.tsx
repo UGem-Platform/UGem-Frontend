@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   AlertCircle,
@@ -78,19 +78,12 @@ export function MerchantViewStatisticsPage() {
     });
   }, []);
 
-  const conversionRate = useMemo(() => {
-    const totalViews = stats?.totalViews ?? views?.totalViews ?? 0;
-    const totalOrders = stats?.totalOrders ?? 0;
-
-    if (!totalViews || !totalOrders) return 0;
-    return (totalOrders / totalViews) * 100;
-  }, [stats, views]);
-
   const totalViews = stats?.totalViews ?? views?.totalViews ?? 0;
+  const usRate = stats?.underrateScore ?? 0;
 
   return (
     <main className="merchant-portal-layout bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] relative">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[32px_32px]" />
 
       <MerchantSidebar />
 
@@ -169,14 +162,14 @@ export function MerchantViewStatisticsPage() {
                 />
                 <StatCard
                   icon={<TrendingUp size={20} />}
-                  label="Tỉ lệ chuyển đổi"
-                  value={`${conversionRate.toFixed(1)}%`}
+                  label="Tỉ lệ US"
+                  value={`${formatNumber(usRate)}%`}
                   tone="violet"
                 />
               </section>
 
               <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                <article className="rounded-[24px] border border-white/60 bg-white/70 p-6 shadow-sm backdrop-blur">
+                <article className="rounded-3xl border border-white/60 bg-white/70 p-6 shadow-sm backdrop-blur">
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <div>
                       <h2 className="text-lg font-black text-slate-950">
@@ -211,7 +204,7 @@ export function MerchantViewStatisticsPage() {
                   </div>
                 </article>
 
-                <article className="rounded-[24px] border border-white/60 bg-white/70 p-6 shadow-sm backdrop-blur">
+                <article className="rounded-3xl border border-white/60 bg-white/70 p-6 shadow-sm backdrop-blur">
                   <h2 className="text-lg font-black text-slate-950">
                     Tài chính
                   </h2>
@@ -267,7 +260,7 @@ function StatCard({
       <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
         {label}
       </p>
-      <p className="mt-2 break-words text-2xl font-black text-slate-950">
+      <p className="mt-2 wrap-break-word text-2xl font-black text-slate-950">
         {value}
       </p>
     </article>
@@ -295,7 +288,7 @@ function ProgressLine({
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500"
+          className="h-full rounded-full bg-linear-to-r from-cyan-500 to-emerald-500"
           style={{ width: `${width}%` }}
         />
       </div>
