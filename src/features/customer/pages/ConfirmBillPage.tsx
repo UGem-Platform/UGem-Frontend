@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { Banknote, CheckCircle2, CreditCard } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser } from "@/features/auth";
 import {
@@ -42,11 +42,27 @@ type Bill = {
   PaymentMethod?: string;
   finalPrice?: number;
   FinalPrice?: number;
+  totalAmount?: number;
+  TotalAmount?: number;
+  bankName?: string;
+  BankName?: string;
+  bankAccount?: string;
+  BankAccount?: string;
+  description?: string;
+  Description?: string;
+  code?: string;
+  Code?: string;
+  qrCode?: string | null;
+  QRCode?: string | null;
   items?: BillItem[];
   Items?: BillItem[];
 };
 
 const cashPaymentStoragePrefix = "ugem.cash-payment-requested";
+const defaultBankName = "MBBank";
+const defaultBankAccount = "VQRQAIDAX4356";
+
+type BillPaymentMethod = "Cash" | "BankTransfer";
 
 function getCashPaymentStorageKey(orderId?: string | null) {
   return orderId ? `${cashPaymentStoragePrefix}.${orderId}` : null;
@@ -95,6 +111,50 @@ function getBillItemToppings(item: BillItem) {
   return item.toppings ?? item.Toppings ?? [];
 }
 
+function getBillPaymentMethod(bill?: Bill | null): BillPaymentMethod {
+  const paymentMethod = (bill?.paymentMethod ?? bill?.PaymentMethod ?? "")
+    .trim()
+    .toLowerCase();
+
+  return paymentMethod === "banktransfer" ? "BankTransfer" : "Cash";
+}
+
+function getBankTransferDescription(orderId?: string | null) {
+  if (!orderId) return "UGem";
+  return `UGem-${orderId.replace(/-/g, "")}`;
+}
+
+function getBankTransferInfo(
+  bill: Bill | null,
+  orderId: string | null | undefined,
+  finalPrice: number,
+) {
+  const bankName = bill?.bankName ?? bill?.BankName ?? defaultBankName;
+  const bankAccount =
+    bill?.bankAccount ?? bill?.BankAccount ?? defaultBankAccount;
+  const description =
+    bill?.description ?? bill?.Description ?? getBankTransferDescription(orderId);
+  const amount = Math.round(
+    Number(bill?.totalAmount ?? bill?.TotalAmount ?? finalPrice ?? 0),
+  );
+  const qrCode =
+    bill?.qrCode ??
+    bill?.QRCode ??
+    `https://qr.sepay.vn/img?acc=${encodeURIComponent(
+      bankAccount,
+    )}&bank=${encodeURIComponent(bankName)}&amount=${amount}&des=${encodeURIComponent(
+      description,
+    )}&template=qronly`;
+
+  return {
+    bankName,
+    bankAccount,
+    description,
+    amount,
+    qrCode,
+  };
+}
+
 export default function ConfirmBillPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -111,10 +171,16 @@ export default function ConfirmBillPage() {
   const [cashRequested, setCashRequested] = useState(() =>
     getPersistedCashRequest(orderId),
   );
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<BillPaymentMethod>("Cash");
 
   const billOrderId = bill?.orderId ?? bill?.OrderId ?? orderId;
   const finalPrice = bill?.finalPrice ?? bill?.FinalPrice ?? 0;
   const items = useMemo(() => bill?.items ?? bill?.Items ?? [], [bill]);
+  const bankTransferInfo = useMemo(
+    () => getBankTransferInfo(bill, billOrderId, finalPrice),
+    [bill, billOrderId, finalPrice],
+  );
 
   useEffect(() => {
     if (!orderId) return;
@@ -136,7 +202,9 @@ export default function ConfirmBillPage() {
 
         setError(null);
         setBillConfirmed(billConfirmedFromQr);
-        setBill(billData as Bill);
+        const nextBill = billData as Bill;
+        setBill(nextBill);
+        setSelectedPaymentMethod(getBillPaymentMethod(nextBill));
 
         const currentOrder = orders.find(
           (order) => getCustomerOrderId(order) === orderId,
@@ -157,6 +225,7 @@ export default function ConfirmBillPage() {
 
         if (currentStatus === "cashpending") {
           setBillConfirmed(true);
+          setSelectedPaymentMethod("Cash");
           setCashRequested(true);
           return;
         }
@@ -200,7 +269,11 @@ export default function ConfirmBillPage() {
   }, [cashRequested, orderId]);
 
   useEffect(() => {
-    if (!orderId || !cashRequested) return;
+    const shouldSyncPayment =
+      cashRequested ||
+      (billConfirmed && selectedPaymentMethod === "BankTransfer");
+
+    if (!orderId || !shouldSyncPayment) return;
 
     let active = true;
     const timerId = window.setInterval(() => {
@@ -228,6 +301,20 @@ export default function ConfirmBillPage() {
         return;
       }
 
+      if (
+        selectedPaymentMethod === "BankTransfer" &&
+        (!currentStatus || currentStatus === "billconfirmed")
+      ) {
+        return;
+      }
+
+      if (selectedPaymentMethod === "BankTransfer") {
+        setError(
+          "Trạng thái thanh toán chuyển khoản đã thay đổi. Vui lòng tải lại hóa đơn.",
+        );
+        return;
+      }
+
       if (!currentStatus || currentStatus === "cashpending") {
         return;
       }
@@ -250,7 +337,7 @@ export default function ConfirmBillPage() {
       active = false;
       window.clearInterval(timerId);
     };
-  }, [cashRequested, navigate, orderId]);
+  }, [billConfirmed, cashRequested, navigate, orderId, selectedPaymentMethod]);
 
   async function handleConfirmBill() {
     if (!orderId) return;
@@ -276,6 +363,13 @@ export default function ConfirmBillPage() {
   function handleStartPayment() {
     setError(null);
     void handleCashPaymentRequested();
+  }
+
+  function handleSelectPaymentMethod(method: BillPaymentMethod) {
+    if (cashRequested) return;
+
+    setError(null);
+    setSelectedPaymentMethod(method);
   }
 
   async function handleCashPaymentRequested() {
@@ -452,27 +546,131 @@ export default function ConfirmBillPage() {
                     </div>
                   </div>
 
-                  <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
-                    <div className="mb-2 font-bold text-amber-800">
-                      Thanh toán tiền mặt
+                  <div className="mb-6 rounded-2xl border border-slate-200/60 bg-white/70 p-4 shadow-sm backdrop-blur">
+                    <div className="mb-3 text-[12px] font-black uppercase tracking-[0.18em] text-slate-500">
+                      Phương thức thanh toán
                     </div>
-                    <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
-                      Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
-                      toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectPaymentMethod("Cash")}
+                        disabled={cashRequested}
+                        className={`rounded-2xl border p-4 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-70 ${
+                          selectedPaymentMethod === "Cash"
+                            ? "border-amber-300 bg-amber-50 text-amber-900 shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-amber-700 ring-1 ring-amber-100">
+                          <Banknote className="h-5 w-5" />
+                        </div>
+                        <div className="font-black">Tiền mặt</div>
+                        <div className="mt-1 text-[12px] font-medium opacity-75">
+                          Thanh toán trực tiếp tại quán
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectPaymentMethod("BankTransfer")}
+                        disabled={cashRequested}
+                        className={`rounded-2xl border p-4 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-70 ${
+                          selectedPaymentMethod === "BankTransfer"
+                            ? "border-cyan-300 bg-cyan-50 text-cyan-900 shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-cyan-700 ring-1 ring-cyan-100">
+                          <CreditCard className="h-5 w-5" />
+                        </div>
+                        <div className="font-black">Chuyển khoản</div>
+                        <div className="mt-1 text-[12px] font-medium opacity-75">
+                          Quét QR ngân hàng để thanh toán
+                        </div>
+                      </button>
                     </div>
                   </div>
 
+                  {selectedPaymentMethod === "Cash" ? (
+                    <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
+                      <div className="mb-2 font-bold text-amber-800">
+                        Thanh toán tiền mặt
+                      </div>
+                      <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
+                        Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
+                        toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-6 rounded-2xl border border-cyan-200/60 bg-cyan-50/80 p-4 shadow-sm backdrop-blur">
+                      <div className="mb-3 font-bold text-cyan-900">
+                        Thanh toán chuyển khoản
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-[160px_1fr]">
+                        <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-cyan-100">
+                          <img
+                            src={bankTransferInfo.qrCode ?? ""}
+                            alt="QR chuyển khoản"
+                            className="aspect-square w-full rounded-xl object-contain"
+                          />
+                        </div>
+                        <div className="space-y-2 text-[13px] font-semibold text-cyan-900">
+                          <div className="flex justify-between gap-3">
+                            <span className="text-cyan-700/70">Ngân hàng</span>
+                            <span className="text-right">
+                              {bankTransferInfo.bankName}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-3">
+                            <span className="text-cyan-700/70">Tài khoản</span>
+                            <span className="text-right font-black">
+                              {bankTransferInfo.bankAccount}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-3">
+                            <span className="text-cyan-700/70">Số tiền</span>
+                            <span className="text-right font-black">
+                              {formatCurrency(bankTransferInfo.amount)}
+                            </span>
+                          </div>
+                          <div className="rounded-xl bg-white/80 p-3 ring-1 ring-cyan-100">
+                            <div className="text-[11px] font-black uppercase tracking-[0.14em] text-cyan-700/70">
+                              Nội dung
+                            </div>
+                            <div className="mt-1 break-all font-mono text-[13px] font-black text-cyan-900">
+                              {bankTransferInfo.description}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 text-[13px] font-medium leading-relaxed text-cyan-800/80">
+                        Sau khi chuyển khoản đúng số tiền và nội dung, hệ thống
+                        sẽ tự xác nhận thanh toán để hoàn tất check-in.
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={handleStartPayment}
-                      disabled={submitting || cashRequested}
-                      className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
-                    >
-                      {cashRequested
-                        ? "Đang chờ merchant xác nhận"
-                        : "Đã thanh toán tiền mặt"}
-                    </button>
+                    {selectedPaymentMethod === "Cash" ? (
+                      <button
+                        type="button"
+                        onClick={handleStartPayment}
+                        disabled={submitting || cashRequested}
+                        className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+                      >
+                        {cashRequested
+                          ? "Đang chờ merchant xác nhận"
+                          : "Đã thanh toán tiền mặt"}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="flex-1 rounded-xl border border-cyan-200 bg-cyan-50 px-5 py-3.5 text-[15px] font-black text-cyan-800 shadow-sm disabled:opacity-80"
+                      >
+                        Đang chờ xác nhận chuyển khoản
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => navigate(`/customer/orders/${orderId}`)}

@@ -25,7 +25,14 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 
-type MerchantOrderDetailItem = CustomerOrderDetailItem & {
+type OrderItemTopping = {
+  id?: string;
+  name?: string;
+  price?: number;
+  Price?: number;
+};
+
+type MerchantOrderDetailItem = Omit<CustomerOrderDetailItem, "toppings"> & {
   Name?: string;
   Quantity?: number;
   notes?: string;
@@ -35,6 +42,8 @@ type MerchantOrderDetailItem = CustomerOrderDetailItem & {
   SubTotal?: number;
   unitPrice?: number;
   UnitPrice?: number;
+  toppings?: OrderItemTopping[];
+  Toppings?: OrderItemTopping[];
 };
 
 type MerchantOrderDetailPayload =
@@ -54,6 +63,11 @@ type MerchantOrderDetailPayload =
 
 function formatCurrency(value?: number | null) {
   return `${Number(value ?? 0).toLocaleString("vi-VN")}đ`;
+}
+
+function toCurrencyNumber(value: unknown) {
+  const amount = Number(value ?? 0);
+  return Number.isFinite(amount) ? amount : 0;
 }
 
 function formatDateTime(value?: string | null) {
@@ -544,13 +558,14 @@ export default function MerchantOrdersPage() {
   }
 
   function getItemUnitPrice(item: MerchantOrderDetailItem) {
-    return item.unitPrice ?? item.UnitPrice ?? 0;
+    return toCurrencyNumber(item.unitPrice ?? item.UnitPrice);
   }
 
   function getItemDisplayUnitPrice(item: MerchantOrderDetailItem) {
     const quantity = getItemQuantity(item);
     const subTotal = getItemSubTotal(item);
-    const toppingTotal = getItemToppingTotal(item);
+    const toppingUnitTotal = getItemToppingUnitTotal(item);
+    const toppingTotal = toppingUnitTotal * (quantity > 0 ? quantity : 1);
     const unitPrice = getItemUnitPrice(item);
 
     if (subTotal > 0 && quantity > 0 && toppingTotal > 0) {
@@ -562,6 +577,10 @@ export default function MerchantOrdersPage() {
       }
     }
 
+    if (unitPrice > toppingUnitTotal && toppingUnitTotal > 0) {
+      return unitPrice - toppingUnitTotal;
+    }
+
     if (subTotal > 0 && quantity > 0 && unitPrice <= 0) {
       return subTotal / quantity;
     }
@@ -569,11 +588,15 @@ export default function MerchantOrdersPage() {
     return unitPrice;
   }
 
+  function getItemToppingUnitTotal(item: MerchantOrderDetailItem) {
+    return getItemToppings(item).reduce((sum, topping) => {
+      return sum + toCurrencyNumber(topping.price ?? topping.Price);
+    }, 0);
+  }
+
   function getItemToppingTotal(item: MerchantOrderDetailItem) {
     const quantity = getItemQuantity(item);
-    const perUnit = (item.toppings ?? []).reduce((sum, topping) => {
-      return sum + Number(topping.price ?? 0);
-    }, 0);
+    const perUnit = getItemToppingUnitTotal(item);
 
     return quantity > 0 ? perUnit * quantity : perUnit;
   }
@@ -583,11 +606,11 @@ export default function MerchantOrdersPage() {
   }
 
   function getItemToppings(item: MerchantOrderDetailItem) {
-    return item.toppings ?? [];
+    return item.toppings ?? item.Toppings ?? [];
   }
 
   function getItemSubTotal(item: MerchantOrderDetailItem) {
-    return item.subTotal ?? item.SubTotal ?? 0;
+    return toCurrencyNumber(item.subTotal ?? item.SubTotal);
   }
 
   function getItemDisplayTotal(item: MerchantOrderDetailItem) {
