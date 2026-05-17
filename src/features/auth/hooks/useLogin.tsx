@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+﻿import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { loginApi } from "../services";
 import { saveAuthToken } from "../store";
@@ -31,7 +31,7 @@ export function useLogin() {
       const token = data.accessToken;
 
       if (!token) {
-        throw new Error("Không nhận được token từ server.");
+        throw new Error("Missing access token");
       }
 
       const user = saveAuthToken(token);

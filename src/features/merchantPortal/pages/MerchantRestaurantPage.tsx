@@ -104,6 +104,10 @@ function normalizeText(value?: string | null) {
   return (value ?? "").trim().toLowerCase();
 }
 
+function isApprovedStatus(status?: string) {
+  return status === "Approved" || status === "Accepted" || status === "Accept";
+}
+
 function applicationToMerchantDetail(
   application: MerchantApplication,
 ): MerchantDetail {
@@ -187,7 +191,9 @@ export function MerchantRestaurantPage() {
 
   const latestApprovedApplication = useMemo(
     () =>
-      [...applications].find((application) => application.status === "Approved") ??
+      [...applications].find((application) =>
+        isApprovedStatus(application.status),
+      ) ??
       null,
     [applications],
   );

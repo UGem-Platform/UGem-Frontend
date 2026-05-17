@@ -91,11 +91,11 @@ export default function CheckInPage() {
         }
 
         if (isAlreadyCheckedInError(error)) {
-          setMessage("Ban da check-in quan nay gan day. Vui long thu lai.");
+          setMessage("Bạn đã check-in quán này gần đây. Vui lòng thử lại.");
         } else {
           setMessage(
             getErrorMessage(error) ||
-              "Khong the ghi nhan check-in. Vui long thu lai.",
+              "Không thể ghi nhận check-in. Vui lòng thử lại.",
           );
         }
         setStatus("error");
@@ -133,7 +133,7 @@ export default function CheckInPage() {
               <CheckCircle2 className="h-12 w-12 stroke-[2.4]" />
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-950">
-              Check-in thanh cong
+              Check-in thành công
             </h1>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-slate-600">
               {merchantName

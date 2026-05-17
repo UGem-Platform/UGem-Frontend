@@ -259,7 +259,7 @@ export default function MerchantCreateOrderPage() {
       const createdOrder = await createMerchantOrder({
         customerId: selectedCustomer.customerId,
         name: selectedCustomer.fullName || selectedCustomer.email,
-        deliveryAddress: "Tai quan",
+        deliveryAddress: "Tại quán",
         orderType: "Offline",
         paymentMethod: "Cash",
         notes: "Offline check-in",
@@ -383,7 +383,7 @@ export default function MerchantCreateOrderPage() {
                   value={
                     selectedCustomer?.fullName ??
                     (customerLookupStatus === "not-found"
-                      ? "Khach chua co tai khoan UGem"
+                      ? "Khách chưa có tài khoản UGem"
                       : "")
                   }
                   readOnly

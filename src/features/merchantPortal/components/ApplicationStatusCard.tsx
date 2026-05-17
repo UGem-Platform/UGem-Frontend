@@ -60,7 +60,11 @@ function getStatusText(application?: MerchantApplication): StatusInfo {
     };
   }
 
-  if (application.status === "Approved") {
+  if (
+    application.status === "Approved" ||
+    application.status === "Accepted" ||
+    application.status === "Accept"
+  ) {
     return {
       label: "Đã được duyệt",
       description: "Quán của bạn đã được duyệt và có thể hiển thị trên UGem.",

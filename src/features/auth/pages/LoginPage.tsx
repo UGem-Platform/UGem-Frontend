@@ -8,6 +8,7 @@ import { getRouteByRole } from "../hooks/useLogin";
 import { googleLoginApi } from "../services";
 import { saveAuthToken } from "../store";
 import { Logo } from "./Logo";
+import { getGoogleLoginErrorMessage } from "../errorMessages";
 
 import { notify } from "@/shared/lib/notify";
 
@@ -126,11 +127,7 @@ export function LoginPage() {
               replace: true,
             });
           } catch (error) {
-            notify.error(
-              error instanceof Error
-                ? error.message
-                : "Đăng nhập Google thất bại.",
-            );
+            notify.error(getGoogleLoginErrorMessage(error));
           } finally {
             setGoogleLoading(false);
           }

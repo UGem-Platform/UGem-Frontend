@@ -1134,7 +1134,7 @@ export default function MerchantDetailPage() {
                                       )
                                     }
                                     className="grid h-4 w-4 place-items-center rounded-full text-emerald-700 transition hover:bg-emerald-100"
-                                    aria-label={`Xoa ${topping.name}`}
+                                    aria-label={`Xóa ${topping.name}`}
                                   >
                                     <X className="h-3 w-3" />
                                   </button>
