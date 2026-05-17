@@ -18,6 +18,19 @@ type BillItem = {
   Quantity?: number;
   subTotal?: number;
   SubTotal?: number;
+  notes?: string;
+  note?: string;
+  Notes?: string;
+  toppings?: {
+    id?: string;
+    name?: string;
+    price?: number;
+  }[];
+  Toppings?: {
+    id?: string;
+    name?: string;
+    price?: number;
+  }[];
 };
 
 type Bill = {
@@ -60,6 +73,26 @@ function getServerMessage(error: unknown, fallback: string) {
 function formatCurrency(value: unknown) {
   const amount = Number(value ?? 0);
   return `${amount.toLocaleString("vi-VN")} đ`;
+}
+
+function getBillItemName(item: BillItem) {
+  return item.name ?? item.Name ?? "Món ăn";
+}
+
+function getBillItemQuantity(item: BillItem) {
+  return item.quantity ?? item.Quantity ?? 0;
+}
+
+function getBillItemSubTotal(item: BillItem) {
+  return item.subTotal ?? item.SubTotal ?? 0;
+}
+
+function getBillItemNote(item: BillItem) {
+  return item.notes ?? item.note ?? item.Notes ?? "";
+}
+
+function getBillItemToppings(item: BillItem) {
+  return item.toppings ?? item.Toppings ?? [];
 }
 
 export default function ConfirmBillPage() {
@@ -301,9 +334,13 @@ export default function ConfirmBillPage() {
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
             Payment & Check-in
           </div>
-          <h1 className="mb-6 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">Xác nhận hóa đơn</h1>
+          <h1 className="mb-6 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
+            Xác nhận hóa đơn
+          </h1>
 
-          {loading && <p className="text-slate-500 font-medium">Đang tải hóa đơn...</p>}
+          {loading && (
+            <p className="text-slate-500 font-medium">Đang tải hóa đơn...</p>
+          )}
 
           {error && (
             <div className="mb-6 rounded-2xl border border-rose-200/60 bg-rose-50/80 p-4 text-sm font-semibold text-rose-700 shadow-sm backdrop-blur">
@@ -314,19 +351,25 @@ export default function ConfirmBillPage() {
           {!loading && bill && (
             <section className="space-y-6">
               <div className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Mã đơn</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                  Mã đơn
+                </div>
                 <div className="mt-1 break-all font-mono text-[15px] font-black text-cyan-800">
                   {billOrderId}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400 mb-3">Món đã gọi</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400 mb-3">
+                  Món đã gọi
+                </div>
                 <ul className="space-y-3">
                   {items.map((item, idx) => {
-                    const name = item.name ?? item.Name ?? "Món ăn";
-                    const quantity = item.quantity ?? item.Quantity ?? 0;
-                    const subTotal = item.subTotal ?? item.SubTotal ?? 0;
+                    const name = getBillItemName(item);
+                    const quantity = getBillItemQuantity(item);
+                    const subTotal = getBillItemSubTotal(item);
+                    const note = getBillItemNote(item);
+                    const toppings = getBillItemToppings(item);
 
                     return (
                       <li
@@ -334,10 +377,32 @@ export default function ConfirmBillPage() {
                         className="flex items-center justify-between gap-3 border-b border-slate-200/50 pb-3 last:border-0 last:pb-0"
                       >
                         <div className="min-w-0">
-                          <div className="text-[15px] font-bold text-slate-800">{name}</div>
-                          <div className="text-[13px] font-medium text-slate-500 mt-0.5">
-                            Số lượng: <span className="font-bold text-slate-700">{quantity}</span>
+                          <div className="text-[15px] font-bold text-slate-800">
+                            {name}
                           </div>
+                          <div className="text-[13px] font-medium text-slate-500 mt-0.5">
+                            Số lượng:{" "}
+                            <span className="font-bold text-slate-700">
+                              {quantity}
+                            </span>
+                          </div>
+                          {toppings.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {toppings.map((topping) => (
+                                <span
+                                  key={topping.id ?? topping.name}
+                                  className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700"
+                                >
+                                  +{topping.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {note ? (
+                            <div className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[12px] text-amber-800 ring-1 ring-amber-100">
+                              Ghi chú: {note}
+                            </div>
+                          ) : null}
                         </div>
                         <div className="shrink-0 text-[15px] font-black text-slate-900">
                           {formatCurrency(subTotal)}
@@ -349,80 +414,84 @@ export default function ConfirmBillPage() {
               </div>
 
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 p-5 shadow-sm">
-                <div className="text-[13px] font-black uppercase tracking-[0.18em] text-cyan-800">Tổng thanh toán</div>
+                <div className="text-[13px] font-black uppercase tracking-[0.18em] text-cyan-800">
+                  Tổng thanh toán
+                </div>
                 <div className="text-2xl font-black text-cyan-700">
                   {formatCurrency(finalPrice)}
                 </div>
               </div>
 
-            {!billConfirmed && (
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={handleConfirmBill}
-                  className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
-                >
-                  {submitting ? "Đang gửi..." : "Xác nhận hóa đơn"}
-                </button>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleReject("Khác")}
-                  className="rounded-xl border border-rose-200/60 bg-white/70 px-6 py-3.5 text-[15px] font-bold text-rose-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-50 hover:shadow-md hover:border-rose-300 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
-                >
-                  Từ chối
-                </button>
-              </div>
-            )}
-
-            {billConfirmed && (
-              <>
-                <div className="mb-6 rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-4 shadow-sm backdrop-blur">
-                  <div className="flex items-center gap-2.5 font-bold text-emerald-700">
-                    <CheckCircle2 className="h-5 w-5" />
-                    Hóa đơn đã được xác nhận
-                  </div>
-                </div>
-
-                <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
-                  <div className="mb-2 font-bold text-amber-800">Thanh toán tiền mặt</div>
-                  <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
-                    Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
-                    toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
-                  </div>
-                </div>
-
+              {!billConfirmed && (
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
-                    onClick={handleStartPayment}
-                    disabled={submitting || cashRequested}
+                    disabled={submitting}
+                    onClick={handleConfirmBill}
                     className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                   >
-                    {cashRequested
-                      ? "Đang chờ merchant xác nhận"
-                      : "Đã thanh toán tiền mặt"}
+                    {submitting ? "Đang gửi..." : "Xác nhận hóa đơn"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate(`/customer/orders/${orderId}`)}
-                    className="rounded-xl border border-slate-200/60 bg-white/70 px-6 py-3.5 text-[15px] font-bold text-slate-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md hover:border-slate-300"
+                    disabled={submitting}
+                    onClick={() => handleReject("Khác")}
+                    className="rounded-xl border border-rose-200/60 bg-white/70 px-6 py-3.5 text-[15px] font-bold text-rose-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-50 hover:shadow-md hover:border-rose-300 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                   >
-                    Quay lại
+                    Từ chối
                   </button>
                 </div>
+              )}
 
-                {cashRequested && (
-                  <div className="mt-8 rounded-2xl border border-cyan-200/60 bg-cyan-50/80 p-4 text-[14px] font-semibold text-cyan-800 shadow-sm backdrop-blur">
-                    Đã ghi nhận thanh toán tiền mặt. Đang chờ merchant xác nhận
-                    để hoàn tất check-in.
+              {billConfirmed && (
+                <>
+                  <div className="mb-6 rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-4 shadow-sm backdrop-blur">
+                    <div className="flex items-center gap-2.5 font-bold text-emerald-700">
+                      <CheckCircle2 className="h-5 w-5" />
+                      Hóa đơn đã được xác nhận
+                    </div>
                   </div>
-                )}
-              </>
-            )}
-          </section>
-        )}
+
+                  <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/80 p-4 shadow-sm backdrop-blur">
+                    <div className="mb-2 font-bold text-amber-800">
+                      Thanh toán tiền mặt
+                    </div>
+                    <div className="text-[13px] font-medium leading-relaxed text-amber-700/80">
+                      Vui lòng thanh toán trực tiếp tại quán. Sau khi đã thanh
+                      toán, bấm Đã thanh toán tiền mặt để hoàn tất check-in.
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={handleStartPayment}
+                      disabled={submitting || cashRequested}
+                      className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+                    >
+                      {cashRequested
+                        ? "Đang chờ merchant xác nhận"
+                        : "Đã thanh toán tiền mặt"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/customer/orders/${orderId}`)}
+                      className="rounded-xl border border-slate-200/60 bg-white/70 px-6 py-3.5 text-[15px] font-bold text-slate-600 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md hover:border-slate-300"
+                    >
+                      Quay lại
+                    </button>
+                  </div>
+
+                  {cashRequested && (
+                    <div className="mt-8 rounded-2xl border border-cyan-200/60 bg-cyan-50/80 p-4 text-[14px] font-semibold text-cyan-800 shadow-sm backdrop-blur">
+                      Đã ghi nhận thanh toán tiền mặt. Đang chờ merchant xác
+                      nhận để hoàn tất check-in.
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </main>
