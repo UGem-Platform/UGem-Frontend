@@ -11,6 +11,25 @@ import { generateCheckInQr } from "@/shared/services/checkInService";
 
 const APPLICATION_TYPE = "Merchant";
 
+function normalizeApplicationStatus(
+  status: MerchantApplication["status"],
+): MerchantApplication["status"] {
+  if (status === "Accepted" || status === "Accept") {
+    return "Approved";
+  }
+
+  return status;
+}
+
+function normalizeApplication(
+  application: MerchantApplication,
+): MerchantApplication {
+  return {
+    ...application,
+    status: normalizeApplicationStatus(application.status),
+  };
+}
+
 function getOpeningHours(record: Record<string, unknown>) {
   const candidates = [
     record.openingHours,
@@ -138,7 +157,7 @@ export async function resubmitApplication(
 export async function getMyApplications() {
   const res =
     await api.get<ApiResponse<MerchantApplication[]>>("/applications/mine");
-  return res.data.data ?? [];
+  return (res.data.data ?? []).map(normalizeApplication);
 }
 
 export function getCurrentMerchantId() {

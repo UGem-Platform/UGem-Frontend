@@ -165,7 +165,7 @@ export default function CustomerProfilePage() {
 
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onerror = () => reject(new Error("Khong the doc file anh."));
+        reader.onerror = () => reject(new Error("Không thể đọc file ảnh."));
         reader.onload = () =>
           resolve(typeof reader.result === "string" ? reader.result : "");
         reader.readAsDataURL(file);
@@ -175,12 +175,12 @@ export default function CustomerProfilePage() {
 
       const imageUrl = await uploadImage(file);
       setAvatarUrl(imageUrl);
-      notify.success("Da tai avatar len.");
+      notify.success("Đã tải avatar lên.");
     } catch (error) {
-      console.error("Khong the tai avatar len:", error);
+      console.error("Không thể tải avatar lên:", error);
       setAvatarPreviewUrl("");
-      setAvatarFileName(avatarUrl ? "Anh hien tai" : "");
-      notify.error("Tai avatar that bai.", {
+      setAvatarFileName(avatarUrl ? "Ảnh hiện tại" : "");
+      notify.error("Tải avatar thất bại.", {
         description: getErrorMessage(error),
       });
     } finally {
@@ -195,7 +195,7 @@ export default function CustomerProfilePage() {
     const trimmedAvatar = avatarUrl.trim();
 
     if (isUploadingAvatar) {
-      notify.error("Vui long cho avatar tai len xong roi luu.");
+      notify.error("Vui lòng chờ avatar tải lên xong rồi lưu.");
       return;
     }
 

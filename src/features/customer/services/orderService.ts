@@ -46,7 +46,7 @@ export async function createOrder(payload: {
       payload.paymentMethod ?? (orderType === "Online" ? "COD" : "Cash"),
     orderType,
     deliveryAddress:
-      orderType === "Online" ? payload.deliveryAddress : "Tai quan",
+      orderType === "Online" ? payload.deliveryAddress : "Tại quán",
     notes: payload.notes || "",
     foods: payload.foods.map((f) => ({
       foodId: f.foodId,

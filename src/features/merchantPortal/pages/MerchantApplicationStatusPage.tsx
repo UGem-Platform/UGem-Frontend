@@ -59,10 +59,14 @@ function getApplicationCoverImage(application: MerchantApplication) {
 }
 
 function getStatusBadge(status?: string) {
-  if (status === "Approved") return "Đã được duyệt";
+  if (isApprovedStatus(status)) return "Đã được duyệt";
   if (status === "Rejected") return "Bị từ chối";
   if (status === "Pending") return "Đang thẩm định";
   return "Chưa gửi hồ sơ";
+}
+
+function isApprovedStatus(status?: string) {
+  return status === "Approved" || status === "Accepted" || status === "Accept";
 }
 
 function formatDate(value?: string) {
@@ -143,7 +147,7 @@ export function MerchantApplicationStatusPage() {
   const status = application?.status;
 
   const isPending = status === "Pending";
-  const isApproved = status === "Approved";
+  const isApproved = isApprovedStatus(status);
   const isRejected = status === "Rejected";
   const applicationAddress = application
     ? getApplicationAddress(application, merchantDetail)

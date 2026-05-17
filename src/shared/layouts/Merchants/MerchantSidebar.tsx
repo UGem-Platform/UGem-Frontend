@@ -4,7 +4,6 @@ import {
   ClipboardPlus,
   Home,
   Megaphone,
-  UserRound,
   Store,
   Timer,
 } from "lucide-react";
@@ -41,11 +40,6 @@ const menuItems = [
     label: "Thống kê lượt xem",
     icon: BarChart3,
     path: "/merchant/view-statistics",
-  },
-  {
-    label: "Profile",
-    icon: UserRound,
-    path: "/merchant/profile",
   },
 ];
 
@@ -104,20 +98,6 @@ export function MerchantSidebar() {
           </NavLink>
         ))}
       </nav>
-      
-      <div className="p-6 border-t border-white/40 bg-white/30 backdrop-blur-md mt-auto">
-        <div className="rounded-[24px] border border-cyan-200/50 bg-gradient-to-br from-cyan-50/80 to-blue-50/80 p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white shadow-sm ring-1 ring-cyan-100">
-              <UserRound size={18} className="text-cyan-700" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-black text-slate-900">{user?.Name || "Merchant User"}</p>
-              <p className="truncate text-[11px] font-bold text-slate-500">{user?.Role || "Merchant"}</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </aside>
   );
 }

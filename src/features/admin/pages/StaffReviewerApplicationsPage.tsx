@@ -3,10 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   BadgeCheck,
+  CalendarDays,
   CheckCircle2,
   Hourglass,
   Loader2,
+  ShieldCheck,
   UserRound,
+  UsersRound,
   XCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -65,6 +68,52 @@ function StatusBadge({ status }: { status?: string }) {
       <Hourglass className="h-3.5 w-3.5" />
       Chờ duyệt
     </span>
+  );
+}
+
+function isApprovedStatus(status?: string) {
+  const v = status?.toLowerCase();
+  return v === "accept" || v === "accepted" || v === "approved";
+}
+
+function isRejectedStatus(status?: string) {
+  return status?.toLowerCase() === "rejected";
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof UsersRound;
+  label: string;
+  value: number;
+  tone: "violet" | "amber" | "emerald" | "rose";
+}) {
+  const toneClass = {
+    violet: "bg-violet-50 text-violet-700 ring-violet-100",
+    amber: "bg-amber-50 text-amber-700 ring-amber-100",
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+    rose: "bg-rose-50 text-rose-700 ring-rose-100",
+  }[tone];
+
+  return (
+    <article className="rounded-3xl border border-white/70 bg-white/75 p-4 shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+            {label}
+          </p>
+          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+            {value}
+          </p>
+        </div>
+        <span className={`grid h-11 w-11 place-items-center rounded-2xl ring-1 ${toneClass}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+      </div>
+    </article>
   );
 }
 
@@ -144,15 +193,20 @@ export default function StaffReviewerApplicationsPage({
   const reviewed = apps.filter(
     (a) => a.status && a.status.toLowerCase() !== "pending",
   );
+  const approvedCount = apps.filter((app) => isApprovedStatus(app.status)).length;
+  const rejectedCount = apps.filter((app) => isRejectedStatus(app.status)).length;
   const resolvedBackTo =
     backTo ?? (shell === "admin" ? "/admin/dashboard" : "/staff/dashboard");
 
   const reviewerContent: ReactNode = (
     <>
       <div className="relative">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white/55 p-3 backdrop-blur-xl ring-1 ring-slate-950/5">
+        <div className="mb-5 overflow-hidden rounded-[32px] border border-white/70 bg-white/75 p-5 shadow-2xl shadow-cyan-950/10 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+          <div className="pointer-events-none absolute right-8 top-6 h-32 w-32 rounded-full bg-violet-300/20 blur-3xl" />
+          <div className="relative flex flex-wrap items-center justify-between gap-5">
           <div className="min-w-0">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-700 shadow-sm">
+              <ShieldCheck className="h-3.5 w-3.5" />
               Reviewer Applications
             </div>
             <h1 className="wrap-break-word text-3xl font-black tracking-tight text-slate-950">
@@ -179,7 +233,15 @@ export default function StaffReviewerApplicationsPage({
               <UserAccountMenu fallbackName={fallbackName} />
             ) : null}
           </div>
+          </div>
         </div>
+
+        <section className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={UsersRound} label="Tổng đơn" value={apps.length} tone="violet" />
+          <StatCard icon={Hourglass} label="Chờ duyệt" value={pending.length} tone="amber" />
+          <StatCard icon={BadgeCheck} label="Đã duyệt" value={approvedCount} tone="emerald" />
+          <StatCard icon={XCircle} label="Từ chối" value={rejectedCount} tone="rose" />
+        </section>
 
         {isError && (
           <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
@@ -193,8 +255,9 @@ export default function StaffReviewerApplicationsPage({
           </div>
         ) : (
           <div className="space-y-8">
-            <section>
-              <p className="mb-3 text-xs font-black uppercase tracking-wide text-amber-700">
+            <section className="rounded-[28px] border border-white/70 bg-white/55 p-4 shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+              <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-100">
+                <Hourglass className="h-3.5 w-3.5" />
                 Chờ duyệt ({pending.length})
               </p>
               {pending.length === 0 ? (
@@ -221,8 +284,9 @@ export default function StaffReviewerApplicationsPage({
               )}
             </section>
 
-            <section>
-              <p className="mb-3 text-xs font-black uppercase tracking-wide text-emerald-700">
+            <section className="rounded-[28px] border border-white/70 bg-white/55 p-4 shadow-xl shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">
+              <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100">
+                <BadgeCheck className="h-3.5 w-3.5" />
                 Đã xử lý ({reviewed.length})
               </p>
               {reviewed.length === 0 ? (
@@ -334,19 +398,21 @@ function ReviewerAppCard({
   const isProcessing = processing === id;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-violet-300/10 blur-2xl" />
+    <div className="group relative overflow-hidden rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-lg shadow-slate-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-violet-950/10">
+      <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-violet-500 via-cyan-500 to-emerald-400" />
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-violet-300/15 blur-2xl transition group-hover:bg-violet-300/25" />
 
       <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100">
-            <UserRound className="h-4 w-4" />
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100">
+            <UserRound className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-black text-slate-950">
+            <p className="break-all text-sm font-black text-slate-950">
               Customer ID: {app.customerId ?? "-"}
             </p>
-            <p className="mt-0.5 text-xs font-semibold text-slate-500">
+            <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <CalendarDays className="h-3.5 w-3.5 text-cyan-700" />
               Gửi lúc {formatDate(app.createdAt)}
             </p>
           </div>
@@ -355,7 +421,7 @@ function ReviewerAppCard({
       </div>
 
       {app.motivation && (
-        <p className="relative mt-3 text-sm leading-6 text-slate-600">
+        <p className="relative mt-4 rounded-2xl border border-slate-200/70 bg-slate-50/70 px-4 py-3 text-sm leading-6 text-slate-600">
           <span className="font-black text-slate-800">Động lực: </span>
           {app.motivation}
         </p>
@@ -373,7 +439,7 @@ function ReviewerAppCard({
             href={app.facebookUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 px-3 py-1.5 text-blue-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-100"
           >
             Facebook ↗
           </a>
@@ -383,7 +449,7 @@ function ReviewerAppCard({
             href={app.tiktokUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100"
           >
             TikTok ↗
           </a>
@@ -393,7 +459,7 @@ function ReviewerAppCard({
             href={app.youtubeUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1 text-rose-700 hover:bg-rose-100"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-rose-100 bg-rose-50 px-3 py-1.5 text-rose-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-100"
           >
             YouTube ↗
           </a>
@@ -403,7 +469,7 @@ function ReviewerAppCard({
             href={app.otherSocialUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100"
           >
             Link khác ↗
           </a>
@@ -411,7 +477,7 @@ function ReviewerAppCard({
       </div>
 
       {!readOnly && (
-        <div className="relative mt-4 flex gap-2">
+        <div className="relative mt-4 flex flex-wrap gap-2 border-t border-slate-200/70 pt-4">
           <Button
             size="sm"
             disabled={isProcessing}

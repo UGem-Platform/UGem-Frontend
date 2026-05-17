@@ -27,6 +27,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { registerSchema, type RegisterSchema } from "../schema";
 import { registerApi } from "../services";
+import { getRegisterErrorMessage } from "../errorMessages";
 
 const HERO_IMAGES = [
   "https://mia.vn/media/uploads/blog-du-lich/pho-ganh-ha-noi-01-1702697225.jpg",
@@ -66,14 +67,14 @@ export function RegisterPage() {
       });
 
       if (!res.success) {
-        throw new Error(res.message || "Đăng ký thất bại");
+        throw new Error(res.message || "Register failed");
       }
 
       notify.success("Đăng ký thành công. Vui lòng đăng nhập.");
       navigate("/login", { replace: true });
     } catch (error) {
       console.error(error);
-      setApiError(error instanceof Error ? error.message : "Đăng ký thất bại");
+      setApiError(getRegisterErrorMessage(error));
     } finally {
       setSubmitting(false);
     }

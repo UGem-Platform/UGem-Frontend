@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Bell, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import {
+  Bell,
+  CheckCheck,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -70,6 +76,31 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    const unreadNotifications = notifications.filter((item) => !item.isRead);
+
+    if (unreadNotifications.length === 0) return;
+
+    setNotifications((current) =>
+      current.map((item) => ({ ...item, isRead: true })),
+    );
+
+    try {
+      await Promise.all(
+        unreadNotifications
+          .map((item) => item.id)
+          .filter((id): id is string => Boolean(id))
+          .map((id) => markNotificationAsRead(id)),
+      );
+    } catch (error) {
+      console.error(error);
+      notify.error(
+        "Không thể đánh dấu tất cả thông báo đã đọc.",
+      );
+      void loadNotifications(false);
+    }
+  };
+
   useEffect(() => {
     void loadNotifications(false);
 
@@ -123,21 +154,35 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
             </p>
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => void loadNotifications()}
-            className="h-8 gap-1.5 px-2 text-xs text-slate-600"
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-            Làm mới
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void handleMarkAllAsRead()}
+              className="h-8 gap-1.5 px-2 text-xs text-slate-600 hover:text-cyan-700"
+              disabled={loading || unreadCount === 0}
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              Đọc tất cả
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void loadNotifications()}
+              className="h-8 gap-1.5 px-2 text-xs text-slate-600"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Làm mới
+            </Button>
+          </div>
         </div>
 
         <DropdownMenuSeparator />
@@ -168,9 +213,15 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
 
         <DropdownMenuSeparator />
 
-        <div className="p-2">
-          <Button asChild variant="ghost" className="w-full justify-center">
-            <Link to="/notifications">Xem tất cả thông báo</Link>
+        <div className="p-3">
+          <Button
+            asChild
+            className="h-11 w-full justify-center rounded-xl bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-cyan-700 hover:shadow-cyan-900/20 active:translate-y-0"
+          >
+            <Link to="/notifications" onClick={() => setOpen(false)}>
+              Xem t&#7845;t c&#7843; th&#244;ng b&#225;o
+              <ExternalLink className="h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </DropdownMenuContent>

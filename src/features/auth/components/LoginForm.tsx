@@ -12,6 +12,7 @@ import {
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
+import { getLoginErrorMessage } from "../errorMessages";
 
 export function LoginForm() {
   const loginMutation = useLogin();
@@ -31,10 +32,7 @@ export function LoginForm() {
     });
   }
 
-  const apiError =
-    loginMutation.error instanceof Error
-      ? loginMutation.error.message
-      : "Đăng nhập thất bại";
+  const apiError = getLoginErrorMessage(loginMutation.error);
 
   return (
     <Form {...form}>

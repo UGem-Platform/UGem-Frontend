@@ -76,6 +76,10 @@ function getSubmittableImageUrl(imageUrl?: string) {
   return trimmed;
 }
 
+function isApprovedStatus(status?: string) {
+  return status === "Approved" || status === "Accepted" || status === "Accept";
+}
+
 // BlockedStateUI - shown when the latest application cannot be submitted again
 function BlockedStateUI({
   onNavigateToPortal,
@@ -163,7 +167,7 @@ export function MerchantOnboardingPage() {
   );
   const resubmitMutation = useResubmitApplication(latestApplication?.id);
 
-  const isApproved = latestApplication?.status === "Approved";
+  const isApproved = isApprovedStatus(latestApplication?.status);
   const isPending = latestApplication?.status === "Pending";
   const isRejected = latestApplication?.status === "Rejected";
   const showBlockedUI = !isLoadingApps && (isApproved || isPending);

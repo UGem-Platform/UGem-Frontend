@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
 import { createFood, deleteFood, getFoods } from "../services/foodService";
 import type { Food } from "../types";
 import { getCategories } from "@/shared/services/categoryService";
@@ -18,6 +18,7 @@ import {
 import { notify } from "@/shared/lib/notify";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
+import { useNavigate } from "react-router";
 
 export function MerchantFoodsPage() {
   const [foods, setFoods] = useState<Food[]>([]);
@@ -44,6 +45,7 @@ export function MerchantFoodsPage() {
   const [deletingToppingId, setDeletingToppingId] = useState<string | null>(
     null,
   );
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     name: "",
@@ -89,7 +91,7 @@ export function MerchantFoodsPage() {
 
       const preview = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onerror = () => reject(new Error("Khong the doc file anh."));
+        reader.onerror = () => reject(new Error("Không thể đọc file ảnh."));
         reader.onload = () =>
           resolve(typeof reader.result === "string" ? reader.result : "");
         reader.readAsDataURL(file);
@@ -100,7 +102,7 @@ export function MerchantFoodsPage() {
       const imageUrl = await uploadImage(file);
       setForm((prev) => ({ ...prev, imageUrl }));
       setFoodImagePreview(imageUrl);
-      notify.success("Tai anh mon thanh cong.");
+      notify.success("Tải ảnh món thành công.");
     } catch (error) {
       console.error(error);
       setForm((prev) => ({ ...prev, imageUrl: "" }));
@@ -109,7 +111,7 @@ export function MerchantFoodsPage() {
       notify.error(
         error instanceof Error
           ? error.message
-          : "Tai anh that bai. Vui long thu lai.",
+          : "Tải ảnh thất bại. Vui lòng thử lại.",
       );
     } finally {
       setUploadingFoodImage(false);
@@ -131,7 +133,7 @@ export function MerchantFoodsPage() {
     }
 
     if (uploadingFoodImage) {
-      notify.error("Vui long doi anh tai len xong.");
+      notify.error("Vui lòng đợi ảnh tải lên xong.");
       return;
     }
 
@@ -191,7 +193,7 @@ export function MerchantFoodsPage() {
       setToppingsByFoodId((prev) => ({ ...prev, [foodId]: toppings }));
     } catch (error) {
       console.error(error);
-      notify.error("Khong tai duoc danh sach topping.");
+      notify.error("Không tải được danh sách topping.");
     } finally {
       setLoadingToppingsByFoodId((prev) => ({ ...prev, [foodId]: false }));
     }
@@ -213,12 +215,12 @@ export function MerchantFoodsPage() {
     const price = Number(currentForm.price);
 
     if (!name) {
-      notify.error("Vui long nhap ten topping.");
+      notify.error("Vui lòng nhập tên topping.");
       return;
     }
 
     if (!Number.isFinite(price) || price < 0) {
-      notify.error("Gia topping khong hop le.");
+      notify.error("Giá topping không hợp lệ.");
       return;
     }
 
@@ -226,7 +228,7 @@ export function MerchantFoodsPage() {
 
     try {
       await createFoodTopping({ foodId, name, price });
-      notify.success("Da them topping.");
+      notify.success("Đã thêm topping.");
       setToppingForms((prev) => ({
         ...prev,
         [foodId]: { name: "", price: 0 },
@@ -234,7 +236,7 @@ export function MerchantFoodsPage() {
       await loadToppings(foodId);
     } catch (error) {
       console.error(error);
-      notify.error("Them topping that bai.");
+      notify.error("Thêm topping thất bại.");
     } finally {
       setSavingToppingByFoodId((prev) => ({ ...prev, [foodId]: false }));
     }
@@ -247,11 +249,11 @@ export function MerchantFoodsPage() {
 
     try {
       await deleteFoodTopping(toppingId);
-      notify.success("Da xoa topping.");
+      notify.success("Đã xóa topping.");
       await loadToppings(foodId);
     } catch (error) {
       console.error(error);
-      notify.error("Xoa topping that bai.");
+      notify.error("Xóa topping thất bại.");
     } finally {
       setDeletingToppingId(null);
     }
@@ -270,9 +272,18 @@ export function MerchantFoodsPage() {
 
         <div className="merchant-content">
           <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mb-5 inline-flex h-10 items-center gap-2 rounded-xl border border-cyan-200/60 bg-white/75 px-3.5 text-[13px] font-black text-cyan-800 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50 hover:shadow-md active:translate-y-0"
+            >
+              <ChevronLeft size={18} strokeWidth={2.5} />
+              Quay lại
+            </button>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
               Food Management
             </div>
+
             <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
               Quản lý món ăn
             </h1>
@@ -286,11 +297,15 @@ export function MerchantFoodsPage() {
             className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 sm:p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]"
           >
             <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl mix-blend-multiply" />
-            <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">Thêm món mới</h2>
+            <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">
+              Thêm món mới
+            </h2>
 
             <div className="grid gap-5 md:grid-cols-2 relative">
               <label className="space-y-1.5">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Tên món <span className="text-rose-500">*</span></span>
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
+                  Tên món <span className="text-rose-500">*</span>
+                </span>
                 <input
                   value={form.name}
                   onChange={(e) =>
@@ -302,7 +317,9 @@ export function MerchantFoodsPage() {
               </label>
 
               <label className="space-y-1.5">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Giá <span className="text-rose-500">*</span></span>
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
+                  Giá <span className="text-rose-500">*</span>
+                </span>
                 <input
                   type="number"
                   value={form.price}
@@ -318,7 +335,9 @@ export function MerchantFoodsPage() {
               </label>
 
               <label className="space-y-1.5 md:col-span-2">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Mô tả</span>
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
+                  Mô tả
+                </span>
                 <input
                   value={form.description}
                   onChange={(e) =>
@@ -405,7 +424,9 @@ export function MerchantFoodsPage() {
               </div>
 
               <label className="space-y-1.5 md:col-span-2">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">Danh mục</span>
+                <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
+                  Danh mục
+                </span>
                 <select
                   multiple
                   value={form.categoryIds}
@@ -419,7 +440,11 @@ export function MerchantFoodsPage() {
                   className="min-h-32 w-full rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-[14px] font-medium outline-none shadow-sm backdrop-blur transition-all focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
                 >
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id} className="py-1">
+                    <option
+                      key={category.id}
+                      value={category.id}
+                      className="py-1"
+                    >
                       {category.name}
                     </option>
                   ))}
@@ -447,13 +472,19 @@ export function MerchantFoodsPage() {
 
           <div className="mt-8 relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 sm:p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
             <div className="absolute -left-12 -top-12 h-40 w-40 rounded-full bg-blue-300/20 blur-3xl mix-blend-multiply" />
-            <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">Danh sách món</h2>
+            <h2 className="mb-6 text-[18px] font-black tracking-tight text-slate-900 relative">
+              Danh sách món
+            </h2>
 
-            {loading && <p className="text-slate-500 font-medium">Đang tải...</p>}
+            {loading && (
+              <p className="text-slate-500 font-medium">Đang tải...</p>
+            )}
 
             {!loading && foods.length === 0 && (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white/40 p-12 text-center shadow-sm backdrop-blur">
-                <p className="text-[15px] font-bold text-slate-500">Chưa có món nào.</p>
+                <p className="text-[15px] font-bold text-slate-500">
+                  Chưa có món nào.
+                </p>
               </div>
             )}
 
@@ -474,7 +505,9 @@ export function MerchantFoodsPage() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-[16px] font-black text-slate-900 group-hover:text-cyan-800 transition-colors truncate">{food.name}</h3>
+                        <h3 className="text-[16px] font-black text-slate-900 group-hover:text-cyan-800 transition-colors truncate">
+                          {food.name}
+                        </h3>
                         <button
                           type="button"
                           onClick={() => void handleDeleteFood(food.id)}
