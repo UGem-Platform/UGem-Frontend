@@ -1,9 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus, ReceiptText, Utensils } from "lucide-react";
+import {
+  Check,
+  Mail,
+  Minus,
+  Plus,
+  ReceiptText,
+  Search,
+  UserCheck,
+  UserPlus,
+  Utensils,
+} from "lucide-react";
 
 import { notify } from "@/shared/lib/notify";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
+import {
+  searchCustomersByEmail,
+  type CustomerSearchResult,
+} from "@/shared/services/customerService";
 import {
   createMerchantOrder,
   type CreateMerchantOrderItem,
@@ -29,8 +43,14 @@ function formatCurrency(value?: number | null) {
 export default function MerchantCreateOrderPage() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [items, setItems] = useState<OfflineOrderItem[]>([]);
-  const [customerName, setCustomerName] = useState("Khach tai quan");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerLookupStatus, setCustomerLookupStatus] = useState<
+    "idle" | "found" | "not-found"
+  >("idle");
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<CustomerSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchingCustomer, setSearchingCustomer] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const creatingOrderRef = useRef(false);
   const [toppingsByFoodId, setToppingsByFoodId] = useState<
@@ -77,6 +97,8 @@ export default function MerchantCreateOrderPage() {
     }, 0);
   }, [foods, items, toppingsByFoodId]);
 
+  const canOrder = customerLookupStatus === "found" && Boolean(selectedCustomer);
+
   async function loadToppingsForFood(foodId: string) {
     if (!foodId || toppingsByFoodId[foodId]) return;
 
@@ -99,11 +121,65 @@ export default function MerchantCreateOrderPage() {
     setCreatedOrderId(null);
   }
 
+  function resetCustomerLookup() {
+    resetCreatedQr();
+    setItems([]);
+    setSelectedCustomer(null);
+    setCustomerLookupStatus("idle");
+  }
+
+  async function handleSearchCustomer() {
+    const email = customerEmail.trim();
+
+    resetCreatedQr();
+
+    if (!email) {
+      notify.error("Vui lòng nhập Gmail của khách.");
+      setSelectedCustomer(null);
+      setCustomerLookupStatus("idle");
+      return;
+    }
+
+    setSearchingCustomer(true);
+
+    try {
+      const customers = await searchCustomersByEmail(email, 10);
+      const exactMatch =
+        customers.find(
+          (customer) => customer.email.toLowerCase() === email.toLowerCase(),
+        ) ?? null;
+
+      if (!exactMatch) {
+        setItems([]);
+        setSelectedCustomer(null);
+        setCustomerLookupStatus("not-found");
+        notify.error("Không tìm thấy tài khoản khách với Gmail này.");
+        return;
+      }
+
+      setSelectedCustomer(exactMatch);
+      setCustomerLookupStatus("found");
+      notify.success("Đã xác minh tài khoản khách.");
+    } catch (error) {
+      console.error(error);
+      setSelectedCustomer(null);
+      setCustomerLookupStatus("idle");
+      notify.error("Không thể tìm khách theo Gmail. Vui lòng thử lại.");
+    } finally {
+      setSearchingCustomer(false);
+    }
+  }
+
   function getSelectedItem(foodId: string) {
     return items.find((item) => item.foodId === foodId) ?? null;
   }
 
   function toggleFood(food: Food, checked: boolean) {
+    if (!canOrder) {
+      notify.error("Vui lòng xác minh Gmail khách trước khi chọn món.");
+      return;
+    }
+
     resetCreatedQr();
 
     setItems((current) => {
@@ -158,6 +234,11 @@ export default function MerchantCreateOrderPage() {
 
     const validItems = items.filter((item) => item.foodId && item.quantity > 0);
 
+    if (!selectedCustomer) {
+      notify.error("Vui lòng xác minh Gmail khách trước khi tạo đơn.");
+      return;
+    }
+
     if (validItems.length === 0) {
       notify.error("Vui lòng chọn ít nhất một món.");
       return;
@@ -176,7 +257,8 @@ export default function MerchantCreateOrderPage() {
 
     try {
       const createdOrder = await createMerchantOrder({
-        name: customerName.trim() || "Khach tai quan",
+        customerId: selectedCustomer.customerId,
+        name: selectedCustomer.fullName || selectedCustomer.email,
         deliveryAddress: "Tai quan",
         orderType: "Offline",
         paymentMethod: "Cash",
@@ -221,17 +303,92 @@ export default function MerchantCreateOrderPage() {
             </div>
 
             <div className="rounded-[32px] border border-white/60 bg-white/75 p-6 shadow-2xl shadow-slate-950/5 backdrop-blur-2xl">
-              <label className="block space-y-1.5">
+              <div className="space-y-3 rounded-2xl border border-cyan-100 bg-cyan-50/60 p-4">
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Gmail khách hàng
+                  </span>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <div className="relative min-w-0 flex-1">
+                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        value={customerEmail}
+                        onChange={(event) => {
+                          setCustomerEmail(event.target.value);
+                          resetCustomerLookup();
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            void handleSearchCustomer();
+                          }
+                        }}
+                        placeholder="customer@gmail.com"
+                        inputMode="email"
+                        className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleSearchCustomer()}
+                      disabled={searchingCustomer}
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-cyan-700 px-4 text-sm font-black text-white shadow-sm transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Search className="h-4 w-4" />
+                      {searchingCustomer ? "Đang tìm..." : "Kiểm tra"}
+                    </button>
+                  </div>
+                </label>
+
+                {customerLookupStatus === "found" && selectedCustomer ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-emerald-700 ring-1 ring-emerald-100">
+                      <UserCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black">
+                        {selectedCustomer.fullName}
+                      </p>
+                      <p className="truncate text-xs font-semibold text-emerald-700">
+                        {selectedCustomer.email}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {customerLookupStatus === "not-found" ? (
+                  <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-amber-700 ring-1 ring-amber-100">
+                      <UserPlus className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black">
+                        Khách chưa có tài khoản UGem
+                      </p>
+                      <p className="mt-1 text-xs font-semibold leading-5 text-amber-800">
+                        Hãy giới thiệu khách đăng ký hoặc đăng nhập ứng dụng
+                        UGem bằng Gmail này để có thể đặt món tại quán và nhận
+                        quyền lợi check-in.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <label className="mt-5 block space-y-1.5">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-500">
                   Tên khách
                 </span>
                 <input
-                  value={customerName}
-                  onChange={(event) => {
-                    resetCreatedQr();
-                    setCustomerName(event.target.value);
-                  }}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+                  value={
+                    selectedCustomer?.fullName ??
+                    (customerLookupStatus === "not-found"
+                      ? "Khach chua co tai khoan UGem"
+                      : "")
+                  }
+                  readOnly
+                  placeholder="Xác minh Gmail để lấy tên khách"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600 outline-none"
                 />
               </label>
 
@@ -273,6 +430,7 @@ export default function MerchantCreateOrderPage() {
                           <input
                             type="checkbox"
                             checked={selected}
+                            disabled={!canOrder}
                             onChange={(event) =>
                               toggleFood(food, event.target.checked)
                             }
@@ -456,6 +614,7 @@ export default function MerchantCreateOrderPage() {
                   onClick={() => void handleCreateOrder()}
                   disabled={
                     loading ||
+                    !canOrder ||
                     foods.length === 0 ||
                     items.length === 0 ||
                     Boolean(createdOrderId)
