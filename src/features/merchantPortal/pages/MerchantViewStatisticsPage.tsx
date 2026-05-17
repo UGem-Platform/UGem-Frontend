@@ -102,7 +102,8 @@ export function MerchantViewStatisticsPage() {
                   Thống kê lượt xem
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-                  Theo dõi lượt xem, đơn hàng và doanh thu hiện tại của nhà hàng.
+                  Theo dõi lượt xem, đơn hàng và doanh thu hiện tại của nhà
+                  hàng.
                 </p>
               </div>
 

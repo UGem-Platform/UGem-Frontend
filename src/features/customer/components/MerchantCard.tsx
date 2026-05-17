@@ -138,13 +138,15 @@ export default function MerchantCard({
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 bg-linear-to-br from-cyan-50 to-blue-50 text-cyan-700">
               <Store className="h-8 w-8 opacity-70" />
-              <span className="text-sm font-black tracking-tight">{initials}</span>
+              <span className="text-sm font-black tracking-tight">
+                {initials}
+              </span>
             </div>
           )}
 
           {/* Overlays */}
           <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-lg" />
-          
+
           {selected && (
             <span className="absolute right-2 top-2 rounded-md bg-cyan-500/95 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm backdrop-blur-sm">
               Đang chọn
@@ -219,7 +221,9 @@ export default function MerchantCard({
           {merchant.address && (
             <p className="mt-3.5 flex min-w-0 items-center gap-2 text-[13px] font-semibold text-slate-500 group-hover:text-slate-600 transition-colors">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
-              <span className="line-clamp-1">{cleanAddress(merchant.address)}</span>
+              <span className="line-clamp-1">
+                {cleanAddress(merchant.address)}
+              </span>
             </p>
           )}
         </div>
@@ -227,4 +231,3 @@ export default function MerchantCard({
     </Link>
   );
 }
-

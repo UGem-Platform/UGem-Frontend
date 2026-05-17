@@ -16,7 +16,10 @@ import {
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 import { notify } from "@/shared/lib/notify";
-import { getMapMerchants, getMerchantDetail } from "@/features/customer/services/merchantService";
+import {
+  getMapMerchants,
+  getMerchantDetail,
+} from "@/features/customer/services/merchantService";
 import type { MerchantDetail } from "@/features/customer/types";
 import {
   getCurrentMerchantId,
@@ -187,8 +190,9 @@ export function MerchantRestaurantPage() {
 
   const latestApprovedApplication = useMemo(
     () =>
-      [...applications].find((application) => application.status === "Approved") ??
-      null,
+      [...applications].find(
+        (application) => application.status === "Approved",
+      ) ?? null,
     [applications],
   );
 
@@ -302,7 +306,7 @@ export function MerchantRestaurantPage() {
         <div className="merchant-content">
           <section className="relative overflow-hidden rounded-4xl border border-white/50 bg-white/60 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
             <div className="absolute -left-12 -top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl opacity-0 transition-opacity duration-500 hover:opacity-100 mix-blend-multiply" />
-            
+
             <div className="mb-8 flex flex-wrap items-start justify-between gap-6 relative">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
@@ -343,7 +347,9 @@ export function MerchantRestaurantPage() {
             </div>
 
             {loading || isLoadingApplications ? (
-              <p className="text-[14px] font-medium text-slate-500">Đang tải nhà hàng...</p>
+              <p className="text-[14px] font-medium text-slate-500">
+                Đang tải nhà hàng...
+              </p>
             ) : !merchant ? (
               <div className="relative overflow-hidden rounded-2xl border border-amber-200/60 bg-linear-to-br from-amber-50/90 to-orange-50/90 p-5 shadow-sm">
                 <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-amber-300/30 blur-2xl" />
@@ -585,7 +591,9 @@ function EditField({
 }) {
   return (
     <label className={className}>
-      <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">{label}</span>
+      <span className="text-[13px] font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+        {label}
+      </span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
