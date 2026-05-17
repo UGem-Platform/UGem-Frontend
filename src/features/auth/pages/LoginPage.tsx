@@ -94,7 +94,7 @@ export function LoginPage() {
 
         callback: async (response) => {
           if (!response.credential) {
-            notify.error("KhÃ´ng nháº­n Ä‘Æ°á»£c Google ID token.");
+            notify.error("Không nhận được Google ID token.");
             return;
           }
 
@@ -108,7 +108,7 @@ export function LoginPage() {
             const token = data.accessToken;
 
             if (!token) {
-              throw new Error("KhÃ´ng nháº­n Ä‘Æ°á»£c token tá»« server.");
+              throw new Error("Không nhận được token từ server.");
             }
 
             const user = saveAuthToken(token);
@@ -169,7 +169,7 @@ export function LoginPage() {
 
     script.onload = renderGoogleButton;
 
-    script.onerror = () => notify.error("KhÃ´ng táº£i Ä‘Æ°á»£c Google Sign-In.");
+    script.onerror = () => notify.error("Không tải được Google Sign-In.");
 
     document.head.appendChild(script);
 
@@ -213,16 +213,16 @@ export function LoginPage() {
                 </div>
 
                 <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
-                  KhÃ¡m phÃ¡ quÃ¡n Äƒn Ä‘ang bá»‹{" "}
+                  Khám phá quán ăn đang bị{" "}
                   <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                     FLOP
                   </span>
                 </h1>
 
                 <p className="mt-2.5 text-sm font-medium leading-relaxed text-slate-500">
-                  Nhá»¯ng quÃ¡n ngon Ä‘á»‹a phÆ°Æ¡ng chÆ°a nhiá»u ngÆ°á»i biáº¿t Ä‘áº¿n. TÃ¬m
-                  hidden gems, má»Ÿ merchant vÃ  quáº£n lÃ½ há»“ sÆ¡ trong má»™t ná»n táº£ng
-                  hiá»‡n Ä‘áº¡i.
+                  Những quán ngon địa phương chưa nhiều người biết đến. Tìm
+                  hidden gems, mở merchant và quản lý hồ sơ trong một nền tảng
+                  hiện đại.
                 </p>
               </div>
 
@@ -248,7 +248,7 @@ export function LoginPage() {
                     disabled
                     className="flex h-12 w-full items-center justify-center rounded-2xl border border-slate-200/60 bg-slate-50/50 font-semibold text-slate-400 shadow-sm backdrop-blur"
                   >
-                    ChÆ°a cáº¥u hÃ¬nh Google Client ID
+                    Chưa cấu hình Google Client ID
                   </button>
                 )}
               </div>
@@ -256,7 +256,7 @@ export function LoginPage() {
               {/* divider */}
               <div className="my-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
                 <div className="h-px flex-1 bg-slate-200" />
-                Hoáº·c
+                Hoặc
                 <div className="h-px flex-1 bg-slate-200" />
               </div>
 
@@ -265,7 +265,7 @@ export function LoginPage() {
               {/* footer links */}
               <div className="mt-3 space-y-1 text-center">
                 <button className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline">
-                  QuÃªn máº­t kháº©u?
+                  Quên mật khẩu?
                 </button>
 
                 <div>
@@ -273,7 +273,7 @@ export function LoginPage() {
                     to="/register"
                     className="group inline-flex items-center gap-1 text-xs font-black text-amber-700 transition hover:text-amber-800"
                   >
-                    ChÆ°a cÃ³ tÃ i khoáº£n? ÄÄƒng kÃ½
+                    Chưa có tài khoản? Đăng ký
                     <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
                   </Link>
                 </div>
@@ -282,8 +282,8 @@ export function LoginPage() {
           </div>
 
           <p className="mt-3 text-center text-[10px] font-medium leading-4 text-slate-500">
-            Báº±ng cÃ¡ch tiáº¿p tá»¥c, báº¡n Ä‘á»“ng Ã½ vá»›i Ä‘iá»u khoáº£n sá»­ dá»¥ng vÃ  chÃ­nh sÃ¡ch
-            quyá»n riÃªng tÆ° cá»§a UGem.
+            Bằng cách tiếp tục, bạn đồng ý với điều khoản sử dụng và chính sách
+            quyền riêng tư của UGem.
           </p>
         </div>
       </section>
@@ -306,12 +306,12 @@ export function LoginPage() {
               </div>
 
               <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
-                Báº¡n muá»‘n báº¯t Ä‘áº§u nhÆ° tháº¿ nÃ o?
+                Bạn muốn bắt đầu như thế nào?
               </h2>
 
               <p className="mt-3.5 text-sm font-medium leading-relaxed text-slate-500">
-                TÃ i khoáº£n Google má»›i Ä‘Ã£ Ä‘Æ°á»£c táº¡o dÆ°á»›i vai trÃ² Customer. Báº¡n cÃ³
-                thá»ƒ khÃ¡m phÃ¡ mÃ³n ngon hoáº·c má»Ÿ quÃ¡n trÃªn UGem.
+                Tài khoản Google mới đã được tạo dưới vai trò Customer. Bạn có
+                thể khám phá món ngon hoặc mở quán trên UGem.
               </p>
 
               <div className="mt-8 grid gap-4">
@@ -327,11 +327,11 @@ export function LoginPage() {
 
                     <div>
                       <p className="font-black text-slate-900 group-hover:text-cyan-700 transition-colors">
-                        KhÃ¡m phÃ¡ mÃ³n ngon
+                        Khám phá món ngon
                       </p>
 
                       <p className="text-[13px] font-medium text-slate-500">
-                        TÃ¬m hidden gems quanh báº¡n
+                        Tìm hidden gems quanh bạn
                       </p>
                     </div>
                   </div>
@@ -352,10 +352,10 @@ export function LoginPage() {
                     </span>
 
                     <div>
-                      <p className="font-black">Má»Ÿ quÃ¡n trÃªn UGem</p>
+                      <p className="font-black">Mở quán trên UGem</p>
 
                       <p className="text-[13px] font-medium text-cyan-100">
-                        Gá»­i há»“ sÆ¡ merchant Ä‘á»ƒ xÃ©t duyá»‡t
+                        Gửi hồ sơ merchant để xét duyệt
                       </p>
                     </div>
                   </div>
