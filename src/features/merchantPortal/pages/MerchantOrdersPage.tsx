@@ -547,10 +547,35 @@ export default function MerchantOrdersPage() {
     return item.unitPrice ?? item.UnitPrice ?? 0;
   }
 
+  function getItemDisplayUnitPrice(item: MerchantOrderDetailItem) {
+    const quantity = getItemQuantity(item);
+    const subTotal = getItemSubTotal(item);
+    const toppingTotal = getItemToppingTotal(item);
+    const unitPrice = getItemUnitPrice(item);
+
+    if (subTotal > 0 && quantity > 0 && toppingTotal > 0) {
+      const baseTotal = subTotal - toppingTotal;
+      const totalFromUnit = unitPrice > 0 ? unitPrice * quantity : 0;
+
+      if (baseTotal > 0 && (totalFromUnit <= 0 || totalFromUnit >= subTotal)) {
+        return baseTotal / quantity;
+      }
+    }
+
+    if (subTotal > 0 && quantity > 0 && unitPrice <= 0) {
+      return subTotal / quantity;
+    }
+
+    return unitPrice;
+  }
+
   function getItemToppingTotal(item: MerchantOrderDetailItem) {
-    return (item.toppings ?? []).reduce((sum, topping) => {
+    const quantity = getItemQuantity(item);
+    const perUnit = (item.toppings ?? []).reduce((sum, topping) => {
       return sum + Number(topping.price ?? 0);
     }, 0);
+
+    return quantity > 0 ? perUnit * quantity : perUnit;
   }
 
   function getItemNote(item: MerchantOrderDetailItem) {
@@ -821,7 +846,7 @@ export default function MerchantOrdersPage() {
                             <div className="shrink-0 rounded-2xl bg-white px-4 py-3 text-right text-sm shadow-sm ring-1 ring-slate-100">
                               <div className="font-medium text-slate-700">
                                 Đơn giá:{" "}
-                                {formatCurrency(getItemUnitPrice(item))}
+                                {formatCurrency(getItemDisplayUnitPrice(item))}
                               </div>
                               <div className="mt-1 text-xs font-semibold text-slate-500">
                                 SL: {getItemQuantity(item)}
