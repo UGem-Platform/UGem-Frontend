@@ -144,6 +144,10 @@ function getOrderActionMessage(
     return "Bill đã được cập nhật, có thể tạo lại QR check-in.";
   }
 
+  if (statusKey === "billrejected") {
+    return "Khách đã từ chối bill, hãy cập nhật hóa đơn.";
+  }
+
   if (statusKey === "completed") {
     return orderTypeKey === "offline"
       ? "Đơn offline đã hoàn tất, không còn QR check-in."
@@ -543,6 +547,12 @@ export default function MerchantOrdersPage() {
     return item.unitPrice ?? item.UnitPrice ?? 0;
   }
 
+  function getItemToppingTotal(item: MerchantOrderDetailItem) {
+    return (item.toppings ?? []).reduce((sum, topping) => {
+      return sum + Number(topping.price ?? 0);
+    }, 0);
+  }
+
   function getItemNote(item: MerchantOrderDetailItem) {
     return item.notes ?? item.note ?? item.Notes ?? "";
   }
@@ -553,6 +563,15 @@ export default function MerchantOrdersPage() {
 
   function getItemSubTotal(item: MerchantOrderDetailItem) {
     return item.subTotal ?? item.SubTotal ?? 0;
+  }
+
+  function getItemDisplayTotal(item: MerchantOrderDetailItem) {
+    const subTotal = getItemSubTotal(item);
+    if (subTotal > 0) return subTotal;
+
+    const quantity = getItemQuantity(item);
+    const unitPrice = getItemUnitPrice(item);
+    return quantity > 0 ? unitPrice * quantity : unitPrice;
   }
 
   function getDetailTotal() {
@@ -804,9 +823,18 @@ export default function MerchantOrdersPage() {
                                 Đơn giá:{" "}
                                 {formatCurrency(getItemUnitPrice(item))}
                               </div>
+                              <div className="mt-1 text-xs font-semibold text-slate-500">
+                                SL: {getItemQuantity(item)}
+                              </div>
+                              {getItemToppingTotal(item) > 0 ? (
+                                <div className="mt-1 text-xs font-semibold text-emerald-700">
+                                  Topping: +
+                                  {formatCurrency(getItemToppingTotal(item))}
+                                </div>
+                              ) : null}
                               <div className="mt-1 font-black text-cyan-700">
                                 Thành tiền:{" "}
-                                {formatCurrency(getItemSubTotal(item))}
+                                {formatCurrency(getItemDisplayTotal(item))}
                               </div>
                             </div>
                           </div>
@@ -822,7 +850,7 @@ export default function MerchantOrdersPage() {
 
                     {getDetailNote(orderDetail) ? (
                       <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-900">
-                        <div className="font-semibold">Ghi chú đơn hàng</div>
+                        <div className="font-semibold">Ghi chú của khách</div>
                         <div className="mt-1">{getDetailNote(orderDetail)}</div>
                       </div>
                     ) : null}
