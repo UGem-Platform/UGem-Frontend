@@ -2,6 +2,7 @@ import AdminStaffPage from "@/features/admin/pages/AdminStaffPage";
 import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
 import AdminApplicationsPage from "@/features/admin/pages/AdminApplicationsPage";
 import AdminApplicationDetailPage from "@/features/admin/pages/AdminApplicationDetailPage";
+import { AdminShell } from "@/features/admin/components/AdminShell";
 import StaffReviewerApplicationsPage from "@/features/admin/pages/StaffReviewerApplicationsPage";
 import StaffApplicationDetailPage from "@/features/admin/pages/StaffApplicationDetailPage";
 import StaffApplicationsPage from "@/features/admin/pages/StaffApplicationsPage";
@@ -281,7 +282,9 @@ const routers = createBrowserRouter([
         path: "/admin/staff",
         element: (
           <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminStaffPage />
+            <AdminShell>
+              <AdminStaffPage />
+            </AdminShell>
           </ProtectedRoute>
         ),
       },
@@ -289,7 +292,8 @@ const routers = createBrowserRouter([
         path: "/admin/applications",
         element: (
           <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminApplicationsPage
+            <AdminShell>
+              <AdminApplicationsPage
               basePath="/admin/applications"
               title="Hồ sơ merchant"
               subtitle="Theo dõi và xử lý hồ sơ merchant trong hệ thống."
@@ -297,7 +301,8 @@ const routers = createBrowserRouter([
               canReview
               backTo="/admin/dashboard"
               backLabel="Back"
-            />
+              />
+            </AdminShell>
           </ProtectedRoute>
         ),
       },
@@ -305,11 +310,13 @@ const routers = createBrowserRouter([
         path: "/admin/applications/:id",
         element: (
           <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminApplicationDetailPage
-              basePath="/admin/applications"
-              fallbackName="Admin"
-              canReview
-            />
+            <AdminShell>
+              <AdminApplicationDetailPage
+                basePath="/admin/applications"
+                fallbackName="Admin"
+                canReview
+              />
+            </AdminShell>
           </ProtectedRoute>
         ),
       },
@@ -317,13 +324,25 @@ const routers = createBrowserRouter([
         path: "/admin/reviewer-applications",
         element: (
           <ProtectedRoute allowedRoles={["Admin"]}>
-            <StaffReviewerApplicationsPage
-              shell="admin"
-              fallbackName="Admin"
-              canReview={false}
-              backTo="/admin/dashboard"
-              backLabel="Back"
-            />
+            <AdminShell>
+              <StaffReviewerApplicationsPage
+                shell="admin"
+                fallbackName="Admin"
+                canReview={false}
+                backTo="/admin/dashboard"
+                backLabel="Back"
+              />
+            </AdminShell>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/notifications",
+        element: (
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <AdminShell>
+              <NotificationsPage />
+            </AdminShell>
           </ProtectedRoute>
         ),
       },

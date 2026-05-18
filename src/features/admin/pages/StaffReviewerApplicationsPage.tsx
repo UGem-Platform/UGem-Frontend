@@ -1,18 +1,17 @@
 import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
   BadgeCheck,
   CalendarDays,
   CheckCircle2,
   Hourglass,
   Loader2,
+  RefreshCw,
   ShieldCheck,
   UserRound,
   UsersRound,
   XCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 import { Button } from "@/shared/components/ui/button";
 import { UserAccountMenu } from "@/shared/components";
@@ -123,8 +122,8 @@ export default function StaffReviewerApplicationsPage({
   shell = "staff",
   fallbackName = "Staff",
   canReview = true,
-  backTo,
-  backLabel = "Back",
+  backTo: _backTo,
+  backLabel: _backLabel = "Back",
 }: StaffReviewerApplicationsPageProps) {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
@@ -137,6 +136,7 @@ export default function StaffReviewerApplicationsPage({
     data: apps = [],
     isLoading,
     isError,
+    isFetching,
   } = useQuery<ReviewerApp[]>({
     queryKey: REVIEWER_APPS_QK,
     queryFn: async () => {
@@ -195,9 +195,6 @@ export default function StaffReviewerApplicationsPage({
   );
   const approvedCount = apps.filter((app) => isApprovedStatus(app.status)).length;
   const rejectedCount = apps.filter((app) => isRejectedStatus(app.status)).length;
-  const resolvedBackTo =
-    backTo ?? (shell === "admin" ? "/admin/dashboard" : "/staff/dashboard");
-
   const reviewerContent: ReactNode = (
     <>
       <div className="relative">
@@ -218,15 +215,14 @@ export default function StaffReviewerApplicationsPage({
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
             <Button
-              asChild
               type="button"
               variant="outline"
+              disabled={isFetching}
+              onClick={refresh}
               className="h-10 gap-2 rounded-2xl border-white/70 bg-white/80 px-4 font-black shadow-sm ring-1 ring-slate-950/5"
             >
-              <Link to={resolvedBackTo}>
-                <ArrowLeft className="h-4 w-4" />
-                {backLabel}
-              </Link>
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              {isFetching ? "Đang tải..." : "Làm mới"}
             </Button>
 
             {shell === "admin" ? (

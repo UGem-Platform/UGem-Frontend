@@ -176,6 +176,36 @@ export function UserAccountMenu({
         </Button>
       ) : null}
 
+      {user?.Role === "Merchant" ? (
+        <Button
+          asChild
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 rounded-xl text-xs font-bold"
+        >
+          <Link to="/merchant/profile">
+            <UserRound className="h-3.5 w-3.5" />
+            Profile
+          </Link>
+        </Button>
+      ) : null}
+
+      {user?.Role === "Admin" ? (
+        <Button
+          asChild
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 rounded-xl text-xs font-bold"
+        >
+          <Link to="/admin/dashboard">
+            <UserRound className="h-3.5 w-3.5" />
+            Profile
+          </Link>
+        </Button>
+      ) : null}
+
       {user?.Role === "Customer" ? (
         <Button
           asChild

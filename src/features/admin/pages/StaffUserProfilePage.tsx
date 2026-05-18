@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 import { getCurrentUser } from "@/features/auth";
-import { UserAccountMenu } from "@/shared/components";
 import { Button } from "@/shared/components/ui/button";
 import { notify } from "@/shared/lib/notify";
 import {
@@ -211,10 +210,6 @@ export default function StaffUserProfilePage() {
               </p>
             </div>
 
-            <UserAccountMenu
-              fallbackName="Staff"
-              avatarUrl={displayedAvatarUrl}
-            />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[340px_1fr]">

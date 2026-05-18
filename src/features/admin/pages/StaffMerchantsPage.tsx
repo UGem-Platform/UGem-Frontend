@@ -10,7 +10,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { UserAccountMenu } from "@/shared/components";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -351,7 +350,6 @@ export default function StaffMerchantsPage() {
               </p>
             </div>
 
-            <UserAccountMenu fallbackName="Staff" />
           </div>
 
           <section className="grid gap-4 xl:grid-cols-4">

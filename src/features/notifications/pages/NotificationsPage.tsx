@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   Bell,
   CheckCircle2,
   ExternalLink,
@@ -10,7 +9,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-import { getCurrentUser } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { UserAccountMenu } from "@/shared/components";
 import { Button } from "@/shared/components/ui/button";
@@ -42,24 +40,12 @@ const categoryFilters: {
   { key: "system", label: "Hệ thống" },
 ];
 
-function getBackPath() {
-  const role = getCurrentUser()?.Role;
-
-  if (role === "Admin") return "/admin/dashboard";
-  if (role === "Staff") return "/staff/dashboard";
-  if (role === "Merchant") return "/merchant";
-  if (role === "Customer") return "/customer";
-
-  return "/";
-}
-
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeFilter, setActiveFilter] =
     useState<(typeof categoryFilters)[number]["key"]>("all");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const backPath = getBackPath();
 
   const loadNotifications = async (showError = true) => {
     setLoading(true);
@@ -152,18 +138,7 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button
-              asChild
-              variant="outline"
-              className="h-11 rounded-2xl bg-white px-4 font-black shadow-sm"
-            >
-              <Link to={backPath}>
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Link>
-            </Button>
-
+          <div className="fixed right-5 top-4 z-50 flex flex-wrap items-center justify-end gap-2 lg:right-7">
             <Button
               onClick={handleRefresh}
               disabled={refreshing}
