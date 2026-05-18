@@ -91,7 +91,7 @@ const adminNavItems = [
   {
     label: "Notifications",
     description: "Thông báo hệ thống",
-    to: "/notifications",
+    to: "/admin/notifications",
     icon: BellRing,
   },
 ] satisfies {
@@ -238,8 +238,8 @@ export default function AdminDashboardPage() {
 
           <main className="min-w-0 px-4 py-4 sm:px-5 lg:px-7 lg:py-6">
             <div className="mx-auto max-w-[1680px] space-y-5">
-              <header className="sticky top-0 z-40 -mx-4 border-b border-white/70 bg-[#f5f7fb]/88 px-4 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <header className="-mx-4 border-b border-white/70 bg-[#f5f7fb]/88 px-4 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500">
                       <span>Admin</span>
@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
 
-                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+                  <div className="fixed right-5 top-4 z-50 flex min-w-0 flex-wrap items-center justify-end gap-2 lg:right-7">
                     <Button
                       type="button"
                       onClick={refreshAll}

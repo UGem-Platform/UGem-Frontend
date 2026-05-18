@@ -8,7 +8,6 @@ import {
   Hourglass,
   TrendingUp,
 } from "lucide-react";
-import { UserAccountMenu } from "@/shared/components";
 import { useStaffApplications } from "../hooks/useApplications";
 import { StaffShell } from "../components/StaffShell";
 
@@ -156,7 +155,6 @@ export default function StaffProfilePage() {
               </p>
             </div>
 
-            <UserAccountMenu fallbackName="Staff" />
           </div>
 
           {isError ? (

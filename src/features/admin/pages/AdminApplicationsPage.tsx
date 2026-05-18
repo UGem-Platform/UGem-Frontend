@@ -351,7 +351,7 @@ export default function AdminApplicationsPage({
             </button>
 
             {secondaryAction}
-            <UserAccountMenu fallbackName={fallbackName} />
+            {!embedded ? <UserAccountMenu fallbackName={fallbackName} /> : null}
           </div>
         </div>
 
