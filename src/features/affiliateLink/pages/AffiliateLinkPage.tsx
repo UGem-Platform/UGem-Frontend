@@ -1,101 +1,440 @@
-import { useEffect, useState } from "react";
-import { getAffiliateLinks } from "../services";
-import type { AffiliateLink } from "../services";
-import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
-import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  ExternalLink,
+  Link2,
+  Loader2,
+  MapPin,
+  Search,
+  Store,
+} from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
+import {
+  createAffiliateLink,
+  getAffiliateTrackUrl,
+  type AffiliateLink,
+} from "../services";
+import { searchMerchants } from "@/features/customer/services/merchantService";
+import type { Merchant } from "@/features/customer/types";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { UserAccountMenu } from "@/shared/components/UserAccountMenu";
+import { cleanAddress } from "@/shared/utils/address";
+import { notify } from "@/shared/lib/notify";
 
 export default function AffiliateLinkPage() {
-  const [links, setLinks] = useState<AffiliateLink[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialMerchantId = searchParams.get("merchantId") ?? "";
+
+  const [keyword, setKeyword] = useState("");
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [selectedMerchantId, setSelectedMerchantId] = useState(initialMerchantId);
+  const [affiliateLink, setAffiliateLink] = useState<AffiliateLink | null>(
+    null,
+  );
+  const [loadingMerchants, setLoadingMerchants] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedField, setCopiedField] = useState<"track" | "target" | null>(
+    null,
+  );
+
+  const selectedMerchant = useMemo(
+    () =>
+      merchants.find((merchant) => merchant.id === selectedMerchantId) ?? null,
+    [merchants, selectedMerchantId],
+  );
+
+  const trackUrl = useMemo(() => {
+    if (!affiliateLink?.linkCode) return "";
+    return getAffiliateTrackUrl(affiliateLink.linkCode);
+  }, [affiliateLink]);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
+    let active = true;
+    const timeoutId = window.setTimeout(async () => {
+      setLoadingMerchants(true);
+
       try {
-        const data = await getAffiliateLinks();
-        setLinks(data || []);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Không tải được danh sách",
-        );
+        const data = await searchMerchants({
+          keyword,
+          pageIndex: 1,
+          pageSize: 20,
+        });
+
+        if (active) {
+          setMerchants(data);
+        }
+      } catch (error) {
+        console.error(error);
+        if (active) {
+          notify.error("Không tải được danh sách quán.");
+        }
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoadingMerchants(false);
+        }
       }
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
     };
-    load();
-  }, []);
+  }, [keyword]);
+
+  async function handleCreateLink() {
+    if (!selectedMerchantId) {
+      notify.error("Vui lòng chọn một quán.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setCopiedField(null);
+
+    try {
+      const result = await createAffiliateLink({
+        merchantId: selectedMerchantId,
+      });
+
+      setAffiliateLink(result);
+      notify.success("Đã tạo liên kết affiliate.");
+    } catch (error) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "";
+      notify.error(
+        message.includes("quyền")
+          ? "Tài khoản hiện tại chưa được backend cấp quyền tạo affiliate link."
+          : message || "Tạo liên kết affiliate thất bại.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function copyToClipboard(value: string, field: "track" | "target") {
+    if (!value) return;
+
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(field);
+      notify.success("Đã sao chép liên kết.");
+      window.setTimeout(() => setCopiedField(null), 1600);
+    } catch (error) {
+      console.error(error);
+      notify.error("Không thể sao chép liên kết.");
+    }
+  }
+
+  function handleBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/customer");
+  }
 
   return (
-    <main className="merchant-portal-layout">
-      <MerchantSidebar />
-
-      <section className="merchant-main">
-        <MerchantHeader />
-
-        <div className="merchant-content">
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold text-slate-950">
-            Liên kết Affiliate
-          </h1>
-          <p className="text-sm text-slate-500">
-            Theo dõi các liên kết đang được gắn với tài khoản merchant.
-          </p>
-        </div>
-
-        {loading ? (
-          <p>Đang tải...</p>
-        ) : error ? (
-          <p className="text-red-600">Lỗi: {error}</p>
-        ) : (
-          <div className="overflow-hidden rounded-lg border border-white/70 bg-white/90 shadow-lg shadow-slate-950/5 backdrop-blur">
-            <table className="w-full">
-              <thead className="bg-cyan-50/90 text-left text-sm text-slate-700">
-                <tr>
-                  <th className="p-4">Tên</th>
-                  <th className="p-4">URL</th>
-                  <th className="p-4">Mô tả</th>
-                  <th className="p-4">Trạng thái</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {links.length > 0 ? (
-                  links.map((link: AffiliateLink, idx: number) => (
-                    <tr
-                      key={link.id || idx}
-                      className="border-t border-slate-100 transition hover:bg-cyan-50/60"
-                    >
-                      <td className="p-4">{link.name || "N/A"}</td>
-                      <td className="p-4">
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block max-w-xs truncate font-medium text-cyan-700 hover:underline"
-                        >
-                          {link.url || "N/A"}
-                        </a>
-                      </td>
-                      <td className="p-4 text-sm text-slate-600">
-                        {link.description || "N/A"}
-                      </td>
-                      <td className="p-4">{link.status || "Active"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="p-4 text-center text-slate-500" colSpan={4}>
-                      Chưa có liên kết nào.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+    <div className="min-h-screen bg-[linear-gradient(180deg,#edfafa_0%,#f7fbfc_34%,#ffffff_100%)] text-slate-950">
+      <header className="border-b border-white/80 bg-white/75 shadow-sm shadow-cyan-950/5 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+          <div>
+            <h1 className="text-3xl font-black">UGem</h1>
+            <p className="text-sm font-medium text-slate-500">
+              Khám phá các quán ăn gần bạn
+            </p>
           </div>
-        )}
+
+          <UserAccountMenu fallbackName="Reviewer" />
         </div>
-      </section>
-    </main>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 pb-10 pt-5">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="mb-4 inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-black text-slate-600 shadow-sm transition hover:bg-cyan-50 hover:text-cyan-800"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Quay lại
+        </button>
+
+        <section className="rounded-lg border border-white/80 bg-white/90 p-5 shadow-xl shadow-cyan-950/10 backdrop-blur-xl">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-black uppercase text-cyan-700">
+                <Link2 className="h-3.5 w-3.5" />
+                Reviewer affiliate
+              </div>
+              <h1 className="text-3xl font-black tracking-tight text-slate-950">
+                Tạo liên kết affiliate
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
+                Tìm quán trong UGem, chọn merchant rồi tạo link chia sẻ để hệ
+                thống ghi nhận lượt click.
+              </p>
+            </div>
+
+            <span className="w-fit rounded-md border border-cyan-100 bg-cyan-50 px-3 py-1.5 text-sm font-black text-cyan-800">
+              Reviewer
+            </span>
+          </div>
+        </section>
+
+        <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <section className="rounded-lg border border-white/80 bg-white/90 p-5 shadow-xl shadow-cyan-950/10 backdrop-blur-xl">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                  Merchant
+                </p>
+                <h2 className="mt-2 text-xl font-black text-slate-950">
+                  Chọn quán cần tạo link
+                </h2>
+              </div>
+
+              {selectedMerchant ? (
+                <span className="rounded-md border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700">
+                  Đã chọn
+                </span>
+              ) : null}
+            </div>
+
+            <div className="relative mt-4">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                placeholder="Tìm theo tên quán..."
+                className="h-11 rounded-lg border-slate-200 bg-white pl-10"
+              />
+            </div>
+
+            <div className="mt-4 max-h-[430px] space-y-3 overflow-y-auto pr-1 [scrollbar-width:thin]">
+              {loadingMerchants ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-24 animate-pulse rounded-lg bg-slate-100"
+                    />
+                  ))}
+                </div>
+              ) : merchants.length > 0 ? (
+                merchants.map((merchant) => (
+                  <MerchantSelectCard
+                    key={merchant.id}
+                    merchant={merchant}
+                    selected={merchant.id === selectedMerchantId}
+                    onSelect={() => {
+                      setSelectedMerchantId(merchant.id);
+                      setAffiliateLink(null);
+                      setCopiedField(null);
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
+                  <Store className="mx-auto h-8 w-8 text-slate-300" />
+                  <p className="mt-3 text-sm font-bold text-slate-500">
+                    Không tìm thấy quán phù hợp.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => void handleCreateLink()}
+              className="mt-4 h-11 w-full gap-2 rounded-lg font-black"
+              disabled={!selectedMerchantId || isSubmitting}
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Link2 className="h-4 w-4" />
+              )}
+              {isSubmitting ? "Đang tạo..." : "Tạo affiliate link"}
+            </Button>
+          </section>
+
+          <div className="rounded-lg border border-white/80 bg-white/90 p-5 shadow-xl shadow-cyan-950/10 backdrop-blur-xl">
+            {affiliateLink ? (
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">
+                      Link code
+                    </p>
+                    <h2 className="mt-1 text-2xl font-black text-slate-950">
+                      {affiliateLink.linkCode}
+                    </h2>
+                    {selectedMerchant ? (
+                      <p className="mt-1 text-sm font-semibold text-slate-500">
+                        {selectedMerchant.name}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${
+                      affiliateLink.isActive
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                        : "bg-slate-100 text-slate-500 ring-slate-200"
+                    }`}
+                  >
+                    {affiliateLink.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <LinkBlock
+                    label="Link track để chia sẻ"
+                    value={trackUrl}
+                    copied={copiedField === "track"}
+                    onCopy={() => void copyToClipboard(trackUrl, "track")}
+                  />
+
+                  <LinkBlock
+                    label="Trang quán sau khi chuyển hướng"
+                    value={affiliateLink.url}
+                    copied={copiedField === "target"}
+                    onCopy={() =>
+                      void copyToClipboard(affiliateLink.url, "target")
+                    }
+                  />
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <Stat label="Click hiện tại" value={affiliateLink.clickCount} />
+                  <Stat
+                    label="Affiliate Link ID"
+                    value={affiliateLink.affiliateLinkId.slice(0, 8)}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex min-h-[430px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-5 text-center">
+                <Link2 className="h-9 w-9 text-slate-400" />
+                <h2 className="mt-3 text-lg font-black text-slate-950">
+                  Chưa có link được tạo
+                </h2>
+                <p className="mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
+                  Chọn một quán bên trái rồi bấm tạo link. Link chia sẻ sẽ xuất
+                  hiện ở đây để bạn sao chép hoặc mở thử.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function MerchantSelectCard({
+  merchant,
+  onSelect,
+  selected,
+}: {
+  merchant: Merchant;
+  onSelect: () => void;
+  selected: boolean;
+}) {
+  const name = merchant.name || "Unnamed merchant";
+  const image = merchant.logoUrl?.trim() || "";
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`flex w-full gap-3 rounded-lg border bg-white p-3 text-left shadow-sm transition hover:border-cyan-200 hover:bg-cyan-50/50 ${
+        selected ? "border-cyan-300 ring-2 ring-cyan-100" : "border-slate-200"
+      }`}
+    >
+      <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-cyan-50 text-cyan-700">
+        {image ? (
+          <img src={image} alt={name} className="h-full w-full object-cover" />
+        ) : (
+          <Store className="h-6 w-6" />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="line-clamp-1 text-sm font-black text-slate-950">
+            {name}
+          </h3>
+          {selected ? (
+            <span className="rounded-full bg-cyan-600 px-2 py-0.5 text-[10px] font-black text-white">
+              Chọn
+            </span>
+          ) : null}
+        </div>
+
+        {merchant.address ? (
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
+            <span className="line-clamp-1">{cleanAddress(merchant.address)}</span>
+          </p>
+        ) : null}
+      </div>
+    </button>
+  );
+}
+
+function LinkBlock({
+  label,
+  value,
+  copied,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  return (
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </p>
+      <div className="mt-2 flex gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+        <a
+          href={value}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-bold text-cyan-700 ring-1 ring-slate-100 hover:underline"
+        >
+          <ExternalLink className="h-4 w-4 shrink-0" />
+          <span className="truncate">{value}</span>
+        </a>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="h-10 w-10 shrink-0 rounded-lg p-0"
+          onClick={onCopy}
+          aria-label={`Sao chép ${label}`}
+        >
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-lg font-black text-slate-950">{value}</p>
+    </div>
   );
 }

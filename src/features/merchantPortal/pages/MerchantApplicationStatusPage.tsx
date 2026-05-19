@@ -131,7 +131,10 @@ function StepItem({ active, done, title, description, icon }: StepItemProps) {
 export function MerchantApplicationStatusPage() {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const portalPath = user?.Role === "Customer" ? "/customer" : "/merchant";
+  const portalPath =
+    user?.Role === "Customer" || user?.Role === "Reviewer"
+      ? "/customer"
+      : "/merchant";
   const [merchantDetail, setMerchantDetail] = useState<MerchantDetail | null>(
     null,
   );

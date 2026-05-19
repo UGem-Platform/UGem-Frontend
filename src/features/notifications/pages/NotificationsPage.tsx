@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type MouseEvent,
+} from "react";
 import { Link } from "react-router-dom";
 import {
   Bell,
@@ -20,10 +26,12 @@ import {
   formatNotificationTime,
   getNotificationBody,
   getNotificationMeta,
+  getNotificationText,
   getNotificationTitle,
   getToneClasses,
   type NotificationCategory,
 } from "../notificationPresentation";
+import { refreshCurrentSession } from "@/features/auth";
 
 const categoryFilters: {
   key: NotificationCategory | "all" | "unread";
@@ -276,6 +284,27 @@ function NotificationCard({ item }: { item: NotificationItem }) {
   const Icon = meta.icon;
   const body = getNotificationBody(item);
   const time = formatNotificationTime(item.createdAt);
+  const shouldRefreshReviewerRole =
+    meta.category === "reviewer-application" &&
+    getNotificationText(item).includes("approved");
+
+  const handleActionClick = async (
+    event: MouseEvent<HTMLAnchorElement>,
+  ) => {
+    if (!shouldRefreshReviewerRole) return;
+
+    event.preventDefault();
+
+    try {
+      const refreshed = await refreshCurrentSession();
+      window.location.assign(
+        refreshed.user.Role === "Reviewer" ? "/affiliate-links" : meta.actionTo!,
+      );
+    } catch (error) {
+      console.error(error);
+      window.location.assign(meta.actionTo!);
+    }
+  };
 
   return (
     <article
@@ -337,7 +366,7 @@ function NotificationCard({ item }: { item: NotificationItem }) {
             variant="outline"
             className="h-10 shrink-0 rounded-2xl bg-white font-black"
           >
-            <Link to={meta.actionTo}>
+            <Link to={meta.actionTo} onClick={handleActionClick}>
               {meta.actionLabel}
               <ExternalLink className="h-4 w-4" />
             </Link>

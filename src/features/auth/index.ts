@@ -5,6 +5,7 @@ export { ResetPasswordPage } from "./pages/ResetPasswordPage";
 export { LoginForm } from "./components/LoginForm";
 export { useLogin } from "./hooks/useLogin";
 export { useRegister } from "./hooks/useRegister";
+export { refreshCurrentSession } from "./refreshSession";
 
 export {
   saveAuthToken,

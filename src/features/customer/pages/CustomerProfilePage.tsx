@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ImagePlus,
@@ -12,7 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { getCurrentUser } from "@/features/auth";
+import { getCurrentUser, refreshCurrentSession } from "@/features/auth";
 import { UserAccountMenu } from "@/shared/components";
 import { Button } from "@/shared/components/ui/button";
 import { notify } from "@/shared/lib/notify";
@@ -44,6 +44,7 @@ function getErrorMessage(error: unknown) {
 }
 
 export default function CustomerProfilePage() {
+  const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -66,6 +67,7 @@ export default function CustomerProfilePage() {
     otherSocialUrl: "",
   });
   const [isSubmittingReviewerApp, setIsSubmittingReviewerApp] = useState(false);
+  const [isRefreshingRole, setIsRefreshingRole] = useState(false);
   const [showReviewerForm, setShowReviewerForm] = useState(false);
 
   const displayName =
@@ -87,10 +89,37 @@ export default function CustomerProfilePage() {
     (reviewerStatus === "accept" ||
       reviewerStatus === "accepted" ||
       reviewerStatus === "approved");
-  const profileContextLabel = isReviewerAccepted ? "Reviewer" : "Customer";
-  const roleLabel = isReviewerAccepted ? "Reviewer" : baseRoleLabel;
+  const profileContextLabel = baseRoleLabel;
+  const roleLabel = baseRoleLabel;
   const isReviewerRejected = reviewerApp && reviewerStatus === "rejected";
   const canEditReviewer = !reviewerApp || isReviewerPending;
+
+  async function refreshReviewerSessionIfNeeded(
+    application: ReviewerApplication | null,
+  ) {
+    const status = application?.status?.toLowerCase() ?? "";
+    const isAccepted =
+      application &&
+      (status === "accept" || status === "accepted" || status === "approved");
+
+    if (!isAccepted || currentUser?.Role === "Reviewer") return;
+
+    setIsRefreshingRole(true);
+
+    try {
+      const refreshed = await refreshCurrentSession();
+
+      if (refreshed.user.Role === "Reviewer") {
+        notify.success("Tài khoản đã được cập nhật thành Reviewer.");
+        navigate("/affiliate-links", { replace: true });
+      }
+    } catch (error) {
+      console.error(error);
+      notify.error("Không thể cập nhật phiên đăng nhập Reviewer.");
+    } finally {
+      setIsRefreshingRole(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -127,6 +156,7 @@ export default function CustomerProfilePage() {
         const data = await getMyReviewerApplication();
         if (active) {
           setReviewerApp(data);
+          void refreshReviewerSessionIfNeeded(data);
           if (data) {
             setReviewerForm({
               motivation: data.motivation ?? "",
@@ -529,7 +559,11 @@ export default function CustomerProfilePage() {
                         Hồ sơ đăng ký Reviewer đã được duyệt
                       </h3>
                       <p className="mt-1 text-sm font-semibold leading-6 text-emerald-700">
-                        Bạn có thể bắt đầu hoạt động với vai trò Reviewer.
+                        {roleLabel === "Reviewer"
+                          ? "Bạn có thể bắt đầu hoạt động với vai trò Reviewer."
+                          : isRefreshingRole
+                            ? "Đang cập nhật phiên đăng nhập để mở quyền Affiliate..."
+                          : "Đơn đã được duyệt, nhưng tài khoản hiện vẫn là Customer nên chưa dùng được Affiliate."}
                       </p>
                     </div>
                   </div>

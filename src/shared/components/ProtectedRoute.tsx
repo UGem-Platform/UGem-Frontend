@@ -19,7 +19,11 @@ export function ProtectedRoute({
 
   // Check role if specified
   if (allowedRoles && allowedRoles.length > 0) {
-    if (!allowedRoles.includes(user.Role || "")) {
+    const role = user.Role || "";
+    const reviewerCanUseCustomerRoute =
+      role === "Reviewer" && allowedRoles.includes("Customer");
+
+    if (!allowedRoles.includes(role) && !reviewerCanUseCustomerRoute) {
       return <Navigate to="/unauthorized" replace />;
     }
   }

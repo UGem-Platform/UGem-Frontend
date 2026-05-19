@@ -64,7 +64,7 @@ export default function CheckInPage() {
     }
 
     const user = getCurrentUser();
-    if (!user || user.Role !== "Customer") {
+    if (!user || (user.Role !== "Customer" && user.Role !== "Reviewer")) {
       const returnUrl = encodeURIComponent(checkInReturnPath);
       navigate(`/login?returnUrl=${returnUrl}`, { replace: true });
       return;
