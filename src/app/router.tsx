@@ -10,7 +10,12 @@ import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
 import StaffMerchantsPage from "@/features/admin/pages/StaffMerchantsPage";
 import StaffUserProfilePage from "@/features/admin/pages/StaffUserProfilePage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
-import { LoginPage, RegisterPage } from "@/features/auth";
+import {
+  ForgotPasswordPage,
+  LoginPage,
+  RegisterPage,
+  ResetPasswordPage,
+} from "@/features/auth";
 import CheckInPage from "@/shared/pages/CheckInPage";
 import CustomerHomePage from "@/features/customer/pages/CustomerHomePage";
 import CustomerOrderDetailPage from "@/features/customer/pages/CustomerOrderDetailPage";
@@ -57,6 +62,14 @@ const routers = createBrowserRouter([
       {
         path: "/register",
         element: <RegisterPage />,
+      },
+      {
+        path: "/forgot-password",
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: "/reset-password",
+        element: <ResetPasswordPage />,
       },
       {
         path: "/check-in",
@@ -294,13 +307,13 @@ const routers = createBrowserRouter([
           <ProtectedRoute allowedRoles={["Admin"]}>
             <AdminShell>
               <AdminApplicationsPage
-              basePath="/admin/applications"
-              title="Hồ sơ merchant"
-              subtitle="Theo dõi và xử lý hồ sơ merchant trong hệ thống."
-              fallbackName="Admin"
-              canReview
-              backTo="/admin/dashboard"
-              backLabel="Back"
+                basePath="/admin/applications"
+                title="Hồ sơ merchant"
+                subtitle="Theo dõi và xử lý hồ sơ merchant trong hệ thống."
+                fallbackName="Admin"
+                canReview
+                backTo="/admin/dashboard"
+                backLabel="Back"
               />
             </AdminShell>
           </ProtectedRoute>

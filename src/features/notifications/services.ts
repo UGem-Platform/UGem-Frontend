@@ -34,3 +34,9 @@ export async function markNotificationAsRead(notificationId: string) {
 
   return res.data;
 }
+
+export async function markAllNotificationsAsRead() {
+  const res = await api.patch<ApiResponse<null>>("/notifications/read-all");
+
+  return res.data;
+}

@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowRight,
+  CheckCircle2,
   Loader2,
   LockKeyhole,
   Mail,
@@ -11,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import HeroCarousel from "../components/HeroCarousel";
 import { Logo } from "./Logo";
@@ -49,9 +50,18 @@ export function RegisterPage() {
       email: "",
       phoneNumber: "",
       password: "",
+      confirmPassword: "",
       role: "Customer",
     },
   });
+
+  const passwordValue = useWatch({ control: form.control, name: "password" });
+  const confirmPasswordValue = useWatch({
+    control: form.control,
+    name: "confirmPassword",
+  });
+  const confirmPasswordMatches =
+    Boolean(confirmPasswordValue) && confirmPasswordValue === passwordValue;
 
   async function onSubmit(values: RegisterSchema) {
     setApiError("");
@@ -92,7 +102,7 @@ export function RegisterPage() {
 
       <section className="relative flex min-h-screen items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)] lg:p-8">
+          <div className="relative overflow-hidden rounded-4xl border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)] lg:p-8">
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl" />
             <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl" />
 
@@ -100,7 +110,7 @@ export function RegisterPage() {
               <Logo />
 
               <div className="mt-5">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                   Create UGem Account
                 </div>
 
@@ -207,6 +217,31 @@ export function RegisterPage() {
 
                   <FormField
                     control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="group relative">
+                            <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
+                            <Input
+                              type="password"
+                              placeholder="Xác nhận mật khẩu"
+                              autoComplete="new-password"
+                              className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
+                              {...field}
+                            />
+                            {confirmPasswordMatches ? (
+                              <CheckCircle2 className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-500" />
+                            ) : null}
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="role"
                     render={({ field }) => (
                       <FormItem>
@@ -214,7 +249,7 @@ export function RegisterPage() {
                           <label
                             className={`group cursor-pointer rounded-2xl border p-4 shadow-sm backdrop-blur transition-all duration-300 ${
                               field.value === "Customer"
-                                ? "border-cyan-300 bg-gradient-to-br from-cyan-50/90 to-blue-50/90 text-cyan-900 ring-2 ring-cyan-400/30 scale-[1.02]"
+                                ? "border-cyan-300 bg-linear-to-br from-cyan-50/90 to-blue-50/90 text-cyan-900 ring-2 ring-cyan-400/30 scale-[1.02]"
                                 : "border-white/60 bg-white/60 text-slate-600 hover:-translate-y-1 hover:border-cyan-200/80 hover:bg-white/80 hover:shadow-md"
                             }`}
                             aria-label="Khách hàng"
@@ -231,7 +266,7 @@ export function RegisterPage() {
                               <div
                                 className={`mx-auto grid h-12 w-12 place-items-center rounded-xl shadow-sm transition-all duration-300 ${
                                   field.value === "Customer"
-                                    ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white"
+                                    ? "bg-linear-to-br from-cyan-500 to-blue-600 text-white"
                                     : "bg-slate-100 text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600"
                                 }`}
                               >
@@ -251,7 +286,7 @@ export function RegisterPage() {
                           <label
                             className={`group cursor-pointer rounded-2xl border p-4 shadow-sm backdrop-blur transition-all duration-300 ${
                               field.value === "Merchant"
-                                ? "border-cyan-300 bg-gradient-to-br from-cyan-50/90 to-blue-50/90 text-cyan-900 ring-2 ring-cyan-400/30 scale-[1.02]"
+                                ? "border-cyan-300 bg-linear-to-br from-cyan-50/90 to-blue-50/90 text-cyan-900 ring-2 ring-cyan-400/30 scale-[1.02]"
                                 : "border-white/60 bg-white/60 text-slate-600 hover:-translate-y-1 hover:border-cyan-200/80 hover:bg-white/80 hover:shadow-md"
                             }`}
                             aria-label="Shop/Chủ quán"
@@ -268,7 +303,7 @@ export function RegisterPage() {
                               <div
                                 className={`mx-auto grid h-12 w-12 place-items-center rounded-xl shadow-sm transition-all duration-300 ${
                                   field.value === "Merchant"
-                                    ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white"
+                                    ? "bg-linear-to-br from-cyan-500 to-blue-600 text-white"
                                     : "bg-slate-100 text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600"
                                 }`}
                               >
@@ -300,7 +335,7 @@ export function RegisterPage() {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="h-12 w-full rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-[15px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-70 disabled:scale-100"
+                    className="h-12 w-full rounded-2xl bg-linear-to-r from-cyan-600 to-blue-600 text-[15px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-70 disabled:scale-100"
                   >
                     {submitting && (
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
