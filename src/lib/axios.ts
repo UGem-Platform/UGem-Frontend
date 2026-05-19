@@ -50,9 +50,9 @@ api.interceptors.response.use(
       error.message ||
       "Có lỗi xảy ra.";
 
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       clearAuth();
-      console.error(`[AXIOS ${status}] Unauthorized/Forbidden`, {
+      console.error("[AXIOS 401] Unauthorized", {
         url: error.config?.url,
         message,
         data: error.response?.data,
@@ -71,6 +71,21 @@ api.interceptors.response.use(
           "Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập. Vui lòng đăng nhập lại.",
         ),
       );
+    }
+
+    if (status === 403) {
+      console.error("[AXIOS 403] Forbidden", {
+        url: error.config?.url,
+        message,
+        data: error.response?.data,
+      });
+
+      const forbiddenMessage =
+        message && message !== "Forbidden"
+          ? message
+          : "Bạn không có quyền thực hiện thao tác này.";
+
+      return Promise.reject(new Error(forbiddenMessage));
     }
 
     if (!error.response) {

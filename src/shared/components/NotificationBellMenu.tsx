@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import {
   Bell,
   CheckCheck,
@@ -18,9 +18,11 @@ import {
   formatNotificationTime,
   getNotificationBody,
   getNotificationMeta,
+  getNotificationText,
   getNotificationTitle,
   getToneClasses,
 } from "@/features/notifications/notificationPresentation";
+import { refreshCurrentSession } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -235,6 +237,27 @@ function BellNotificationItem({
   const Icon = meta.icon;
   const body = getNotificationBody(item);
   const time = formatNotificationTime(item.createdAt);
+  const shouldRefreshReviewerRole =
+    meta.category === "reviewer-application" &&
+    getNotificationText(item).includes("approved");
+
+  const handleActionClick = async (
+    event: MouseEvent<HTMLAnchorElement>,
+  ) => {
+    if (!shouldRefreshReviewerRole) return;
+
+    event.preventDefault();
+
+    try {
+      const refreshed = await refreshCurrentSession();
+      window.location.assign(
+        refreshed.user.Role === "Reviewer" ? "/affiliate-links" : meta.actionTo!,
+      );
+    } catch (error) {
+      console.error(error);
+      window.location.assign(meta.actionTo!);
+    }
+  };
   const content = (
     <div
       className={cn(
@@ -297,6 +320,7 @@ function BellNotificationItem({
               {meta.actionTo ? (
                 <Link
                   to={meta.actionTo}
+                  onClick={handleActionClick}
                   className="inline-flex items-center gap-1 text-cyan-700"
                 >
                   {meta.actionLabel}

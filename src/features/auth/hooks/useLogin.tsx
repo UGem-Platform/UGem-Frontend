@@ -8,6 +8,7 @@ export function getRouteByRole(role?: string) {
   if (role === "Merchant") return "/merchant";
   if (role === "Admin") return "/admin/dashboard";
   if (role === "Staff") return "/staff/dashboard";
+  if (role === "Reviewer") return "/customer";
   return "/customer";
 }
 

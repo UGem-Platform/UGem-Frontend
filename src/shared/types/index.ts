@@ -1,4 +1,4 @@
-export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin";
+export type UserRole = "Customer" | "Reviewer" | "Merchant" | "Staff" | "Admin";
 
 export type ApiResponse<T> = {
   success: boolean;

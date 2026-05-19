@@ -68,7 +68,9 @@ const customerMerchantMenuItems: MerchantNavItem[] = [
 export function MerchantSidebar() {
   const user = getCurrentUser();
   const visibleMenuItems =
-    user?.Role === "Customer" ? customerMerchantMenuItems : merchantMenuItems;
+    user?.Role === "Customer" || user?.Role === "Reviewer"
+      ? customerMerchantMenuItems
+      : merchantMenuItems;
 
   return (
     <aside className="sticky top-0 z-20 flex h-screen w-[280px] shrink-0 flex-col border-r border-white/70 bg-white/72 shadow-2xl shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-2xl">

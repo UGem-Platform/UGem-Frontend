@@ -378,7 +378,7 @@ const routers = createBrowserRouter([
       {
         path: "/affiliate-links",
         element: (
-          <ProtectedRoute allowedRoles={["Merchant"]}>
+          <ProtectedRoute allowedRoles={["Reviewer"]}>
             <AffiliateLinkPage />
           </ProtectedRoute>
         ),

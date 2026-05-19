@@ -153,7 +153,10 @@ function BlockedStateUI({
 export function MerchantOnboardingPage() {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const portalPath = user?.Role === "Customer" ? "/customer" : "/merchant";
+  const portalPath =
+    user?.Role === "Customer" || user?.Role === "Reviewer"
+      ? "/customer"
+      : "/merchant";
   const createMutation = useCreateApplication();
   const [currentStep, setCurrentStep] = useState(1);
 

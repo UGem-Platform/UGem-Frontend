@@ -36,6 +36,13 @@ export async function googleLoginApi(payload: GoogleLoginRequest) {
   return data.data;
 }
 
+export async function refreshTokenApi() {
+  const { data } =
+    await api.post<ApiResponse<LoginResponse>>("/auth/refresh-token");
+
+  return data.data;
+}
+
 export async function registerApi(payload: RegisterRequest) {
   const { data } = await api.post<ApiResponse<string>>("/auth/register", {
     email: payload.email,

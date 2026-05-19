@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { LogOut, UserRound } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Link2, LogOut, UserRound } from "lucide-react";
 
 import { clearAuth, getCurrentUser } from "@/features/auth";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,6 @@ import { Button } from "@/shared/components/ui/button";
 import { NotificationBellMenu } from "@/shared/components/NotificationBellMenu";
 import { notify } from "@/shared/lib/notify";
 import { getUserProfile, type UserProfile } from "@/shared/services";
-import { getMyReviewerApplication } from "@/features/review/services";
 
 type UserAccountMenuProps = {
   fallbackName: string;
@@ -18,15 +17,11 @@ type UserAccountMenuProps = {
 
 function getRoleLabel(role?: string) {
   if (role === "Customer") return "Customer";
+  if (role === "Reviewer") return "Reviewer";
   if (role === "Merchant") return "Merchant";
   if (role === "Staff") return "Staff";
   if (role === "Admin") return "Admin";
   return role || "";
-}
-
-function isAcceptedReviewerStatus(status?: string) {
-  const value = status?.toLowerCase();
-  return value === "accept" || value === "accepted" || value === "approved";
 }
 
 export function UserAccountMenu({
@@ -35,20 +30,25 @@ export function UserAccountMenu({
   avatarUrl: avatarUrlOverride,
 }: UserAccountMenuProps) {
   const user = getCurrentUser();
+  const location = useLocation();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isReviewer, setIsReviewer] = useState(false);
   const displayName =
     profile?.fullName || profile?.name || user?.Name || fallbackName;
   const email = profile?.email || user?.Email || "";
   const baseRoleLabel = getRoleLabel(profile?.role || user?.Role);
-  const roleChips =
-    isReviewer && baseRoleLabel === "Customer"
-      ? [{ label: "Reviewer", tone: "reviewer" as const }]
-      : [
-          ...(baseRoleLabel
-            ? [{ label: baseRoleLabel, tone: "base" as const }]
-            : []),
-        ];
+  const roleChips = baseRoleLabel
+    ? [
+        {
+          label: baseRoleLabel,
+          tone:
+            baseRoleLabel === "Reviewer"
+              ? ("reviewer" as const)
+              : ("base" as const),
+        },
+      ]
+    : [];
+  const canUseAffiliate = user?.Role === "Reviewer";
+  const isAffiliatePage = location.pathname === "/affiliate-links";
   const initial = (displayName || email || "U").trim().charAt(0).toUpperCase();
   const avatarUrl =
     avatarUrlOverride || profile?.avatarUrl || user?.AvatarUrl || "";
@@ -68,33 +68,10 @@ export function UserAccountMenu({
       }
     };
 
-    const loadReviewerCapability = async () => {
-      if (user?.Role !== "Customer") {
-        if (active) {
-          setIsReviewer(false);
-        }
-        return;
-      }
-
-      try {
-        const data = await getMyReviewerApplication();
-
-        if (active) {
-          setIsReviewer(isAcceptedReviewerStatus(data?.status));
-        }
-      } catch {
-        if (active) {
-          setIsReviewer(false);
-        }
-      }
-    };
-
     void loadProfile();
-    void loadReviewerCapability();
 
     const handleProfileUpdated = () => {
       void loadProfile();
-      void loadReviewerCapability();
     };
 
     window.addEventListener("ugem:profile-updated", handleProfileUpdated);
@@ -206,7 +183,7 @@ export function UserAccountMenu({
         </Button>
       ) : null}
 
-      {user?.Role === "Customer" ? (
+      {user?.Role === "Customer" || user?.Role === "Reviewer" ? (
         <Button
           asChild
           type="button"
@@ -217,6 +194,21 @@ export function UserAccountMenu({
           <Link to="/customer/profile">
             <UserRound className="h-3.5 w-3.5" />
             Profile
+          </Link>
+        </Button>
+      ) : null}
+
+      {canUseAffiliate && !isAffiliatePage ? (
+        <Button
+          asChild
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 rounded-xl text-xs font-bold"
+        >
+          <Link to="/affiliate-links">
+            <Link2 className="h-3.5 w-3.5" />
+            Affiliate
           </Link>
         </Button>
       ) : null}

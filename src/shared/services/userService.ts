@@ -17,9 +17,9 @@ export async function getUserProfile() {
   const user = getCurrentUser();
   const role = user?.Role;
 
-  // Backend currently treats /user/profile as Customer-only.
-  if (role === "Customer") {
-    // Prefer /user/profile first (Customer-only). Some environments don't implement
+  // Reviewer keeps the customer profile and gains affiliate capabilities.
+  if (role === "Customer" || role === "Reviewer") {
+    // Prefer /user/profile first. Some environments don't implement
     // /customers/profile, so calling it first causes noisy 404s.
     try {
       const { data } =
@@ -72,7 +72,7 @@ export async function updateUserProfile(payload: {
 
   if (String(user?.Role) === "__unsupported__") {
 
-    throw new Error("Cập nhật hồ sơ hiện chỉ hỗ trợ tài khoản Customer.");
+    throw new Error("Cập nhật hồ sơ hiện chỉ hỗ trợ tài khoản Customer/Reviewer.");
   }
 
   const { data } = await api.patch<ApiResponse<null>>("/user/profile", {

@@ -353,6 +353,24 @@ export async function getNearbyMerchants(params: {
     .map(({ merchant }) => merchant);
 }
 
+export async function searchMerchants(params?: {
+  keyword?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}) {
+  const res = await api.request<MerchantListApiPayload>({
+    method: "get",
+    url: "/merchants",
+    params: {
+      SearchTerm: params?.keyword?.trim() || undefined,
+      PageIndex: params?.pageIndex ?? 1,
+      PageSize: params?.pageSize ?? 20,
+    },
+  });
+
+  return unwrapMerchantList(res.data);
+}
+
 export async function getMerchantDetail(id: string): Promise<MerchantDetail> {
   const res = await api.get<ApiResponse<MerchantDetail> | MerchantDetail>(
     `/merchants/${id}`,
