@@ -181,7 +181,7 @@ export function LoginPage() {
   return (
     <main className="relative grid min-h-screen grid-cols-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] lg:grid-cols-[1.18fr_0.82fr]">
       {/* grid background */}
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[32px_32px]" />
 
       {/* glow */}
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
@@ -198,7 +198,7 @@ export function LoginPage() {
       {/* right */}
       <section className="relative flex items-center justify-center overflow-hidden px-4 py-4">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+          <div className="relative overflow-hidden rounded-4xl border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
             {/* glow */}
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl" />
 
@@ -208,13 +208,13 @@ export function LoginPage() {
               <Logo />
 
               <div className="mt-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm ring-1 ring-cyan-500/10">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm ring-1 ring-cyan-500/10">
                   UGem Platform
                 </div>
 
                 <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
                   Khám phá quán ăn đang bị{" "}
-                  <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                  <span className="bg-linear-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                     FLOP
                   </span>
                 </h1>
@@ -238,8 +238,9 @@ export function LoginPage() {
                       <div ref={googleButtonRef} />
                     </div>
                     <p className="rounded-2xl border border-amber-200/70 bg-amber-50/80 px-3.5 py-2 text-center text-[11px] font-bold leading-5 text-amber-800 shadow-sm">
-                      Google chỉ dùng cho tài khoản Customer. Customer, Merchant,
-                      Staff và Admin đều có thể đăng nhập bằng email và mật khẩu.
+                      Google chỉ dùng cho tài khoản Customer. Customer,
+                      Merchant, Staff và Admin đều có thể đăng nhập bằng email
+                      và mật khẩu.
                     </p>
                   </>
                 ) : (
@@ -264,9 +265,12 @@ export function LoginPage() {
 
               {/* footer links */}
               <div className="mt-3 space-y-1 text-center">
-                <button className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline"
+                >
                   Quên mật khẩu?
-                </button>
+                </Link>
 
                 <div>
                   <Link
@@ -294,14 +298,14 @@ export function LoginPage() {
           <section
             aria-modal="true"
             role="dialog"
-            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/50 bg-white/70 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-2xl transition-transform duration-300 scale-100"
+            className="relative w-full max-w-md overflow-hidden rounded-4xl border border-white/50 bg-white/70 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-2xl transition-transform duration-300 scale-100"
           >
             <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl" />
 
             <div className="absolute -bottom-14 -left-14 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl" />
 
             <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                 Welcome to UGem
               </div>
 
@@ -321,7 +325,7 @@ export function LoginPage() {
                   className="group flex w-full items-center justify-between rounded-2xl border border-white/60 bg-white/60 px-5 py-4 text-left shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-md"
                 >
                   <div className="flex items-center gap-3.5">
-                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 shadow-sm">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-linear-to-br from-slate-100 to-slate-200 text-slate-700 shadow-sm">
                       <Compass size={20} />
                     </span>
 
@@ -344,7 +348,7 @@ export function LoginPage() {
                   onClick={() =>
                     handleGooglePurpose("/merchant/application/create")
                   }
-                  className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-4 text-left text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/30"
+                  className="group flex w-full items-center justify-between rounded-2xl bg-linear-to-br from-cyan-600 to-blue-600 px-5 py-4 text-left text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/30"
                 >
                   <div className="flex items-center gap-3.5">
                     <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 shadow-inner">

@@ -29,6 +29,17 @@ export type RegisterRequest = {
   role: RegisterRole;
 };
 
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+};
+
 export type UserRole = "Customer" | "Merchant" | "Staff" | "Admin" | string;
 
 export type JwtPayload = {

@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 
 import {
   getNotifications,
+  markAllNotificationsAsRead,
   markNotificationAsRead,
   type NotificationItem,
 } from "@/features/notifications/services";
@@ -86,17 +87,10 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
     );
 
     try {
-      await Promise.all(
-        unreadNotifications
-          .map((item) => item.id)
-          .filter((id): id is string => Boolean(id))
-          .map((id) => markNotificationAsRead(id)),
-      );
+      await markAllNotificationsAsRead();
     } catch (error) {
       console.error(error);
-      notify.error(
-        "Không thể đánh dấu tất cả thông báo đã đọc.",
-      );
+      notify.error("Không thể đánh dấu tất cả thông báo đã đọc.");
       void loadNotifications(false);
     }
   };
@@ -141,7 +135,7 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-[26rem] rounded-2xl p-0">
+      <DropdownMenuContent align="end" className="w-104 rounded-2xl p-0">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <DropdownMenuLabel className="p-0 text-sm font-semibold text-slate-900">
@@ -187,7 +181,7 @@ export function NotificationBellMenu({ className }: NotificationBellMenuProps) {
 
         <DropdownMenuSeparator />
 
-        <div className="max-h-[24rem] overflow-y-auto p-2">
+        <div className="max-h-96 overflow-y-auto p-2">
           {loading ? (
             <div className="flex items-center justify-center gap-2 py-8 text-sm text-slate-500">
               <Loader2 className="h-4 w-4 animate-spin" />

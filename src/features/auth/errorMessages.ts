@@ -85,6 +85,63 @@ export function getRegisterErrorMessage(error: unknown) {
   return "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.";
 }
 
+export function getForgotPasswordErrorMessage(error: unknown) {
+  const message = getErrorText(error);
+
+  if (isNetworkError(message)) {
+    return "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
+  }
+
+  if (
+    message.includes("timed out") ||
+    message.includes("timeout") ||
+    message.includes("internal_server_error")
+  ) {
+    return "Hệ thống gửi email đang phản hồi chậm. Vui lòng thử lại sau ít phút.";
+  }
+
+  if (
+    message.includes("not found") ||
+    message.includes("user") ||
+    message.includes("email")
+  ) {
+    return "Email không tồn tại trong hệ thống.";
+  }
+
+  return "Không thể gửi mã xác nhận. Vui lòng thử lại.";
+}
+
+export function getResetPasswordErrorMessage(error: unknown) {
+  const message = getErrorText(error);
+
+  if (isNetworkError(message)) {
+    return "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
+  }
+
+  if (
+    message.includes("timed out") ||
+    message.includes("timeout") ||
+    message.includes("internal_server_error")
+  ) {
+    return "Máy chủ đang xử lý chậm. Vui lòng thử lại sau ít phút.";
+  }
+
+  if (
+    message.includes("otp") ||
+    message.includes("token") ||
+    message.includes("expired") ||
+    message.includes("invalid")
+  ) {
+    return "Mã xác nhận không hợp lệ hoặc đã hết hạn.";
+  }
+
+  if (message.includes("password")) {
+    return "Mật khẩu mới chưa hợp lệ.";
+  }
+
+  return "Đặt lại mật khẩu thất bại. Vui lòng thử lại.";
+}
+
 export function getGoogleLoginErrorMessage(error: unknown) {
   const message = getErrorText(error);
 
