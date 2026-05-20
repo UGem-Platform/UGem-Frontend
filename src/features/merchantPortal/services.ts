@@ -202,26 +202,24 @@ export async function getMerchantOrders() {
 }
 
 export async function getMerchantOrderDetail(orderId: string) {
-  let res;
-
   try {
-    res = await api.get<ApiResponse<unknown> | unknown>(
+    const res = await api.patch<ApiResponse<unknown> | unknown>(
       `/orders/${orderId}/merchant`,
     );
+
+    const payload = (res.data ?? res) as unknown;
+    if (payload && typeof payload === "object" && "data" in payload) {
+      return (payload as { data: unknown }).data;
+    }
+
+    return payload;
   } catch (error) {
     if (!shouldFallback(error)) {
       throw error;
     }
-
-    res = await api.get<ApiResponse<unknown> | unknown>(`/orders/${orderId}`);
   }
 
-  const payload = (res.data ?? res) as unknown;
-  if (payload && typeof payload === "object" && "data" in payload) {
-    return (payload as { data: unknown }).data;
-  }
-
-  return payload;
+  return null;
 }
 
 export async function acceptOrder(orderId: string) {

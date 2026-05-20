@@ -35,6 +35,7 @@ import type {
 import { addWishlist } from "../services/wishlistService";
 import { createOrder } from "../services/orderService";
 import { notify } from "@/shared/lib/notify";
+import { clearAuth, getCurrentUser } from "@/features/auth";
 
 type OnlinePaymentMethod = "COD" | "BankTransfer";
 
@@ -187,7 +188,9 @@ function storeAffiliateRef(merchantId: string, linkCode: string) {
 
 function getStoredAffiliateRef(merchantId: string) {
   try {
-    const raw = window.localStorage.getItem(getAffiliateRefStorageKey(merchantId));
+    const raw = window.localStorage.getItem(
+      getAffiliateRefStorageKey(merchantId),
+    );
     if (!raw) return undefined;
 
     const data = JSON.parse(raw) as {
@@ -212,6 +215,7 @@ export default function MerchantDetailPage() {
   const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
+  const currentUser = getCurrentUser();
   const isOfflineOrder = searchParams.get("mode") === "offline";
   const affiliateRef = searchParams.get("ref")?.trim() || undefined;
 
@@ -293,10 +297,26 @@ export default function MerchantDetailPage() {
   }, [isOfflineOrder]);
 
   useEffect(() => {
-    if (!id || !affiliateRef) return;
+    if (!affiliateRef || !currentUser || currentUser.Role === "Customer") {
+      return;
+    }
+
+    const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    clearAuth();
+    notify.error(
+      "Vui lòng đăng nhập bằng tài khoản Customer khác để đặt món qua link affiliate.",
+    );
+    navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`, {
+      replace: true,
+    });
+  }, [affiliateRef, currentUser, navigate]);
+
+  useEffect(() => {
+    if (!id || !affiliateRef || currentUser?.Role !== "Customer") return;
 
     storeAffiliateRef(id, affiliateRef);
-  }, [affiliateRef, id]);
+  }, [affiliateRef, currentUser?.Role, id]);
 
   async function handleCreateOrder() {
     if (!merchant?.id || cart.length === 0) return;
@@ -304,6 +324,13 @@ export default function MerchantDetailPage() {
     if (isOfflineOrder) {
       notify.error(
         "Đơn tại quán sẽ do merchant tạo. Khi tính tiền, bạn quét QR để check-in.",
+      );
+      return;
+    }
+
+    if (affiliateRef && currentUser?.Role !== "Customer") {
+      notify.error(
+        "Vui lòng đăng nhập bằng tài khoản Customer khác để đặt món qua link affiliate.",
       );
       return;
     }
