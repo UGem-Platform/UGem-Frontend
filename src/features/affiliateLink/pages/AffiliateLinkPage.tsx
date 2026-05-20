@@ -273,19 +273,19 @@ export default function AffiliateLinkPage() {
             loading={loadingEarnings}
             title="Rank"
             value={earnings?.rank || "-"}
-            description="Háº¡ng reviewer do backend tráº£ vá»."
+            description="Hạng reviewer do backend trả về."
           />
           <EarningsCard
             loading={loadingEarnings}
             title="Points"
             value={formatNumber(earnings?.points)}
-            description="Äiá»ƒm reviewer hiá»‡n táº¡i."
+            description="Điểm reviewer hiện tại."
           />
           <EarningsCard
             loading={loadingEarnings}
             title="Commission rate"
             value={formatPercentRate(earnings?.commissionRate)}
-            description="Tá»· lá»‡ BE dÃ¹ng Ä‘á»ƒ tÃ­nh phÃ­ affiliate."
+            description="Tỷ lệ BE dùng để tính phí affiliate."
           />
         </section>
 
