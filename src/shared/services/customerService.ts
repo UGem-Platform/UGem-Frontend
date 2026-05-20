@@ -6,7 +6,8 @@ export type CustomerSearchResult = {
   customerId: string;
   fullName: string;
   email: string;
-  role: "Customer";
+  phoneNumber?: string | null;
+  role: "Customer" | "Reviewer";
   avatarUrl?: string | null;
 };
 
@@ -16,6 +17,23 @@ export async function searchCustomersByEmail(email: string, limit = 10) {
     {
       params: {
         email,
+        limit,
+      },
+    },
+  );
+
+  return res.data.data ?? [];
+}
+
+export async function searchCustomersByPhoneNumber(
+  phoneNumber: string,
+  limit = 10,
+) {
+  const res = await api.get<ApiResponse<CustomerSearchResult[]>>(
+    "/customers/search-by-phone-number",
+    {
+      params: {
+        phoneNumber,
         limit,
       },
     },
