@@ -46,6 +46,15 @@ function formatCurrency(value?: number | null) {
   }).format(toNumber(value));
 }
 
+function formatPercentRate(value?: number | null) {
+  const numeric = toNumber(value);
+  const percent = numeric > 1 ? numeric : numeric * 100;
+
+  return `${new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits: 2,
+  }).format(percent)}%`;
+}
+
 export default function AffiliateLinkPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -256,6 +265,27 @@ export default function AffiliateLinkPage() {
             title="Link đã tạo"
             value={formatNumber(earnings?.affiliateLinkCount)}
             description="Số link affiliate của reviewer."
+          />
+        </section>
+
+        <section className="mt-3 grid gap-3 md:grid-cols-3">
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Rank"
+            value={earnings?.rank || "-"}
+            description="Háº¡ng reviewer do backend tráº£ vá»."
+          />
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Points"
+            value={formatNumber(earnings?.points)}
+            description="Äiá»ƒm reviewer hiá»‡n táº¡i."
+          />
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Commission rate"
+            value={formatPercentRate(earnings?.commissionRate)}
+            description="Tá»· lá»‡ BE dÃ¹ng Ä‘á»ƒ tÃ­nh phÃ­ affiliate."
           />
         </section>
 

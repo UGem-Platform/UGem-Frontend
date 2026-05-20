@@ -27,6 +27,8 @@ export type ReviewerAffiliateEarningTransaction = {
 
 export type ReviewerAffiliateEarnings = {
   reviewerId: string;
+  points: number;
+  rank: string;
   currentEarnings: number;
   totalCommission: number;
   totalReversal: number;
