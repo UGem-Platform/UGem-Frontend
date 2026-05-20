@@ -262,6 +262,9 @@ export type MerchantStatistics = {
   totalViews: number;
   totalOrders: number;
   totalRevenue: number;
+  platformFee?: number;
+  reviewerFee?: number;
+  merchantReceive?: number;
   avgOrderValue: number;
   underrateScore: number;
   platformFeePercent: number;

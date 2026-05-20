@@ -10,6 +10,7 @@ import StaffProfilePage from "@/features/admin/pages/StaffProfilePage";
 import StaffMerchantsPage from "@/features/admin/pages/StaffMerchantsPage";
 import StaffUserProfilePage from "@/features/admin/pages/StaffUserProfilePage";
 import AffiliateLinkPage from "@/features/affiliateLink/pages/AffiliateLinkPage";
+import AffiliateRedirectPage from "@/features/affiliateLink/pages/AffiliateRedirectPage";
 import {
   ForgotPasswordPage,
   LoginPage,
@@ -382,6 +383,10 @@ const routers = createBrowserRouter([
             <AffiliateLinkPage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "/r/:linkCode",
+        element: <AffiliateRedirectPage />,
       },
       {
         path: "/map-demo",

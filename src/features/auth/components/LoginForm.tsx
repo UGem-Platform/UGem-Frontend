@@ -1,5 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LockKeyhole, Mail, Loader2, ShieldCheck } from "lucide-react";
+import {
+  Check,
+  LockKeyhole,
+  Mail,
+  Loader2,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { loginSchema, type LoginSchema } from "../schema";
 import { useLogin } from "../hooks/useLogin";
@@ -14,20 +22,35 @@ import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { getLoginErrorMessage } from "../errorMessages";
 
+const REMEMBERED_EMAIL_KEY = "ugem_remembered_email";
+
 export function LoginForm() {
   const loginMutation = useLogin();
+  const rememberedEmail =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem(REMEMBERED_EMAIL_KEY) || ""
+      : "";
+  const [rememberAccount, setRememberAccount] = useState(Boolean(rememberedEmail));
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: rememberedEmail,
       password: "",
     },
   });
 
   function onSubmit(values: LoginSchema) {
+    const email = values.email.trim();
+
+    if (rememberAccount) {
+      window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+    } else {
+      window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+    }
+
     loginMutation.mutate({
-      email: values.email.trim(),
+      email,
       password: values.password,
     });
   }
@@ -121,6 +144,44 @@ export function LoginForm() {
             {apiError}
           </div>
         )}
+
+        <label className="group flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-cyan-100/80 bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-950/5 transition hover:border-cyan-200 hover:bg-cyan-50/60">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-50 text-cyan-700 ring-1 ring-cyan-100 transition group-hover:bg-white">
+              <UserRound className="h-3.5 w-3.5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-xs font-black text-slate-700">
+                Nhớ tài khoản
+              </span>
+              <span className="block truncate text-[10px] font-semibold text-slate-400">
+                Lần sau tự điền email
+              </span>
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={rememberAccount}
+            onChange={(event) => setRememberAccount(event.target.checked)}
+            className="sr-only"
+          />
+          <span
+            className={`relative h-6 w-11 shrink-0 rounded-full p-0.5 transition ${
+              rememberAccount
+                ? "bg-cyan-700 shadow-md shadow-cyan-900/20"
+                : "bg-slate-200"
+            }`}
+            aria-hidden="true"
+          >
+            <span
+              className={`grid h-5 w-5 place-items-center rounded-full bg-white text-cyan-700 shadow-sm transition ${
+                rememberAccount ? "translate-x-5" : "translate-x-0"
+              }`}
+            >
+              {rememberAccount ? <Check className="h-3 w-3" /> : null}
+            </span>
+          </span>
+        </label>
 
         <Button
           type="submit"

@@ -368,6 +368,7 @@ export default function CustomerHomePage() {
 
     return `${displayedMerchants.length} quán`;
   }, [displayedMerchants.length, loading]);
+  const hasMapSearch = keyword.trim().length > 0;
 
   const loadMerchants = useCallback(
     async (
@@ -952,7 +953,7 @@ export default function CustomerHomePage() {
     );
   }
 
-  function renderMerchantListContent(withRouteActions: boolean) {
+  function renderMerchantListContent(withRouteActions: boolean, compact = false) {
     if (loading) {
       return (
         <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-cyan-200 bg-cyan-50/80 px-4 py-8 text-sm font-medium text-cyan-700">
@@ -996,6 +997,7 @@ export default function CustomerHomePage() {
                 merchant={merchant}
                 selected={selected}
                 orderMode={serviceMode === "dineIn" ? "offline" : "online"}
+                compact={compact}
               />
 
               {withRouteActions && (
@@ -1030,37 +1032,37 @@ export default function CustomerHomePage() {
       <div className="fixed inset-0 overflow-hidden bg-slate-100 text-slate-900">
         <div className="absolute inset-0">{mapCanvas}</div>
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-52 bg-linear-to-b from-white/90 via-white/60 to-transparent" />
-        {showMerchantPanel && (
+        {showMerchantPanel && hasMapSearch && (
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-130 max-w-full bg-linear-to-r from-white/75 via-white/35 to-transparent" />
         )}
 
         <header className="pointer-events-none absolute left-0 right-0 top-0 z-30 flex flex-wrap items-start justify-between gap-4 px-4 py-4 lg:px-6">
           {showMerchantPanel && (
-            <div className="pointer-events-auto w-full max-w-110 rounded-2xl border border-white/50 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500">
+            <div className="pointer-events-auto w-full max-w-96 rounded-2xl border border-white/50 bg-white/60 p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h1 className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+                  <h1 className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-xl font-black tracking-tight text-transparent">
                     UGem
                   </h1>
-                  <p className="text-sm font-medium text-slate-500">
+                  <p className="text-xs font-medium text-slate-500">
                     Khám phá tinh hoa ẩm thực
                   </p>
                 </div>
-                <span className="flex items-center rounded-full bg-gradient-to-r from-cyan-100 to-blue-100 px-3.5 py-1.5 text-xs font-bold tracking-wide text-cyan-800 shadow-sm ring-1 ring-cyan-500/10">
+                <span className="flex items-center rounded-full bg-gradient-to-r from-cyan-100 to-blue-100 px-3 py-1 text-xs font-bold tracking-wide text-cyan-800 shadow-sm ring-1 ring-cyan-500/10">
                   {merchantCountText}
                 </span>
               </div>
 
-              <form onSubmit={handleSearch} className="mt-5 flex gap-2">
+              <form onSubmit={handleSearch} className="mt-4 flex gap-2">
                 <Input
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Tìm quán, món ăn..."
-                  className="h-11 rounded-xl border-white/60 bg-white/60 px-4 text-sm font-medium shadow-sm backdrop-blur transition-all focus:border-cyan-400 focus:bg-white/90 focus:ring-4 focus:ring-cyan-400/10"
+                  className="h-10 rounded-xl border-white/60 bg-white/60 px-4 text-sm font-medium shadow-sm backdrop-blur transition-all focus:border-cyan-400 focus:bg-white/90 focus:ring-4 focus:ring-cyan-400/10"
                 />
                 <Button
                   type="submit"
-                  className="h-11 shrink-0 gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-5 font-bold shadow-md shadow-cyan-500/20 transition-all hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-95"
+                  className="h-10 shrink-0 gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-4 font-bold shadow-md shadow-cyan-500/20 transition-all hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 active:scale-95"
                   disabled={loading}
                 >
                   <Search className="h-4 w-4" />
@@ -1068,9 +1070,9 @@ export default function CustomerHomePage() {
                 </Button>
               </form>
 
-              {renderServiceModeTabs("mt-4")}
-              {renderCategoryFilter("mt-4 w-full")}
-              {renderPriceRangeFilters("mt-4")}
+              {renderServiceModeTabs("mt-3")}
+              {renderCategoryFilter("mt-3 h-10 w-full")}
+              {renderPriceRangeFilters("mt-3")}
             </div>
           )}
 
@@ -1109,12 +1111,12 @@ export default function CustomerHomePage() {
           </div>
         </header>
 
-        {showMerchantPanel && (
-          <aside className="pointer-events-auto absolute bottom-4 left-4 top-56 z-20 flex w-[min(440px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500 lg:bottom-6 lg:left-6 lg:top-56">
-            <div className="border-b border-white/40 bg-white/40 px-5 py-4 backdrop-blur-sm">
+        {showMerchantPanel && hasMapSearch && (
+          <aside className="pointer-events-auto absolute bottom-4 left-4 top-50 z-20 flex w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-xl transition-all duration-500 lg:bottom-6 lg:left-6 lg:top-50">
+            <div className="border-b border-white/40 bg-white/40 px-4 py-3 backdrop-blur-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-black text-slate-800 tracking-tight">Quán gần bạn</h2>
+                  <h2 className="text-base font-black tracking-tight text-slate-800">Kết quả tìm kiếm</h2>
                   <p className="text-xs font-medium text-slate-500">
                     Chọn quán để xem đường đi trên bản đồ
                   </p>
@@ -1147,11 +1149,11 @@ export default function CustomerHomePage() {
                 </div>
               )}
 
-              {renderPriceRangeFilters("mt-4")}
+              {renderPriceRangeFilters("mt-3")}
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 [scrollbar-width:thin]">
-              {renderMerchantListContent(true)}
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin]">
+              {renderMerchantListContent(true, true)}
             </div>
           </aside>
         )}

@@ -50,6 +50,7 @@ type Props = {
   merchant: Merchant;
   selected?: boolean;
   orderMode?: "online" | "offline";
+  compact?: boolean;
 };
 
 function formatDistance(distanceKm: number) {
@@ -79,6 +80,7 @@ export default function MerchantCard({
   merchant,
   selected = false,
   orderMode = "online",
+  compact = false,
 }: Props) {
   const name = merchant.name || "Unnamed merchant";
   const descriptionPreview = getMerchantDescriptionPreview(
@@ -108,7 +110,8 @@ export default function MerchantCard({
     <Link
       to={`/customer/merchants/${merchant.id}?mode=${orderMode}`}
       className={cn(
-        "group relative block overflow-hidden rounded-xl border bg-white p-3.5 text-slate-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/5",
+        "group relative block overflow-hidden rounded-xl border bg-white text-slate-900 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/5",
+        compact ? "p-2.5" : "p-3.5",
         selected
           ? "border-cyan-300 bg-linear-to-br from-cyan-50/90 to-white shadow-cyan-950/10 ring-2 ring-cyan-400/50"
           : "border-slate-200/70 hover:border-cyan-200",
@@ -125,9 +128,19 @@ export default function MerchantCard({
       {/* Shine effect on hover */}
       <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/40 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
 
-      <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
+      <div
+        className={cn(
+          "relative flex min-w-0 flex-col sm:flex-row sm:items-start",
+          compact ? "gap-2.5" : "gap-4",
+        )}
+      >
         {/* Image Container with overflow hidden for zoom effect */}
-        <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-lg bg-slate-50 shadow-inner sm:h-28 sm:w-32">
+        <div
+          className={cn(
+            "relative w-full shrink-0 overflow-hidden rounded-lg bg-slate-50 shadow-inner",
+            compact ? "h-24 sm:h-20 sm:w-24" : "h-32 sm:h-28 sm:w-32",
+          )}
+        >
           {shouldShowImage ? (
             <img
               src={image}
@@ -162,7 +175,12 @@ export default function MerchantCard({
         {/* Content */}
         <div className="flex min-w-0 flex-1 flex-col justify-center">
           <div className="flex min-w-0 items-start justify-between gap-3">
-            <h3 className="line-clamp-1 text-base font-black leading-snug text-slate-900 group-hover:text-cyan-700 transition-colors md:text-lg">
+            <h3
+              className={cn(
+                "line-clamp-1 font-black leading-snug text-slate-900 transition-colors group-hover:text-cyan-700",
+                compact ? "text-sm md:text-base" : "text-base md:text-lg",
+              )}
+            >
               {name}
             </h3>
 
@@ -172,7 +190,7 @@ export default function MerchantCard({
             </span>
           </div>
 
-          {merchant.description && (
+          {!compact && merchant.description && (
             <div className="mt-1.5">
               {descriptionPreview.summary && (
                 <p className="line-clamp-2 text-sm font-medium leading-relaxed text-slate-500">
@@ -183,7 +201,12 @@ export default function MerchantCard({
           )}
 
           {/* Tags */}
-          <div className="mt-3.5 flex flex-wrap gap-2.5 text-xs font-bold">
+          <div
+            className={cn(
+              "flex flex-wrap text-xs font-bold",
+              compact ? "mt-2 gap-1.5" : "mt-3.5 gap-2.5",
+            )}
+          >
             {typeof merchant.rating === "number" && (
               <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200/60 bg-amber-50/80 px-2.5 py-1.5 text-amber-700 shadow-sm ring-1 ring-amber-500/5">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
@@ -217,7 +240,12 @@ export default function MerchantCard({
           </div>
 
           {merchant.address && (
-            <p className="mt-3.5 flex min-w-0 items-center gap-2 text-[13px] font-semibold text-slate-500 group-hover:text-slate-600 transition-colors">
+            <p
+              className={cn(
+                "flex min-w-0 items-center gap-2 font-semibold text-slate-500 transition-colors group-hover:text-slate-600",
+                compact ? "mt-2 text-xs" : "mt-3.5 text-[13px]",
+              )}
+            >
               <MapPin className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
               <span className="line-clamp-1">{cleanAddress(merchant.address)}</span>
             </p>

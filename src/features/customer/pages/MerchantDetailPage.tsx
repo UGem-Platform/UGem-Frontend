@@ -167,12 +167,53 @@ function getCartQuantity(cart: CartItem[], foodId: string) {
   return cart.find((item) => item.food.id === foodId)?.quantity ?? 0;
 }
 
+const AFFILIATE_REF_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function getAffiliateRefStorageKey(merchantId: string) {
+  return `ugem_affiliate_ref_${merchantId}`;
+}
+
+function storeAffiliateRef(merchantId: string, linkCode: string) {
+  if (!merchantId || !linkCode) return;
+
+  window.localStorage.setItem(
+    getAffiliateRefStorageKey(merchantId),
+    JSON.stringify({
+      linkCode,
+      expiresAt: Date.now() + AFFILIATE_REF_TTL_MS,
+    }),
+  );
+}
+
+function getStoredAffiliateRef(merchantId: string) {
+  try {
+    const raw = window.localStorage.getItem(getAffiliateRefStorageKey(merchantId));
+    if (!raw) return undefined;
+
+    const data = JSON.parse(raw) as {
+      linkCode?: string;
+      expiresAt?: number;
+    };
+
+    if (!data.linkCode || !data.expiresAt || data.expiresAt <= Date.now()) {
+      window.localStorage.removeItem(getAffiliateRefStorageKey(merchantId));
+      return undefined;
+    }
+
+    return data.linkCode;
+  } catch {
+    window.localStorage.removeItem(getAffiliateRefStorageKey(merchantId));
+    return undefined;
+  }
+}
+
 export default function MerchantDetailPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
   const isOfflineOrder = searchParams.get("mode") === "offline";
+  const affiliateRef = searchParams.get("ref")?.trim() || undefined;
 
   const reviewSectionRef = useRef<HTMLElement | null>(null);
 
@@ -247,6 +288,12 @@ export default function MerchantDetailPage() {
     closeAddFoodModal();
   }, [isOfflineOrder]);
 
+  useEffect(() => {
+    if (!id || !affiliateRef) return;
+
+    storeAffiliateRef(id, affiliateRef);
+  }, [affiliateRef, id]);
+
   async function handleCreateOrder() {
     if (!merchant?.id || cart.length === 0) return;
 
@@ -267,6 +314,7 @@ export default function MerchantDetailPage() {
         paymentMethod: onlinePaymentMethod,
         notes: "",
         finalPrice: total,
+        affiliateLinkCode: getStoredAffiliateRef(merchant.id),
         foods: cart.map((item) => ({
           foodId: item.food.id,
           quantity: item.quantity,

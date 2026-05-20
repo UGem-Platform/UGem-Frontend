@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import {
   ArrowLeft,
   Check,
   Copy,
   ExternalLink,
+  HandCoins,
   Link2,
   Loader2,
   MapPin,
+  RefreshCw,
   Search,
   Store,
 } from "lucide-react";
@@ -14,8 +16,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   createAffiliateLink,
-  getAffiliateTrackUrl,
+  getAffiliateShareUrl,
+  getReviewerAffiliateEarnings,
   type AffiliateLink,
+  type ReviewerAffiliateEarnings,
 } from "../services";
 import { searchMerchants } from "@/features/customer/services/merchantService";
 import type { Merchant } from "@/features/customer/types";
@@ -24,6 +28,23 @@ import { Input } from "@/shared/components/ui/input";
 import { UserAccountMenu } from "@/shared/components/UserAccountMenu";
 import { cleanAddress } from "@/shared/utils/address";
 import { notify } from "@/shared/lib/notify";
+
+function toNumber(value?: number | null) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function formatNumber(value?: number | null) {
+  return new Intl.NumberFormat("vi-VN").format(toNumber(value));
+}
+
+function formatCurrency(value?: number | null) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(toNumber(value));
+}
 
 export default function AffiliateLinkPage() {
   const navigate = useNavigate();
@@ -38,6 +59,10 @@ export default function AffiliateLinkPage() {
   );
   const [loadingMerchants, setLoadingMerchants] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [earnings, setEarnings] = useState<ReviewerAffiliateEarnings | null>(
+    null,
+  );
+  const [loadingEarnings, setLoadingEarnings] = useState(true);
   const [copiedField, setCopiedField] = useState<"track" | "target" | null>(
     null,
   );
@@ -48,10 +73,28 @@ export default function AffiliateLinkPage() {
     [merchants, selectedMerchantId],
   );
 
-  const trackUrl = useMemo(() => {
+  const shareUrl = useMemo(() => {
     if (!affiliateLink?.linkCode) return "";
-    return getAffiliateTrackUrl(affiliateLink.linkCode);
+    return getAffiliateShareUrl(affiliateLink.linkCode);
   }, [affiliateLink]);
+
+  async function loadEarnings() {
+    setLoadingEarnings(true);
+
+    try {
+      const data = await getReviewerAffiliateEarnings();
+      setEarnings(data);
+    } catch (error) {
+      console.error(error);
+      notify.error("Không tải được số tiền affiliate.");
+    } finally {
+      setLoadingEarnings(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadEarnings();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -101,6 +144,7 @@ export default function AffiliateLinkPage() {
       });
 
       setAffiliateLink(result);
+      void loadEarnings();
       notify.success("Đã tạo liên kết affiliate.");
     } catch (error) {
       console.error(error);
@@ -183,6 +227,36 @@ export default function AffiliateLinkPage() {
               Reviewer
             </span>
           </div>
+        </section>
+
+        <section className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.75fr))]">
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Tiền affiliate đã kiếm"
+            value={formatCurrency(earnings?.currentEarnings)}
+            description="Tổng commission đã ghi nhận cho Reviewer này."
+            icon={HandCoins}
+            strong
+            onRefresh={() => void loadEarnings()}
+          />
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Đơn có commission"
+            value={formatNumber(earnings?.commissionOrderCount)}
+            description="Đơn completed có phát sinh tiền affiliate."
+          />
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Tổng click"
+            value={formatNumber(earnings?.totalClicks)}
+            description="Tổng lượt mở từ các link của bạn."
+          />
+          <EarningsCard
+            loading={loadingEarnings}
+            title="Link đã tạo"
+            value={formatNumber(earnings?.affiliateLinkCount)}
+            description="Số link affiliate của reviewer."
+          />
         </section>
 
         <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
@@ -294,9 +368,9 @@ export default function AffiliateLinkPage() {
                 <div className="mt-5 space-y-4">
                   <LinkBlock
                     label="Link track để chia sẻ"
-                    value={trackUrl}
+                    value={shareUrl}
                     copied={copiedField === "track"}
-                    onCopy={() => void copyToClipboard(trackUrl, "track")}
+                    onCopy={() => void copyToClipboard(shareUrl, "track")}
                   />
 
                   <LinkBlock
@@ -425,6 +499,81 @@ function LinkBlock({
         </Button>
       </div>
     </div>
+  );
+}
+
+function EarningsCard({
+  description,
+  icon: Icon,
+  loading,
+  onRefresh,
+  strong,
+  title,
+  value,
+}: {
+  description: string;
+  icon?: ComponentType<{ className?: string }>;
+  loading: boolean;
+  onRefresh?: () => void;
+  strong?: boolean;
+  title: string;
+  value: string;
+}) {
+  return (
+    <article
+      className={`rounded-lg border p-4 shadow-lg shadow-cyan-950/7 ${
+        strong
+          ? "border-cyan-100 bg-cyan-950 text-white"
+          : "border-white/80 bg-white/90 text-slate-950"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={`text-xs font-black uppercase tracking-[0.14em] ${
+              strong ? "text-cyan-100" : "text-slate-500"
+            }`}
+          >
+            {title}
+          </p>
+          {loading ? (
+            <div className="mt-3 h-8 w-32 animate-pulse rounded bg-slate-200/60" />
+          ) : (
+            <p className="mt-2 truncate text-2xl font-black">{value}</p>
+          )}
+        </div>
+
+        {Icon ? (
+          <span
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
+              strong ? "bg-white/10 text-cyan-100" : "bg-cyan-50 text-cyan-700"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+        ) : null}
+
+        {onRefresh ? (
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-cyan-100 transition hover:bg-white/15 disabled:opacity-60"
+            aria-label="Làm mới tiền affiliate"
+            title="Làm mới"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </button>
+        ) : null}
+      </div>
+      <p
+        className={`mt-3 text-xs font-semibold leading-5 ${
+          strong ? "text-cyan-100/80" : "text-slate-500"
+        }`}
+      >
+        {description}
+      </p>
+    </article>
   );
 }
 
