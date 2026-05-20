@@ -65,7 +65,15 @@ function unwrapApiResponse<T>(payload: T | ApiResponse<T>) {
 function shouldFallback(error: unknown) {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
-  return status === 404 || status === 405;
+  const message =
+    error instanceof Error ? error.message.trim().toLowerCase() : "";
+
+  return (
+    status === 404 ||
+    status === 405 ||
+    message.includes("not found") ||
+    message.includes("method not allowed")
+  );
 }
 
 function appendString(formData: FormData, key: string, value?: string | null) {
@@ -194,9 +202,19 @@ export async function getMerchantOrders() {
 }
 
 export async function getMerchantOrderDetail(orderId: string) {
-  const res = await api.get<ApiResponse<unknown> | unknown>(
-    `/orders/${orderId}/merchant`,
-  );
+  let res;
+
+  try {
+    res = await api.get<ApiResponse<unknown> | unknown>(
+      `/orders/${orderId}/merchant`,
+    );
+  } catch (error) {
+    if (!shouldFallback(error)) {
+      throw error;
+    }
+
+    res = await api.get<ApiResponse<unknown> | unknown>(`/orders/${orderId}`);
+  }
 
   const payload = (res.data ?? res) as unknown;
   if (payload && typeof payload === "object" && "data" in payload) {

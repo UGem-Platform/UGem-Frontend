@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { getCurrentUser, type UserRole } from "@/features/auth";
 
 interface ProtectedRouteProps {
@@ -11,10 +11,18 @@ export function ProtectedRoute({
   allowedRoles,
 }: ProtectedRouteProps) {
   const user = getCurrentUser();
+  const location = useLocation();
 
   // Not logged in
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const returnUrl = `${location.pathname}${location.search}${location.hash}`;
+
+    return (
+      <Navigate
+        to={`/login?returnUrl=${encodeURIComponent(returnUrl)}`}
+        replace
+      />
+    );
   }
 
   // Check role if specified

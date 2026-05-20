@@ -59,7 +59,13 @@ api.interceptors.response.use(
       });
 
       if (error.config?.skipAuthRedirect) {
-        return Promise.reject(new Error(message));
+        const normalizedError = new Error(message);
+        Object.assign(normalizedError, {
+          response: error.response,
+          config: error.config,
+        });
+
+        return Promise.reject(normalizedError);
       }
 
       if (typeof globalThis !== "undefined" && "location" in globalThis) {
@@ -107,6 +113,12 @@ api.interceptors.response.use(
       response: error.response?.data,
       headers: error.config?.headers,
     });
-    return Promise.reject(new Error(message));
+    const normalizedError = new Error(message);
+    Object.assign(normalizedError, {
+      response: error.response,
+      config: error.config,
+    });
+
+    return Promise.reject(normalizedError);
   },
 );
