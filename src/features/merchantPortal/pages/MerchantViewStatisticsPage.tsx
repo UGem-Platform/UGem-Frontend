@@ -162,8 +162,8 @@ export function MerchantViewStatisticsPage() {
                 />
                 <StatCard
                   icon={<TrendingUp size={20} />}
-                  label="Tỉ lệ US"
-                  value={`${formatNumber(usRate)}%`}
+                  label="Merchant nhận"
+                  value={formatCurrency(stats?.merchantReceive)}
                   tone="violet"
                 />
               </section>
@@ -210,12 +210,32 @@ export function MerchantViewStatisticsPage() {
                   </h2>
                   <div className="mt-5 space-y-3">
                     <MetricRow
+                      label="Tổng doanh thu"
+                      value={formatCurrency(stats?.totalRevenue)}
+                    />
+                    <MetricRow
+                      label="Merchant nhận"
+                      value={formatCurrency(stats?.merchantReceive)}
+                    />
+                    <MetricRow
+                      label="Affiliate/reviewer fee"
+                      value={formatCurrency(stats?.reviewerFee)}
+                    />
+                    <MetricRow
+                      label="Phí nền tảng"
+                      value={formatCurrency(stats?.platformFee)}
+                    />
+                    <MetricRow
                       label="Giá trị đơn trung bình"
                       value={formatCurrency(stats?.avgOrderValue)}
                     />
                     <MetricRow
-                      label="Phí nền tảng"
+                      label="Tỷ lệ phí nền tảng"
                       value={`${formatNumber(stats?.platformFeePercent)}%`}
+                    />
+                    <MetricRow
+                      label="Tỷ lệ US"
+                      value={`${formatNumber(usRate)}%`}
                     />
                     <MetricRow
                       label="Merchant ID"

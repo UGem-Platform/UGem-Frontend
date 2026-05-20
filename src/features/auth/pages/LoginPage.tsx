@@ -199,9 +199,9 @@ export function LoginPage() {
       </section>
 
       {/* right */}
-      <section className="relative flex items-center justify-center overflow-hidden px-4 py-4">
+      <section className="relative flex items-center justify-center overflow-hidden px-4 py-3">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-4xl border border-white/50 bg-white/60 p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
+          <div className="relative overflow-hidden rounded-4xl border border-white/50 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_8px_40px_0_rgba(31,38,135,0.12)]">
             {/* glow */}
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/30 blur-3xl" />
 
@@ -210,19 +210,19 @@ export function LoginPage() {
             <div className="relative">
               <Logo />
 
-              <div className="mt-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm ring-1 ring-cyan-500/10">
+              <div className="mt-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-700 shadow-sm ring-1 ring-cyan-500/10">
                   UGem Platform
                 </div>
 
-                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
+                <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 leading-[1.12]">
                   Khám phá quán ăn đang bị{" "}
                   <span className="bg-linear-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                     FLOP
                   </span>
                 </h1>
 
-                <p className="mt-2.5 text-sm font-medium leading-relaxed text-slate-500">
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
                   Những quán ngon địa phương chưa nhiều người biết đến. Tìm
                   hidden gems, mở merchant và quản lý hồ sơ trong một nền tảng
                   hiện đại.
@@ -230,7 +230,7 @@ export function LoginPage() {
               </div>
 
               {/* google */}
-              <div className="mt-5 space-y-2">
+              <div className="mt-4 space-y-2">
                 {GOOGLE_CLIENT_ID ? (
                   <>
                     <div
@@ -240,10 +240,12 @@ export function LoginPage() {
                     >
                       <div ref={googleButtonRef} />
                     </div>
-                    <p className="rounded-2xl border border-amber-200/70 bg-amber-50/80 px-3.5 py-2 text-center text-[11px] font-bold leading-5 text-amber-800 shadow-sm">
-                      Google chỉ dùng cho tài khoản Customer. Customer,
-                      Merchant, Staff và Admin đều có thể đăng nhập bằng email
-                      và mật khẩu.
+                    <p className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-3 py-1.5 text-center text-[11px] font-bold leading-5 text-amber-800 shadow-sm">
+                      Google chỉ dùng cho tài khoản Customer.
+                    </p>
+                    <p className="rounded-2xl border border-cyan-100 bg-cyan-50/70 px-3 py-1.5 text-center text-[11px] font-bold leading-5 text-cyan-900 shadow-sm">
+                      Email và mật khẩu dùng cho Customer, Reviewer, Merchant,
+                      Staff và Admin.
                     </p>
                   </>
                 ) : (
@@ -258,7 +260,7 @@ export function LoginPage() {
               </div>
 
               {/* divider */}
-              <div className="my-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+              <div className="my-2.5 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
                 <div className="h-px flex-1 bg-slate-200" />
                 Hoặc
                 <div className="h-px flex-1 bg-slate-200" />
@@ -267,13 +269,13 @@ export function LoginPage() {
               <LoginForm />
 
               {/* footer links */}
-              <div className="mt-3 space-y-1 text-center">
-                <Link
+              <div className="mt-2.5 space-y-1 text-center">
+                {/* <Link
                   to="/forgot-password"
                   className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline"
                 >
                   Quên mật khẩu?
-                </Link>
+                </Link> */}
 
                 <div>
                   <Link
@@ -288,7 +290,7 @@ export function LoginPage() {
             </div>
           </div>
 
-          <p className="mt-3 text-center text-[10px] font-medium leading-4 text-slate-500">
+          <p className="mt-2 text-center text-[10px] font-medium leading-4 text-slate-500">
             Bằng cách tiếp tục, bạn đồng ý với điều khoản sử dụng và chính sách
             quyền riêng tư của UGem.
           </p>

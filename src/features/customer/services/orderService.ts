@@ -36,6 +36,7 @@ export async function createOrder(payload: {
   orderType?: CustomerOrderType;
   paymentMethod?: "Cash" | "BankTransfer" | "COD";
   finalPrice: number;
+  affiliateLinkCode?: string;
   foods: CreateOrderItem[];
   affiliateLinkCode?: string;
 }) {

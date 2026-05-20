@@ -15,6 +15,29 @@ export type AffiliateLink = {
   isActive: boolean;
 };
 
+export type ReviewerAffiliateEarningTransaction = {
+  transactionId: string;
+  orderId: string;
+  amount: number;
+  type: string;
+  earningsAfter: number;
+  createdAtUtc: string;
+  reason?: string | null;
+};
+
+export type ReviewerAffiliateEarnings = {
+  reviewerId: string;
+  currentEarnings: number;
+  totalCommission: number;
+  totalReversal: number;
+  netEarnings: number;
+  commissionRate: number;
+  affiliateLinkCount: number;
+  totalClicks: number;
+  commissionOrderCount: number;
+  recentTransactions: ReviewerAffiliateEarningTransaction[];
+};
+
 function unwrapData<T>(payload: ApiResponse<T> | T | null | undefined) {
   if (
     payload &&
@@ -43,6 +66,14 @@ export async function createAffiliateLink(
   return unwrapData(data);
 }
 
+export async function getReviewerAffiliateEarnings() {
+  const { data } = await api.get<
+    ApiResponse<ReviewerAffiliateEarnings> | ReviewerAffiliateEarnings
+  >("/affiliate-links/earnings");
+
+  return unwrapData(data);
+}
+
 export function getAffiliateTrackUrl(linkCode: string) {
   const baseUrl =
     API_V1_BASE_URL.startsWith("http") || typeof window === "undefined"
@@ -52,4 +83,10 @@ export function getAffiliateTrackUrl(linkCode: string) {
   return `${baseUrl}/affiliate-links/${encodeURIComponent(
     linkCode,
   )}/track`;
+}
+
+export function getAffiliateShareUrl(linkCode: string) {
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+
+  return `${origin}/r/${encodeURIComponent(linkCode)}`;
 }
