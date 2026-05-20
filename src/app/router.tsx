@@ -113,6 +113,10 @@ const routers = createBrowserRouter([
         ),
       },
       {
+        path: "/merchant/:id",
+        element: <MerchantDetailPage />,
+      },
+      {
         path: "/customer/wishlist",
         element: (
           <ProtectedRoute allowedRoles={["Customer"]}>

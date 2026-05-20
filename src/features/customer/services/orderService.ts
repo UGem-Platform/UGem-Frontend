@@ -38,6 +38,7 @@ export async function createOrder(payload: {
   finalPrice: number;
   affiliateLinkCode?: string;
   foods: CreateOrderItem[];
+  affiliateLinkCode?: string;
 }) {
   const orderType = payload.orderType ?? "Online";
 
