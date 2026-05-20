@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
+  Mail,
   Minus,
   Phone,
   Plus,
@@ -15,6 +16,7 @@ import { notify } from "@/shared/lib/notify";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
 import { MerchantSidebar } from "@/shared/layouts/Merchants/MerchantSidebar";
 import {
+  searchCustomersByEmail,
   searchCustomersByPhoneNumber,
   type CustomerSearchResult,
 } from "@/shared/services/customerService";
@@ -36,18 +38,21 @@ type OfflineOrderItem = {
   toppingIds: string[];
 };
 
+type CustomerSearchMode = "phone" | "email";
+
 function normalizePhone(value?: string | null) {
   return (value ?? "").replace(/\D/g, "");
 }
 
 function formatCurrency(value?: number | null) {
-  return `${Number(value ?? 0).toLocaleString("vi-VN")}Ã„â€˜`;
+  return `${Number(value ?? 0).toLocaleString("vi-VN")}đ`;
 }
 
 export default function MerchantCreateOrderPage() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [items, setItems] = useState<OfflineOrderItem[]>([]);
-  const [customerPhone, setCustomerPhone] = useState("");
+  const [searchMode, setSearchMode] = useState<CustomerSearchMode>("phone");
+  const [customerKeyword, setCustomerKeyword] = useState("");
   const [customerLookupStatus, setCustomerLookupStatus] = useState<
     "idle" | "found" | "not-found"
   >("idle");
@@ -75,7 +80,7 @@ export default function MerchantCreateOrderPage() {
         await Promise.all(menu.map((food) => loadToppingsForFood(food.id)));
       } catch (error) {
         console.error(error);
-        notify.error("KhÃƒÂ´ng tÃ¡ÂºÂ£i Ã„â€˜Ã†Â°Ã¡Â»Â£c menu Ã„â€˜Ã¡Â»Æ’ tÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n tÃ¡ÂºÂ¡i quÃƒÂ¡n.");
+        notify.error("Không tải được menu để tạo đơn tại quán.");
       } finally {
         if (active) setLoading(false);
       }
@@ -102,6 +107,7 @@ export default function MerchantCreateOrderPage() {
   }, [foods, items, toppingsByFoodId]);
 
   const canOrder = customerLookupStatus === "found" && Boolean(selectedCustomer);
+  const isPhoneMode = searchMode === "phone";
 
   async function loadToppingsForFood(foodId: string) {
     if (!foodId || toppingsByFoodId[foodId]) return;
@@ -132,13 +138,23 @@ export default function MerchantCreateOrderPage() {
     setCustomerLookupStatus("idle");
   }
 
+  function changeSearchMode(mode: CustomerSearchMode) {
+    setSearchMode(mode);
+    setCustomerKeyword("");
+    resetCustomerLookup();
+  }
+
   async function handleSearchCustomer() {
-    const phone = customerPhone.trim();
+    const keyword = customerKeyword.trim();
 
     resetCreatedQr();
 
-    if (!phone) {
-      notify.error("Vui lÃ²ng nháº­p sá»‘ Ä‘iá»‡n thoáº¡i cá»§a khÃ¡ch.");
+    if (!keyword) {
+      notify.error(
+        isPhoneMode
+          ? "Vui lòng nhập số điện thoại của khách."
+          : "Vui lòng nhập Gmail của khách.",
+      );
       setSelectedCustomer(null);
       setCustomerLookupStatus("idle");
       return;
@@ -147,29 +163,41 @@ export default function MerchantCreateOrderPage() {
     setSearchingCustomer(true);
 
     try {
-      const customers = await searchCustomersByPhoneNumber(phone, 10);
+      const customers = isPhoneMode
+        ? await searchCustomersByPhoneNumber(keyword, 10)
+        : await searchCustomersByEmail(keyword, 10);
+
       const exactMatch =
-        customers.find(
-          (customer) =>
-            normalizePhone(customer.phoneNumber) === normalizePhone(phone),
+        customers.find((customer) =>
+          isPhoneMode
+            ? normalizePhone(customer.phoneNumber) === normalizePhone(keyword)
+            : customer.email.toLowerCase() === keyword.toLowerCase(),
         ) ?? null;
 
       if (!exactMatch) {
         setItems([]);
         setSelectedCustomer(null);
         setCustomerLookupStatus("not-found");
-        notify.error("KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n khÃ¡ch vá»›i sá»‘ Ä‘iá»‡n thoáº¡i nÃ y.");
+        notify.error(
+          isPhoneMode
+            ? "Không tìm thấy tài khoản khách với số điện thoại này."
+            : "Không tìm thấy tài khoản khách với Gmail này.",
+        );
         return;
       }
 
       setSelectedCustomer(exactMatch);
       setCustomerLookupStatus("found");
-      notify.success("ÄÃ£ xÃ¡c minh tÃ i khoáº£n khÃ¡ch.");
+      notify.success("Đã xác minh tài khoản khách.");
     } catch (error) {
       console.error(error);
       setSelectedCustomer(null);
       setCustomerLookupStatus("idle");
-      notify.error("KhÃ´ng thá»ƒ tÃ¬m khÃ¡ch theo sá»‘ Ä‘iá»‡n thoáº¡i. Vui lÃ²ng thá»­ láº¡i.");
+      notify.error(
+        isPhoneMode
+          ? "Không thể tìm khách theo số điện thoại. Vui lòng thử lại."
+          : "Không thể tìm khách theo Gmail. Vui lòng thử lại.",
+      );
     } finally {
       setSearchingCustomer(false);
     }
@@ -181,7 +209,7 @@ export default function MerchantCreateOrderPage() {
 
   function toggleFood(food: Food, checked: boolean) {
     if (!canOrder) {
-      notify.error("Vui lÃƒÂ²ng xÃƒÂ¡c minh số điện thoại khÃƒÂ¡ch trÃ†Â°Ã¡Â»â€ºc khi chÃ¡Â»Ân mÃƒÂ³n.");
+      notify.error("Vui lòng xác minh khách trước khi chọn món.");
       return;
     }
 
@@ -240,12 +268,12 @@ export default function MerchantCreateOrderPage() {
     const validItems = items.filter((item) => item.foodId && item.quantity > 0);
 
     if (!selectedCustomer) {
-      notify.error("Vui lÃƒÂ²ng xÃƒÂ¡c minh số điện thoại khÃƒÂ¡ch trÃ†Â°Ã¡Â»â€ºc khi tÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n.");
+      notify.error("Vui lòng xác minh khách trước khi tạo đơn.");
       return;
     }
 
     if (validItems.length === 0) {
-      notify.error("Vui lÃƒÂ²ng chÃ¡Â»Ân ÃƒÂ­t nhÃ¡ÂºÂ¥t mÃ¡Â»â„¢t mÃƒÂ³n.");
+      notify.error("Vui lòng chọn ít nhất một món.");
       return;
     }
 
@@ -264,7 +292,7 @@ export default function MerchantCreateOrderPage() {
       const createdOrder = await createMerchantOrder({
         customerId: selectedCustomer.customerId,
         name: selectedCustomer.fullName || selectedCustomer.email,
-        deliveryAddress: "TÃ¡ÂºÂ¡i quÃƒÂ¡n",
+        deliveryAddress: "Tại quán",
         orderType: "Offline",
         paymentMethod: "Cash",
         notes: "Offline check-in",
@@ -273,12 +301,10 @@ export default function MerchantCreateOrderPage() {
 
       const orderId = createdOrder.data?.orderId;
       setCreatedOrderId(orderId ?? null);
-
-
-      notify.success("Ã„ÂÃƒÂ£ tÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n tÃ¡ÂºÂ¡i quÃƒÂ¡n.");
+      notify.success("Đã tạo đơn tại quán.");
     } catch (error) {
       console.error(error);
-      notify.error("TÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n tÃ¡ÂºÂ¡i quÃƒÂ¡n thÃ¡ÂºÂ¥t bÃ¡ÂºÂ¡i.");
+      notify.error("Tạo đơn tại quán thất bại.");
     } finally {
       creatingOrderRef.current = false;
       setLoading(false);
@@ -299,27 +325,58 @@ export default function MerchantCreateOrderPage() {
                 Offline Order
               </div>
               <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900">
-                TÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n tÃ¡ÂºÂ¡i quÃƒÂ¡n
+                Tạo đơn tại quán
               </h1>
               <p className="mt-2 text-sm font-medium text-slate-500">
-                ChÃ¡Â»Ân mÃƒÂ³n chÃƒÂ­nh trong menu, tÃƒÂ­ch topping theo tÃ¡Â»Â«ng mÃƒÂ³n vÃƒÂ  hÃ¡Â»â€¡ thÃ¡Â»â€˜ng
-                tÃ¡Â»Â± tÃƒÂ­nh tÃ¡Â»â€¢ng tiÃ¡Â»Ân.
+                Chọn món chính trong menu, tích topping theo từng món và hệ
+                thống tự tính tổng tiền.
               </p>
             </div>
 
             <div className="rounded-[32px] border border-white/60 bg-white/75 p-6 shadow-2xl shadow-slate-950/5 backdrop-blur-2xl">
               <div className="space-y-3 rounded-2xl border border-cyan-100 bg-cyan-50/60 p-4">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => changeSearchMode("phone")}
+                    className={`inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-black transition ${
+                      isPhoneMode
+                        ? "bg-cyan-700 text-white shadow-sm"
+                        : "bg-white text-slate-600 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    Số điện thoại
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeSearchMode("email")}
+                    className={`inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-black transition ${
+                      !isPhoneMode
+                        ? "bg-cyan-700 text-white shadow-sm"
+                        : "bg-white text-slate-600 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Gmail
+                  </button>
+                </div>
+
                 <label className="block space-y-1.5">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                    số điện thoại khÃƒÂ¡ch hÃƒÂ ng
+                    {isPhoneMode ? "Số điện thoại khách hàng" : "Gmail khách hàng"}
                   </span>
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <div className="relative min-w-0 flex-1">
-                      <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      {isPhoneMode ? (
+                        <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      ) : (
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      )}
                       <input
-                        value={customerPhone}
+                        value={customerKeyword}
                         onChange={(event) => {
-                          setCustomerPhone(event.target.value);
+                          setCustomerKeyword(event.target.value);
                           resetCustomerLookup();
                         }}
                         onKeyDown={(event) => {
@@ -328,8 +385,8 @@ export default function MerchantCreateOrderPage() {
                             void handleSearchCustomer();
                           }
                         }}
-                        placeholder="0912345678"
-                        inputMode="tel"
+                        placeholder={isPhoneMode ? "0912345678" : "customer@gmail.com"}
+                        inputMode={isPhoneMode ? "tel" : "email"}
                         className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
                       />
                     </div>
@@ -340,7 +397,7 @@ export default function MerchantCreateOrderPage() {
                       className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-cyan-700 px-4 text-sm font-black text-white shadow-sm transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <Search className="h-4 w-4" />
-                      {searchingCustomer ? "Ã„Âang tÃƒÂ¬m..." : "KiÃ¡Â»Æ’m tra"}
+                      {searchingCustomer ? "Đang tìm..." : "Kiểm tra"}
                     </button>
                   </div>
                 </label>
@@ -368,12 +425,12 @@ export default function MerchantCreateOrderPage() {
                     </div>
                     <div>
                       <p className="text-sm font-black">
-                        KhÃƒÂ¡ch chÃ†Â°a cÃƒÂ³ tÃƒÂ i khoÃ¡ÂºÂ£n UGem
+                        Khách chưa có tài khoản UGem
                       </p>
                       <p className="mt-1 text-xs font-semibold leading-5 text-amber-800">
-                        HÃƒÂ£y giÃ¡Â»â€ºi thiÃ¡Â»â€¡u khÃƒÂ¡ch Ã„â€˜Ã„Æ’ng kÃƒÂ½ hoÃ¡ÂºÂ·c Ã„â€˜Ã„Æ’ng nhÃ¡ÂºÂ­p Ã¡Â»Â©ng dÃ¡Â»Â¥ng
-                        UGem bÃ¡ÂºÂ±ng số điện thoại nÃƒÂ y Ã„â€˜Ã¡Â»Æ’ cÃƒÂ³ thÃ¡Â»Æ’ Ã„â€˜Ã¡ÂºÂ·t mÃƒÂ³n tÃ¡ÂºÂ¡i quÃƒÂ¡n vÃƒÂ  nhÃ¡ÂºÂ­n
-                        quyÃ¡Â»Ân lÃ¡Â»Â£i check-in.
+                        Hãy giới thiệu khách đăng ký hoặc đăng nhập ứng dụng
+                        UGem bằng số điện thoại/Gmail để có thể đặt món tại
+                        quán và nhận quyền lợi check-in.
                       </p>
                     </div>
                   </div>
@@ -382,24 +439,24 @@ export default function MerchantCreateOrderPage() {
 
               <label className="mt-5 block space-y-1.5">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                  TÃƒÂªn khÃƒÂ¡ch
+                  Tên khách
                 </span>
                 <input
                   value={
                     selectedCustomer?.fullName ??
                     (customerLookupStatus === "not-found"
-                      ? "KhÃƒÂ¡ch chÃ†Â°a cÃƒÂ³ tÃƒÂ i khoÃ¡ÂºÂ£n UGem"
+                      ? "Khách chưa có tài khoản UGem"
                       : "")
                   }
                   readOnly
-                  placeholder="XÃƒÂ¡c minh số điện thoại Ã„â€˜Ã¡Â»Æ’ lÃ¡ÂºÂ¥y tÃƒÂªn khÃƒÂ¡ch"
+                  placeholder="Xác minh khách để lấy tên khách"
                   className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600 outline-none"
                 />
               </label>
 
               {loading && foods.length === 0 ? (
                 <p className="mt-5 text-sm font-semibold text-slate-500">
-                  Ã„Âang tÃ¡ÂºÂ£i menu...
+                  Đang tải menu...
                 </p>
               ) : null}
 
@@ -494,7 +551,7 @@ export default function MerchantCreateOrderPage() {
                                 }
                                 disabled={!selected}
                                 className="grid h-10 w-10 place-items-center text-slate-600 transition hover:bg-slate-50 disabled:opacity-40"
-                                aria-label={`GiÃ¡ÂºÂ£m ${food.name}`}
+                                aria-label={`Giảm ${food.name}`}
                               >
                                 <Minus className="h-4 w-4" />
                               </button>
@@ -511,7 +568,7 @@ export default function MerchantCreateOrderPage() {
                                 disabled={!selected}
                                 className="h-10 w-14 border-x border-slate-200 text-center text-sm font-black text-slate-950 outline-none disabled:bg-slate-50 disabled:text-slate-400"
                                 inputMode="numeric"
-                                aria-label={`SÃ¡Â»â€˜ lÃ†Â°Ã¡Â»Â£ng ${food.name}`}
+                                aria-label={`Số lượng ${food.name}`}
                               />
                               <button
                                 type="button"
@@ -525,7 +582,7 @@ export default function MerchantCreateOrderPage() {
                                 }
                                 disabled={!selected}
                                 className="grid h-10 w-10 place-items-center text-slate-600 transition hover:bg-slate-50 disabled:opacity-40"
-                                aria-label={`TÃ„Æ’ng ${food.name}`}
+                                aria-label={`Tăng ${food.name}`}
                               >
                                 <Plus className="h-4 w-4" />
                               </button>
@@ -578,7 +635,7 @@ export default function MerchantCreateOrderPage() {
                           updateFoodItem(food.id, { notes: event.target.value })
                         }
                         disabled={!selected}
-                        placeholder="Ghi chÃƒÂº mÃƒÂ³n nÃ¡ÂºÂ¿u cÃƒÂ³"
+                        placeholder="Ghi chú món nếu có"
                         className="mt-3 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15 disabled:bg-slate-50 disabled:text-slate-400"
                       />
                     </article>
@@ -588,16 +645,16 @@ export default function MerchantCreateOrderPage() {
 
               {foods.length === 0 && !loading ? (
                 <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm font-bold text-slate-500">
-                  ChÃ†Â°a cÃƒÂ³ mÃƒÂ³n nÃƒÂ o trong menu.
+                  Chưa có món nào trong menu.
                 </div>
               ) : null}
 
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
                 <div className="text-sm font-bold text-cyan-800">
-                  Ã„ÂÃƒÂ£ chÃ¡Â»Ân {items.length} mÃƒÂ³n
+                  Đã chọn {items.length} món
                 </div>
                 <div className="text-2xl font-black text-cyan-800">
-                  TÃ¡Â»â€¢ng: {formatCurrency(total)}
+                  Tổng: {formatCurrency(total)}
                 </div>
               </div>
 
@@ -608,7 +665,7 @@ export default function MerchantCreateOrderPage() {
                     Order {createdOrderId}
                   </div>
                   <p className="text-sm font-semibold text-emerald-800">
-                    Ã„ÂÃ†Â¡n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c tÃ¡ÂºÂ¡o. VÃƒÂ o trang Ã„ÂÃ†Â¡n hÃƒÂ ng Ã„â€˜Ã¡Â»Æ’ xÃƒÂ¡c nhÃ¡ÂºÂ­n vÃƒÂ  tÃ¡ÂºÂ¡o QR.
+                    Đơn đã được tạo. Vào trang Đơn hàng để xác nhận và tạo QR.
                   </p>
                 </div>
               ) : null}
@@ -627,7 +684,7 @@ export default function MerchantCreateOrderPage() {
                   className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <ReceiptText className="h-4 w-4" />
-                  {createdOrderId ? "Ã„ÂÃƒÂ£ tÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n" : "TÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n"}
+                  {createdOrderId ? "Đã tạo đơn" : "Tạo đơn"}
                 </button>
               </div>
             </div>
