@@ -5,6 +5,8 @@ export type LoginRequest = {
 
 export type LoginResponse = {
   accessToken: string;
+  refreshToken?: string;
+  refreshTokenExpiresAtUtc?: string;
 };
 
 export type RegisterRole = "Customer" | "Merchant";

@@ -75,7 +75,8 @@ function resolveActionTo(category: NotificationCategory, text: string) {
   if (category === "reviewer-application") {
     if (role === "Admin") return "/admin/reviewer-applications";
     if (role === "Staff") return "/staff/reviewer-applications";
-    return "/reviews";
+    if (role === "Reviewer") return "/affiliate-links";
+    return "/customer/profile";
   }
 
   if (category === "review") return "/reviews";

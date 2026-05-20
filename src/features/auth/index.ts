@@ -10,6 +10,7 @@ export { refreshCurrentSession } from "./refreshSession";
 export {
   saveAuthToken,
   getAccessToken,
+  getRefreshToken,
   getCurrentUser,
   updateStoredUser,
   clearAuth,

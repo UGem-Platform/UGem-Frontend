@@ -111,7 +111,10 @@ export function LoginPage() {
               throw new Error("Không nhận được token từ server.");
             }
 
-            const user = saveAuthToken(token);
+            const user = saveAuthToken(token, {
+              refreshToken: data.refreshToken,
+              refreshTokenExpiresAtUtc: data.refreshTokenExpiresAtUtc,
+            });
 
             if (data.isNewUser && user.Role === "Customer") {
               setShowGooglePurposeDialog(true);

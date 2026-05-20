@@ -35,7 +35,10 @@ export function useLogin() {
         throw new Error("Missing access token");
       }
 
-      const user = saveAuthToken(token);
+      const user = saveAuthToken(token, {
+        refreshToken: data.refreshToken,
+        refreshTokenExpiresAtUtc: data.refreshTokenExpiresAtUtc,
+      });
       return { data, user };
     },
 
