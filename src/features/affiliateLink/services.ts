@@ -44,7 +44,12 @@ export async function createAffiliateLink(
 }
 
 export function getAffiliateTrackUrl(linkCode: string) {
-  return `${API_V1_BASE_URL}/affiliate-links/${encodeURIComponent(
+  const baseUrl =
+    API_V1_BASE_URL.startsWith("http") || typeof window === "undefined"
+      ? API_V1_BASE_URL
+      : `${window.location.origin}${API_V1_BASE_URL}`;
+
+  return `${baseUrl}/affiliate-links/${encodeURIComponent(
     linkCode,
   )}/track`;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   ImagePlus,
@@ -44,7 +44,6 @@ function getErrorMessage(error: unknown) {
 }
 
 export default function CustomerProfilePage() {
-  const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -110,8 +109,11 @@ export default function CustomerProfilePage() {
       const refreshed = await refreshCurrentSession();
 
       if (refreshed.user.Role === "Reviewer") {
+        setProfile((current) => ({
+          ...(current ?? {}),
+          role: "Reviewer",
+        }));
         notify.success("Tài khoản đã được cập nhật thành Reviewer.");
-        navigate("/affiliate-links", { replace: true });
       }
     } catch (error) {
       console.error(error);

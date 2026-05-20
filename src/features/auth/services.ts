@@ -36,9 +36,17 @@ export async function googleLoginApi(payload: GoogleLoginRequest) {
   return data.data;
 }
 
-export async function refreshTokenApi() {
-  const { data } =
-    await api.post<ApiResponse<LoginResponse>>("/auth/refresh-token");
+export async function refreshTokenApi(payload: {
+  accessToken: string;
+  refreshToken: string;
+}) {
+  const { data } = await api.post<ApiResponse<LoginResponse>>(
+    "/auth/refresh-token",
+    payload,
+    {
+      skipAuthRedirect: true,
+    },
+  );
 
   return data.data;
 }
