@@ -54,7 +54,52 @@ const DESCRIPTION_META_LABELS = [
   "Khoảng giá trung bình",
 ];
 
+const AFFILIATE_REF_STORAGE_KEY = "ugem_affiliate_ref";
+const AFFILIATE_REF_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 const viewedMerchantIds = new Set<string>();
+
+type StoredAffiliateRef = {
+  code: string;
+  expiresAt: number;
+};
+
+function readStoredAffiliateRef() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawValue = window.localStorage.getItem(AFFILIATE_REF_STORAGE_KEY);
+    if (!rawValue) return null;
+
+    const parsed = JSON.parse(rawValue) as StoredAffiliateRef;
+    if (!parsed?.code || !parsed?.expiresAt || parsed.expiresAt <= Date.now()) {
+      window.localStorage.removeItem(AFFILIATE_REF_STORAGE_KEY);
+      return null;
+    }
+
+    return parsed.code;
+  } catch {
+    window.localStorage.removeItem(AFFILIATE_REF_STORAGE_KEY);
+    return null;
+  }
+}
+
+function storeAffiliateRef(code: string) {
+  if (typeof window === "undefined") return;
+
+  const trimmedCode = code.trim();
+  if (!trimmedCode) return;
+
+  const payload: StoredAffiliateRef = {
+    code: trimmedCode,
+    expiresAt: Date.now() + AFFILIATE_REF_TTL_MS,
+  };
+
+  window.localStorage.setItem(
+    AFFILIATE_REF_STORAGE_KEY,
+    JSON.stringify(payload),
+  );
+}
 
 async function trackMerchantViewOnce(merchantId: string) {
   if (viewedMerchantIds.has(merchantId)) return;
@@ -173,6 +218,7 @@ export default function MerchantDetailPage() {
 
   const navigate = useNavigate();
   const isOfflineOrder = searchParams.get("mode") === "offline";
+  const referralCode = searchParams.get("ref") ?? "";
 
   const reviewSectionRef = useRef<HTMLElement | null>(null);
 
@@ -240,11 +286,21 @@ export default function MerchantDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    if (!referralCode) return;
+
+    storeAffiliateRef(referralCode);
+  }, [referralCode]);
+
+  useEffect(() => {
     if (!isOfflineOrder) return;
 
-    setCart([]);
-    setCartOpen(false);
-    closeAddFoodModal();
+    const timeoutId = window.setTimeout(() => {
+      setCart([]);
+      setCartOpen(false);
+      closeAddFoodModal();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isOfflineOrder]);
 
   async function handleCreateOrder() {
@@ -260,6 +316,8 @@ export default function MerchantDetailPage() {
     setOrdering(true);
 
     try {
+      const storedAffiliateRef = readStoredAffiliateRef();
+
       await createOrder({
         name: `Order from ${merchant.name || "Unnamed merchant"}`,
         deliveryAddress: merchant.address || "No address",
@@ -267,6 +325,7 @@ export default function MerchantDetailPage() {
         paymentMethod: onlinePaymentMethod,
         notes: "",
         finalPrice: total,
+        affiliateLinkCode: storedAffiliateRef ?? undefined,
         foods: cart.map((item) => ({
           foodId: item.food.id,
           quantity: item.quantity,

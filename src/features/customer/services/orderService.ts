@@ -37,6 +37,7 @@ export async function createOrder(payload: {
   paymentMethod?: "Cash" | "BankTransfer" | "COD";
   finalPrice: number;
   foods: CreateOrderItem[];
+  affiliateLinkCode?: string;
 }) {
   const orderType = payload.orderType ?? "Online";
 
@@ -48,6 +49,7 @@ export async function createOrder(payload: {
     deliveryAddress:
       orderType === "Online" ? payload.deliveryAddress : "Tại quán",
     notes: payload.notes || "",
+    affiliateLinkCode: payload.affiliateLinkCode,
     foods: payload.foods.map((f) => ({
       foodId: f.foodId,
       quantity: f.quantity,
