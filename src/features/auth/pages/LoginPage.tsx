@@ -270,12 +270,12 @@ export function LoginPage() {
 
               {/* footer links */}
               <div className="mt-2.5 space-y-1 text-center">
-                {/* <Link
+                <Link
                   to="/forgot-password"
                   className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 hover:underline"
                 >
                   Quên mật khẩu?
-                </Link> */}
+                </Link>
 
                 <div>
                   <Link

@@ -142,10 +142,7 @@ function getErrorMessage(error: unknown) {
 }
 
 function getInitials(name?: string | null) {
-  const parts = (name || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
 
   if (parts.length === 0) return "MG";
 
@@ -193,6 +190,7 @@ export default function AdminDashboardPage() {
     totalRevenue > 0 ? (totalPlatformFee / totalRevenue) * 100 : 0;
   const reviewerRate =
     totalRevenue > 0 ? (totalReviewerFee / totalRevenue) * 100 : 0;
+  const formatFeeMixRate = (value: number) => `${value.toFixed(3)}%`;
   const topMerchant = merchantRevenues.find(
     (merchant) => toNumber(merchant.totalRevenue) > 0,
   );
@@ -221,7 +219,10 @@ export default function AdminDashboardPage() {
   }, [merchantRevenueQuery.error, merchantRevenueQuery.isError]);
 
   const refreshAll = () => {
-    void Promise.all([dashboardQuery.refetch(), merchantRevenueQuery.refetch()]);
+    void Promise.all([
+      dashboardQuery.refetch(),
+      merchantRevenueQuery.refetch(),
+    ]);
   };
 
   const clearSearch = () => {
@@ -237,7 +238,7 @@ export default function AdminDashboardPage() {
           <AdminSidebar />
 
           <main className="min-w-0 px-4 py-4 sm:px-5 lg:px-7 lg:py-6">
-            <div className="mx-auto max-w-[1680px] space-y-5">
+            <div className="mx-auto max-w-420 space-y-5">
               <header className="-mx-4 border-b border-white/70 bg-[#f5f7fb]/88 px-4 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -304,7 +305,7 @@ export default function AdminDashboardPage() {
                   <InsightCard
                     icon={Activity}
                     label="Fee mix"
-                    value={`${platformRate.toFixed(1)}% / ${reviewerRate.toFixed(1)}%`}
+                    value={`${formatFeeMixRate(platformRate)} / ${formatFeeMixRate(reviewerRate)}`}
                     description="Platform fee / reviewer fee trên tổng doanh thu"
                     tone="amber"
                   />
@@ -366,9 +367,7 @@ export default function AdminDashboardPage() {
                   setSearchInput={setSearchInput}
                 />
 
-                <OperationsPanel
-                  dashboard={dashboard}
-                />
+                <OperationsPanel dashboard={dashboard} />
               </section>
             </div>
           </main>
@@ -484,7 +483,7 @@ function RevenueHeroCard({
           <p className="mt-5 text-sm font-semibold text-cyan-100">
             Tổng doanh thu completed
           </p>
-          <p className="mt-2 break-words text-5xl font-black leading-tight text-white">
+          <p className="mt-2 wrap-break-word text-5xl font-black leading-tight text-white">
             {formatCurrency(totalRevenue)}
           </p>
           <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-slate-300">
@@ -610,7 +609,7 @@ function KpiCard({
       </div>
 
       <p className="mt-4 text-sm font-bold text-slate-500">{title}</p>
-      <p className="mt-2 break-words text-2xl font-black text-slate-950">
+      <p className="mt-2 wrap-break-word text-2xl font-black text-slate-950">
         {value}
       </p>
       <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
@@ -803,11 +802,7 @@ function MerchantRevenuePanel({
   );
 }
 
-function MerchantRevenueRow({
-  merchant,
-}: {
-  merchant: AdminMerchantRevenue;
-}) {
+function MerchantRevenueRow({ merchant }: { merchant: AdminMerchantRevenue }) {
   return (
     <TableRow className="border-slate-100 hover:bg-cyan-50/55">
       <TableCell className="min-w-72">
@@ -882,11 +877,7 @@ function GrowthBadge({ value }: { value?: number | null }) {
   );
 }
 
-function OperationsPanel({
-  dashboard,
-}: {
-  dashboard: AdminDashboard;
-}) {
+function OperationsPanel({ dashboard }: { dashboard: AdminDashboard }) {
   return (
     <aside className="space-y-5">
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-950/5">
