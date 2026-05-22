@@ -455,7 +455,7 @@ export function MerchantCampaignPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:w-[560px]">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:w-140">
                 <CampaignStat
                   label="Tổng"
                   value={stats.total}

@@ -114,9 +114,10 @@ function getBillItemToppings(item: BillItem) {
 function getBillPaymentMethod(bill?: Bill | null): BillPaymentMethod {
   const paymentMethod = (bill?.paymentMethod ?? bill?.PaymentMethod ?? "")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
 
-  return paymentMethod === "banktransfer" ? "BankTransfer" : "Cash";
+  return paymentMethod.includes("banktransfer") ? "BankTransfer" : "Cash";
 }
 
 function getBankTransferDescription(orderId?: string | null) {
@@ -133,7 +134,9 @@ function getBankTransferInfo(
   const bankAccount =
     bill?.bankAccount ?? bill?.BankAccount ?? defaultBankAccount;
   const description =
-    bill?.description ?? bill?.Description ?? getBankTransferDescription(orderId);
+    bill?.description ??
+    bill?.Description ??
+    getBankTransferDescription(orderId);
   const amount = Math.round(
     Number(bill?.totalAmount ?? bill?.TotalAmount ?? finalPrice ?? 0),
   );
@@ -416,7 +419,7 @@ export default function ConfirmBillPage() {
 
   return (
     <main className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] px-4 py-8 text-slate-950">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[32px_32px]" />
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
@@ -425,7 +428,7 @@ export default function ConfirmBillPage() {
         <div className="absolute -bottom-12 -left-10 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl mix-blend-multiply" />
 
         <div className="relative">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
             Payment & Check-in
           </div>
           <h1 className="mb-6 text-3xl font-black tracking-tight text-slate-900 leading-[1.15]">
@@ -507,7 +510,7 @@ export default function ConfirmBillPage() {
                 </ul>
               </div>
 
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 p-5 shadow-sm">
                 <div className="text-[13px] font-black uppercase tracking-[0.18em] text-cyan-800">
                   Tổng thanh toán
                 </div>
@@ -522,7 +525,7 @@ export default function ConfirmBillPage() {
                     type="button"
                     disabled={submitting}
                     onClick={handleConfirmBill}
-                    className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+                    className="flex-1 rounded-xl bg-linear-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                   >
                     {submitting ? "Đang gửi..." : "Xác nhận hóa đơn"}
                   </button>
@@ -572,7 +575,9 @@ export default function ConfirmBillPage() {
 
                       <button
                         type="button"
-                        onClick={() => handleSelectPaymentMethod("BankTransfer")}
+                        onClick={() =>
+                          handleSelectPaymentMethod("BankTransfer")
+                        }
                         disabled={cashRequested}
                         className={`rounded-2xl border p-4 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-70 ${
                           selectedPaymentMethod === "BankTransfer"
@@ -656,7 +661,7 @@ export default function ConfirmBillPage() {
                         type="button"
                         onClick={handleStartPayment}
                         disabled={submitting || cashRequested}
-                        className="flex-1 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+                        className="flex-1 rounded-xl bg-linear-to-br from-cyan-600 to-blue-600 px-5 py-3.5 text-[15px] font-black text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
                       >
                         {cashRequested
                           ? "Đang chờ merchant xác nhận"

@@ -6,7 +6,7 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -54,7 +54,6 @@ export function ResetPasswordPage() {
   const [apiError, setApiError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [codeConfirmed, setCodeConfirmed] = useState(false);
-  const [passwordSubmitted, setPasswordSubmitted] = useState(false);
 
   const initialEmail = useMemo(
     () => searchParams.get("email") ?? "",
@@ -70,12 +69,6 @@ export function ResetPasswordPage() {
       confirmNewPassword: "",
     },
   });
-
-  useEffect(() => {
-    if (!codeConfirmed || passwordSubmitted) return;
-
-    form.clearErrors(["newPassword", "confirmNewPassword"]);
-  }, [codeConfirmed, form, passwordSubmitted]);
 
   async function onSubmit(values: ResetPasswordFormValues) {
     setApiError("");
@@ -150,7 +143,6 @@ export function ResetPasswordPage() {
 
     if (!valid) return;
 
-    setPasswordSubmitted(false);
     setCodeConfirmed(true);
   }
 
@@ -202,134 +194,123 @@ export function ResetPasswordPage() {
               </div>
 
               <Form {...form}>
-                <form
-                  onSubmit={(event) => {
-                    if (!codeConfirmed) {
-                      event.preventDefault();
-                      void handleConfirmCode();
-                      return;
-                    }
-
-                    setPasswordSubmitted(true);
-                    void form.handleSubmit(onSubmit)(event);
-                  }}
-                  className="mt-5 space-y-3"
-                >
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="group relative">
-                            <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
-                            <Input
-                              type="email"
-                              placeholder="Email"
-                              autoComplete="email"
-                              disabled={codeConfirmed}
-                              className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        {passwordSubmitted ? (
-                          <FormMessage className="text-sm font-semibold text-rose-600" />
-                        ) : null}
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="token"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="group relative">
-                            <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
-                            <Input
-                              placeholder="Mã xác nhận từ email"
-                              autoComplete="one-time-code"
-                              disabled={codeConfirmed}
-                              className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        {passwordSubmitted ? (
-                          <FormMessage className="text-sm font-semibold text-rose-600" />
-                        ) : null}
-                      </FormItem>
-                    )}
-                  />
-
-                  {codeConfirmed ? (
-                    <>
-                  <FormField
-                    control={form.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="group relative">
-                            <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
-                            <Input
-                              type="password"
-                              placeholder="Mật khẩu mới"
-                              autoComplete="new-password"
-                              className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage className="text-sm font-semibold text-rose-600" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="confirmNewPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="group relative">
-                            <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
-                            <Input
-                              type="password"
-                              placeholder="Xác nhận mật khẩu mới"
-                              autoComplete="new-password"
-                              className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage className="text-sm font-semibold text-rose-600" />
-                      </FormItem>
-                    )}
-                  />
-                    </>
-                  ) : null}
-
-                  {apiError && (
-                    <div className="rounded-2xl border border-rose-200 bg-rose-50/85 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm ring-1 ring-rose-100">
-                      {apiError}
-                    </div>
-                  )}
-
-                  {codeConfirmed ? (
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="h-12 w-full rounded-2xl bg-linear-to-r from-cyan-600 to-blue-600 text-[15px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-70 disabled:scale-100"
+                {codeConfirmed ? (
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="mt-5 space-y-3"
                   >
-                    {submitting && (
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <FormField
+                      control={form.control}
+                      name="newPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="group relative">
+                              <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
+                              <Input
+                                type="password"
+                                placeholder="Mật khẩu mới"
+                                autoComplete="new-password"
+                                className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-sm font-semibold text-rose-600" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="confirmNewPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="group relative">
+                              <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
+                              <Input
+                                type="password"
+                                placeholder="Xác nhận mật khẩu mới"
+                                autoComplete="new-password"
+                                className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-sm font-semibold text-rose-600" />
+                        </FormItem>
+                      )}
+                    />
+
+                    {apiError && (
+                      <div className="rounded-2xl border border-rose-200 bg-rose-50/85 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm ring-1 ring-rose-100">
+                        {apiError}
+                      </div>
                     )}
-                    {submitting ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
-                  </Button>
-                  ) : (
+
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="h-12 w-full rounded-2xl bg-linear-to-r from-cyan-600 to-blue-600 text-[15px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-70 disabled:scale-100"
+                    >
+                      {submitting && (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      )}
+                      {submitting ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="mt-5 space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="group relative">
+                              <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
+                              <Input
+                                type="email"
+                                placeholder="Email"
+                                autoComplete="email"
+                                className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-sm font-semibold text-rose-600" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="token"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="group relative">
+                              <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition group-focus-within:text-cyan-600" />
+                              <Input
+                                placeholder="Mã xác nhận từ email"
+                                autoComplete="one-time-code"
+                                className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-sm font-semibold text-rose-600" />
+                        </FormItem>
+                      )}
+                    />
+
+                    {apiError && (
+                      <div className="rounded-2xl border border-rose-200 bg-rose-50/85 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm ring-1 ring-rose-100">
+                        {apiError}
+                      </div>
+                    )}
+
                     <Button
                       type="button"
                       onClick={() => void handleConfirmCode()}
@@ -337,8 +318,8 @@ export function ResetPasswordPage() {
                     >
                       Xác nhận mã
                     </Button>
-                  )}
-                </form>
+                  </div>
+                )}
               </Form>
 
               <div className="mt-5 space-y-2 text-center">

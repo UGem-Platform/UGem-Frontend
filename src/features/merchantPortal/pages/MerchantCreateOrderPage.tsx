@@ -98,7 +98,9 @@ export default function MerchantCreateOrderPage() {
       const food = foods.find((candidate) => candidate.id === item.foodId);
       const toppings = toppingsByFoodId[item.foodId] ?? [];
       const toppingTotal = item.toppingIds.reduce((toppingSum, toppingId) => {
-        const topping = toppings.find((candidate) => candidate.id === toppingId);
+        const topping = toppings.find(
+          (candidate) => candidate.id === toppingId,
+        );
         return toppingSum + Number(topping?.price ?? 0);
       }, 0);
 
@@ -106,7 +108,8 @@ export default function MerchantCreateOrderPage() {
     }, 0);
   }, [foods, items, toppingsByFoodId]);
 
-  const canOrder = customerLookupStatus === "found" && Boolean(selectedCustomer);
+  const canOrder =
+    customerLookupStatus === "found" && Boolean(selectedCustomer);
   const isPhoneMode = searchMode === "phone";
 
   async function loadToppingsForFood(foodId: string) {
@@ -321,7 +324,7 @@ export default function MerchantCreateOrderPage() {
 
           <div className="mx-auto w-full max-w-6xl px-8 py-8">
             <div className="mb-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/50 bg-linear-to-r from-cyan-50/80 to-blue-50/80 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-500/10">
                 Offline Order
               </div>
               <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900">
@@ -333,7 +336,7 @@ export default function MerchantCreateOrderPage() {
               </p>
             </div>
 
-            <div className="rounded-[32px] border border-white/60 bg-white/75 p-6 shadow-2xl shadow-slate-950/5 backdrop-blur-2xl">
+            <div className="rounded-4xl border border-white/60 bg-white/75 p-6 shadow-2xl shadow-slate-950/5 backdrop-blur-2xl">
               <div className="space-y-3 rounded-2xl border border-cyan-100 bg-cyan-50/60 p-4">
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -364,7 +367,9 @@ export default function MerchantCreateOrderPage() {
 
                 <label className="block space-y-1.5">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                    {isPhoneMode ? "Số điện thoại khách hàng" : "Gmail khách hàng"}
+                    {isPhoneMode
+                      ? "Số điện thoại khách hàng"
+                      : "Gmail khách hàng"}
                   </span>
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <div className="relative min-w-0 flex-1">
@@ -385,7 +390,9 @@ export default function MerchantCreateOrderPage() {
                             void handleSearchCustomer();
                           }
                         }}
-                        placeholder={isPhoneMode ? "0912345678" : "customer@gmail.com"}
+                        placeholder={
+                          isPhoneMode ? "0912345678" : "customer@gmail.com"
+                        }
                         inputMode={isPhoneMode ? "tel" : "email"}
                         className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
                       />
@@ -429,8 +436,8 @@ export default function MerchantCreateOrderPage() {
                       </p>
                       <p className="mt-1 text-xs font-semibold leading-5 text-amber-800">
                         Hãy giới thiệu khách đăng ký hoặc đăng nhập ứng dụng
-                        UGem bằng số điện thoại/Gmail để có thể đặt món tại
-                        quán và nhận quyền lợi check-in.
+                        UGem bằng số điện thoại/Gmail để có thể đặt món tại quán
+                        và nhận quyền lợi check-in.
                       </p>
                     </div>
                   </div>
