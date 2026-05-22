@@ -9,6 +9,7 @@ import {
 import {
   AlertCircle,
   CalendarClock,
+  Eye,
   Megaphone,
   Pencil,
   Plus,
@@ -23,6 +24,14 @@ import {
 
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { MerchantHeader } from "@/shared/layouts/Merchants/MerchantHeader";
@@ -241,13 +250,16 @@ function buildCampaignPayload(form: CampaignFormState): CreateCampaignPayload {
     endDate: fromDateTimeLocalValue(form.endDate),
   };
 }
-
 export function MerchantCampaignPage() {
   const merchantId = getCurrentMerchantId();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null,
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [form, setForm] = useState<CampaignFormState>(() =>
     createEmptyCampaignForm(),
@@ -268,7 +280,11 @@ export function MerchantCampaignPage() {
   }
 
   useEffect(() => {
-    void loadCampaigns();
+    const timer = window.setTimeout(() => {
+      void loadCampaigns();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const visibleCampaigns = useMemo(() => {
@@ -316,6 +332,11 @@ export function MerchantCampaignPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function openCampaignDetail(campaign: Campaign) {
+    setSelectedCampaign(campaign);
+    setDetailOpen(true);
+  }
+
   async function handleDelete(campaign: Campaign) {
     if (!window.confirm(`Xóa campaign ${campaign.code}?`)) {
       return;
@@ -326,6 +347,11 @@ export function MerchantCampaignPage() {
     try {
       await deleteCampaign(campaign.id);
       notify.success("Đã xóa campaign.");
+
+      if (selectedCampaign?.id === campaign.id) {
+        setDetailOpen(false);
+        setSelectedCampaign(null);
+      }
 
       if (form.id === campaign.id) {
         resetForm();
@@ -395,8 +421,12 @@ export function MerchantCampaignPage() {
     }
   }
 
+  const selectedCanManage = selectedCampaign
+    ? isCampaignEditable(selectedCampaign, merchantId)
+    : false;
+
   return (
-    <main className="merchant-portal-layout bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.16),transparent_32%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_28%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_48%,#fff7ed_100%)] relative">
+    <main className="merchant-portal-layout relative bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.16),transparent_32%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_28%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_48%,#fff7ed_100%)]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[32px_32px]" />
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
@@ -736,9 +766,7 @@ export function MerchantCampaignPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      setForm(createEmptyCampaignForm());
-                    }}
+                    onClick={resetForm}
                     className="h-11 rounded-2xl border-slate-200 px-5 font-bold text-slate-600"
                   >
                     Reset form
@@ -787,54 +815,65 @@ export function MerchantCampaignPage() {
                     {Array.from({ length: 3 }).map((_, index) => (
                       <div
                         key={index}
-                        className="h-36 animate-pulse rounded-4xl border border-slate-200 bg-slate-100"
+                        className="h-32 animate-pulse rounded-4xl border border-slate-200 bg-slate-100"
                       />
                     ))}
                   </div>
                 ) : visibleCampaigns.length > 0 ? (
-                  visibleCampaigns.map((campaign) => {
-                    const canManage = isCampaignEditable(campaign, merchantId);
-
-                    return (
-                      <section
-                        key={campaign.id}
-                        className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Badge className="rounded-full bg-cyan-50 px-3 py-1 text-cyan-700 hover:bg-cyan-50">
-                                {campaign.code}
+                  visibleCampaigns.map((campaign) => (
+                    <section
+                      key={campaign.id}
+                      className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className="rounded-full bg-cyan-50 px-3 py-1 text-cyan-700 hover:bg-cyan-50">
+                              {campaign.code}
+                            </Badge>
+                            {campaign.isGlobal ? (
+                              <Badge className="rounded-full bg-amber-50 px-3 py-1 text-amber-700 hover:bg-amber-50">
+                                Global
                               </Badge>
-                              {campaign.isGlobal ? (
-                                <Badge className="rounded-full bg-amber-50 px-3 py-1 text-amber-700 hover:bg-amber-50">
-                                  Global
-                                </Badge>
-                              ) : (
-                                <Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">
-                                  Merchant
-                                </Badge>
-                              )}
-                              <Badge
-                                className={`rounded-full px-3 py-1 hover:bg-transparent ${
-                                  campaign.isActive
-                                    ? "bg-emerald-50 text-emerald-700"
-                                    : "bg-slate-100 text-slate-500"
-                                }`}
-                              >
-                                {campaign.isActive ? "Active" : "Inactive"}
+                            ) : (
+                              <Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">
+                                Merchant
                               </Badge>
-                            </div>
-
-                            <h3 className="mt-3 text-xl font-black text-slate-950">
-                              {campaign.title}
-                            </h3>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                              {campaign.description ||
-                                "Chưa có mô tả campaign."}
-                            </p>
+                            )}
+                            <Badge
+                              className={`rounded-full px-3 py-1 hover:bg-transparent ${
+                                campaign.isActive
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {campaign.isActive ? "Active" : "Inactive"}
+                            </Badge>
                           </div>
 
+                          <h3 className="mt-3 text-xl font-black text-slate-950">
+                            {campaign.title}
+                          </h3>
+
+                          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                            {campaign.description || "Chưa có mô tả campaign."}
+                          </p>
+
+                          <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-500">
+                            <span className="rounded-full bg-slate-50 px-3 py-1">
+                              {formatDateTime(campaign.startDate)} →{" "}
+                              {formatDateTime(campaign.endDate)}
+                            </span>
+                            <span className="rounded-full bg-slate-50 px-3 py-1">
+                              {campaign.usedCount}/{campaign.quantity} lượt
+                            </span>
+                            <span className="rounded-full bg-slate-50 px-3 py-1">
+                              {campaign.maxUsagePerUser} lần/user
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 flex-col items-end gap-3">
                           <div className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-right">
                             <p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-700">
                               Discount
@@ -843,90 +882,19 @@ export function MerchantCampaignPage() {
                               {getCampaignDiscountLabel(campaign)}
                             </p>
                           </div>
-                        </div>
-
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                          <CampaignDetail
-                            label="Đơn tối thiểu"
-                            value={formatOptionalCurrency(
-                              campaign.minOrderAmount,
-                            )}
-                          />
-                          <CampaignDetail
-                            label="Giảm tối đa"
-                            value={formatOptionalCurrency(
-                              campaign.maxDiscountAmount,
-                            )}
-                          />
-                          <CampaignDetail
-                            label="Số lượng"
-                            value={`${campaign.usedCount} / ${campaign.quantity}`}
-                          />
-                          <CampaignDetail
-                            label="Lượt / user"
-                            value={String(campaign.maxUsagePerUser)}
-                          />
-                        </div>
-
-                        <div className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
-                          <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-                              Thời gian
-                            </p>
-                            <p className="mt-1 font-semibold text-slate-700">
-                              {formatDateTime(campaign.startDate)} →{" "}
-                              {formatDateTime(campaign.endDate)}
-                            </p>
-                          </div>
-
-                          <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-                              Ownership
-                            </p>
-                            <p className="mt-1 font-semibold text-slate-700">
-                              {campaign.isGlobal
-                                ? "Áp dụng toàn hệ thống"
-                                : campaign.merchantId || "Merchant campaign"}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-5 flex flex-wrap gap-3">
-                          <Button
-                            type="button"
-                            onClick={() => handleEdit(campaign)}
-                            disabled={!canManage}
-                            className="h-10 rounded-2xl bg-slate-950 px-4 font-black text-white shadow-lg shadow-slate-950/15 hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Sửa
-                          </Button>
 
                           <Button
                             type="button"
-                            onClick={() => void handleDelete(campaign)}
-                            disabled={!canManage || deletingId === campaign.id}
-                            variant="outline"
-                            className="h-10 rounded-2xl border-rose-200 px-4 font-black text-rose-600 hover:bg-rose-50"
+                            onClick={() => openCampaignDetail(campaign)}
+                            className="h-10 rounded-2xl bg-slate-950 px-4 font-black text-white shadow-lg shadow-slate-950/15 hover:bg-cyan-700"
                           >
-                            {deletingId === campaign.id ? (
-                              <RefreshCw className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                            Xóa
+                            <Eye className="h-4 w-4" />
+                            Xem chi tiết
                           </Button>
-
-                          {!canManage ? (
-                            <div className="self-center text-xs font-semibold text-slate-400">
-                              Campaign global chỉ hiển thị, không sửa từ
-                              merchant portal.
-                            </div>
-                          ) : null}
                         </div>
-                      </section>
-                    );
-                  })
+                      </div>
+                    </section>
+                  ))
                 ) : (
                   <div className="rounded-[28px] border border-dashed border-slate-200 bg-white/70 px-6 py-14 text-center text-slate-500">
                     <Sparkles className="mx-auto h-10 w-10 text-slate-300" />
@@ -942,6 +910,165 @@ export function MerchantCampaignPage() {
             </article>
           </section>
         </div>
+
+        <Dialog
+          open={detailOpen}
+          onOpenChange={(open) => {
+            setDetailOpen(open);
+            if (!open) {
+              setSelectedCampaign(null);
+            }
+          }}
+        >
+          <DialogContent className="max-h-[92vh] max-w-3xl overflow-hidden border-white/80 bg-slate-50/95 p-0 shadow-2xl shadow-slate-950/25 backdrop-blur-xl">
+            {selectedCampaign ? (
+              <>
+                <DialogHeader className="border-b border-cyan-100 bg-white/90 px-6 py-5 text-left">
+                  <DialogTitle className="text-2xl font-black text-slate-950">
+                    {selectedCampaign.title}
+                  </DialogTitle>
+                  <DialogDescription className="mt-1 text-sm leading-6 text-slate-500">
+                    Xem thông tin đầy đủ, sau đó bấm sửa nếu cần chỉnh campaign.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="max-h-[calc(92vh-104px)] space-y-5 overflow-y-auto px-6 py-5">
+                  <div className="grid gap-3 rounded-3xl border border-white/80 bg-white p-4 text-sm text-slate-700 shadow-sm ring-1 ring-slate-950/5 sm:grid-cols-2">
+                    <div>
+                      <div className="text-slate-500">Code</div>
+                      <div className="mt-1 font-black text-slate-950">
+                        {selectedCampaign.code}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500">Trạng thái</div>
+                      <div
+                        className={`mt-1 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${
+                          selectedCampaign.isActive
+                            ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {selectedCampaign.isActive ? "Active" : "Inactive"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500">Loại campaign</div>
+                      <div className="mt-1 font-semibold text-slate-900">
+                        {selectedCampaign.isGlobal ? "Global" : "Merchant"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500">Discount</div>
+                      <div className="mt-1 font-semibold text-slate-900">
+                        {getCampaignDiscountLabel(selectedCampaign)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 rounded-3xl border border-white/80 bg-white p-4 shadow-sm ring-1 ring-slate-950/5 sm:grid-cols-2 xl:grid-cols-4">
+                    <CampaignDetail
+                      label="Đơn tối thiểu"
+                      value={formatOptionalCurrency(
+                        selectedCampaign.minOrderAmount,
+                      )}
+                    />
+                    <CampaignDetail
+                      label="Giảm tối đa"
+                      value={formatOptionalCurrency(
+                        selectedCampaign.maxDiscountAmount,
+                      )}
+                    />
+                    <CampaignDetail
+                      label="Số lượng"
+                      value={`${selectedCampaign.usedCount} / ${selectedCampaign.quantity}`}
+                    />
+                    <CampaignDetail
+                      label="Lượt / user"
+                      value={String(selectedCampaign.maxUsagePerUser)}
+                    />
+                  </div>
+
+                  <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+                        Thời gian
+                      </p>
+                      <p className="mt-1 font-semibold text-slate-700">
+                        {formatDateTime(selectedCampaign.startDate)} →{" "}
+                        {formatDateTime(selectedCampaign.endDate)}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+                        Ownership
+                      </p>
+                      <p className="mt-1 font-semibold text-slate-700">
+                        {selectedCampaign.isGlobal
+                          ? "Áp dụng toàn hệ thống"
+                          : selectedCampaign.merchantId || "Merchant campaign"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-950/5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+                      Mô tả
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      {selectedCampaign.description ||
+                        "Chưa có mô tả campaign."}
+                    </p>
+                  </div>
+
+                  <DialogFooter className="border-t border-slate-100 pt-4 gap-3 sm:justify-between">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          handleEdit(selectedCampaign);
+                          setDetailOpen(false);
+                          setSelectedCampaign(null);
+                        }}
+                        disabled={!selectedCanManage}
+                        className="h-10 rounded-2xl bg-slate-950 px-4 font-black text-white shadow-lg shadow-slate-950/15 hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Sửa
+                      </Button>
+
+                      <Button
+                        type="button"
+                        onClick={() => void handleDelete(selectedCampaign)}
+                        disabled={
+                          !selectedCanManage ||
+                          deletingId === selectedCampaign.id
+                        }
+                        variant="outline"
+                        className="h-10 rounded-2xl border-rose-200 px-4 font-black text-rose-600 hover:bg-rose-50"
+                      >
+                        {deletingId === selectedCampaign.id ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        Xóa
+                      </Button>
+                    </div>
+
+                    {!selectedCanManage ? (
+                      <div className="self-center text-xs font-semibold text-slate-400">
+                        Campaign global chỉ hiển thị, không sửa từ merchant
+                        portal.
+                      </div>
+                    ) : null}
+                  </DialogFooter>
+                </div>
+              </>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </section>
     </main>
   );
