@@ -6,7 +6,7 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -22,9 +22,17 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { notify } from "@/shared/lib/notify";
 
+import HeroCarousel from "../components/HeroCarousel";
 import { Logo } from "./Logo";
 import { resetPasswordApi } from "../services";
 import { getResetPasswordErrorMessage } from "../errorMessages";
+
+const HERO_IMAGES = [
+  "https://mia.vn/media/uploads/blog-du-lich/pho-ganh-ha-noi-01-1702697225.jpg",
+  "https://static.vinwonders.com/production/bun-bo-hue-1.jpg",
+  "https://bandembanhom.com/wp-content/uploads/2025/01/Com-Tam-3-Ghien-1.webp",
+  "https://adormusic.s3.us-east-2.amazonaws.com/wp-content/uploads/2023/07/22045644/mi-quang-ba-mua-5-1024x1024.jpeg",
+];
 
 const resetPasswordSchema = z
   .object({
@@ -45,6 +53,8 @@ export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const [apiError, setApiError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [codeConfirmed, setCodeConfirmed] = useState(false);
+  const [passwordSubmitted, setPasswordSubmitted] = useState(false);
 
   const initialEmail = useMemo(
     () => searchParams.get("email") ?? "",
@@ -60,6 +70,12 @@ export function ResetPasswordPage() {
       confirmNewPassword: "",
     },
   });
+
+  useEffect(() => {
+    if (!codeConfirmed || passwordSubmitted) return;
+
+    form.clearErrors(["newPassword", "confirmNewPassword"]);
+  }, [codeConfirmed, form, passwordSubmitted]);
 
   async function onSubmit(values: ResetPasswordFormValues) {
     setApiError("");
@@ -87,14 +103,66 @@ export function ResetPasswordPage() {
     }
   }
 
+  async function handleConfirmCode() {
+    setApiError("");
+
+    const email = form.getValues("email").trim();
+    const token = form.getValues("token").trim();
+    let valid = true;
+
+    if (!email) {
+      form.setError("email", {
+        type: "manual",
+        message: "Vui lòng nhập email",
+      });
+      valid = false;
+    } else if (!z.string().email().safeParse(email).success) {
+      form.setError("email", {
+        type: "manual",
+        message: "Email không hợp lệ",
+      });
+      valid = false;
+    } else {
+      form.clearErrors("email");
+    }
+
+    if (!token) {
+      form.setError("token", {
+        type: "manual",
+        message: "Vui lòng nhập mã xác nhận",
+      });
+      valid = false;
+    } else {
+      form.clearErrors("token");
+    }
+
+    form.clearErrors(["newPassword", "confirmNewPassword"]);
+    form.setValue("newPassword", "", {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+    form.setValue("confirmNewPassword", "", {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+
+    if (!valid) return;
+
+    setPasswordSubmitted(false);
+    setCodeConfirmed(true);
+  }
+
   return (
     <main className="relative grid min-h-screen grid-cols-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_32%),linear-gradient(135deg,#ecfeff_0%,#f8fafc_46%,#fff7ed_100%)] lg:grid-cols-[1.18fr_0.82fr]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-size-[32px_32px]" />
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-      <section className="relative hidden min-h-[52vh] overflow-hidden p-3 lg:block lg:h-screen lg:p-4">
-        <div className="flex h-full items-center justify-center rounded-4xl bg-slate-950 p-10 text-white shadow-2xl shadow-cyan-950/25">
+      <section className="relative hidden min-h-[52vh] p-3 lg:block lg:h-screen lg:p-4">
+        <HeroCarousel images={HERO_IMAGES} />
+        <div className="hidden">
           <div className="max-w-lg">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200 backdrop-blur">
               Password reset
@@ -135,7 +203,16 @@ export function ResetPasswordPage() {
 
               <Form {...form}>
                 <form
-                  onSubmit={form.handleSubmit(onSubmit)}
+                  onSubmit={(event) => {
+                    if (!codeConfirmed) {
+                      event.preventDefault();
+                      void handleConfirmCode();
+                      return;
+                    }
+
+                    setPasswordSubmitted(true);
+                    void form.handleSubmit(onSubmit)(event);
+                  }}
                   className="mt-5 space-y-3"
                 >
                   <FormField
@@ -150,12 +227,15 @@ export function ResetPasswordPage() {
                               type="email"
                               placeholder="Email"
                               autoComplete="email"
+                              disabled={codeConfirmed}
                               className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
                               {...field}
                             />
                           </div>
                         </FormControl>
-                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                        {passwordSubmitted ? (
+                          <FormMessage className="text-sm font-semibold text-rose-600" />
+                        ) : null}
                       </FormItem>
                     )}
                   />
@@ -171,16 +251,21 @@ export function ResetPasswordPage() {
                             <Input
                               placeholder="Mã xác nhận từ email"
                               autoComplete="one-time-code"
+                              disabled={codeConfirmed}
                               className="h-12 rounded-2xl border-white/60 bg-white/70 pl-12 text-base font-semibold text-slate-900 shadow-sm backdrop-blur transition-all placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:bg-white/90 focus-visible:ring-4 focus-visible:ring-cyan-400/15"
                               {...field}
                             />
                           </div>
                         </FormControl>
-                        <FormMessage className="text-sm font-semibold text-rose-600" />
+                        {passwordSubmitted ? (
+                          <FormMessage className="text-sm font-semibold text-rose-600" />
+                        ) : null}
                       </FormItem>
                     )}
                   />
 
+                  {codeConfirmed ? (
+                    <>
                   <FormField
                     control={form.control}
                     name="newPassword"
@@ -224,6 +309,8 @@ export function ResetPasswordPage() {
                       </FormItem>
                     )}
                   />
+                    </>
+                  ) : null}
 
                   {apiError && (
                     <div className="rounded-2xl border border-rose-200 bg-rose-50/85 px-4 py-3 text-sm font-semibold text-rose-700 shadow-sm ring-1 ring-rose-100">
@@ -231,6 +318,7 @@ export function ResetPasswordPage() {
                     </div>
                   )}
 
+                  {codeConfirmed ? (
                   <Button
                     type="submit"
                     disabled={submitting}
@@ -241,6 +329,15 @@ export function ResetPasswordPage() {
                     )}
                     {submitting ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
                   </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => void handleConfirmCode()}
+                      className="h-12 w-full rounded-2xl bg-linear-to-r from-cyan-600 to-blue-600 text-[15px] font-black tracking-wide text-white shadow-lg shadow-cyan-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-900/30 active:scale-[0.98]"
+                    >
+                      Xác nhận mã
+                    </Button>
+                  )}
                 </form>
               </Form>
 

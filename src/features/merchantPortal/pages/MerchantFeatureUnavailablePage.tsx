@@ -455,7 +455,7 @@ export function MerchantCampaignPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-105">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:w-[560px]">
                 <CampaignStat
                   label="Tổng"
                   value={stats.total}
@@ -1084,14 +1084,14 @@ function CampaignStat({
   icon: ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+    <div className="flex min-h-32 flex-col rounded-2xl border border-white/70 bg-white/85 px-4 py-3 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-h-9 text-[11px] font-black uppercase leading-5 tracking-[0.14em] text-slate-400">
           {label}
         </p>
-        <Icon className="h-4 w-4 text-cyan-700" />
+        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700" />
       </div>
-      <p className="mt-2 text-2xl font-black text-slate-950">{value}</p>
+      <p className="mt-auto text-2xl font-black text-slate-950">{value}</p>
     </div>
   );
 }

@@ -218,7 +218,7 @@ export default function AdminApplicationDetailPage({
             <button
               type="button"
               onClick={() => navigate(basePath)}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-cyan-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-900/20 transition hover:-translate-y-0.5 hover:bg-cyan-800"
+              className="hidden"
             >
               <ArrowLeft className="h-4 w-4" />
               Quay lại danh sách
@@ -331,11 +331,11 @@ export default function AdminApplicationDetailPage({
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
       <div className="relative w-full">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-5 flex flex-wrap items-center justify-end gap-3">
           <button
             type="button"
             onClick={() => navigate(basePath)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-black text-cyan-800 shadow-lg shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50"
+            className="hidden"
           >
             <ArrowLeft className="h-4 w-4" />
             Quay lại

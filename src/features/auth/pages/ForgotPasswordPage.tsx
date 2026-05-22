@@ -16,12 +16,23 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { notify } from "@/shared/lib/notify";
 
-import { Logo } from "./Logo";
-import { forgotPasswordApi } from "../services";
+import HeroCarousel from "../components/HeroCarousel";
 import { getForgotPasswordErrorMessage } from "../errorMessages";
+import { forgotPasswordApi } from "../services";
+import { Logo } from "./Logo";
+
+const HERO_IMAGES = [
+  "https://mia.vn/media/uploads/blog-du-lich/pho-ganh-ha-noi-01-1702697225.jpg",
+  "https://static.vinwonders.com/production/bun-bo-hue-1.jpg",
+  "https://bandembanhom.com/wp-content/uploads/2025/01/Com-Tam-3-Ghien-1.webp",
+  "https://adormusic.s3.us-east-2.amazonaws.com/wp-content/uploads/2023/07/22045644/mi-quang-ba-mua-5-1024x1024.jpeg",
+];
 
 const forgotPasswordSchema = z.object({
-  email: z.string().min(1, "Vui lòng nhập email").email("Email không hợp lệ"),
+  email: z
+    .string()
+    .min(1, "Vui lòng nhập email")
+    .email("Email không hợp lệ"),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -70,20 +81,8 @@ export function ForgotPasswordPage() {
       <div className="pointer-events-none fixed left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-300/20 blur-3xl" />
       <div className="pointer-events-none fixed bottom-0 right-0 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
-      <section className="relative hidden min-h-[52vh] overflow-hidden p-3 lg:block lg:h-screen lg:p-4">
-        <div className="flex h-full items-center justify-center rounded-4xl bg-slate-950 p-10 text-white shadow-2xl shadow-cyan-950/25">
-          <div className="max-w-lg">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200 backdrop-blur">
-              Security recovery
-            </div>
-            <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight">
-              Lấy lại quyền truy cập tài khoản nhanh chóng
-            </h1>
-            <p className="mt-4 text-sm leading-7 text-white/75">
-              Nhập email để nhận mã xác nhận đặt lại mật khẩu qua email.
-            </p>
-          </div>
-        </div>
+      <section className="relative hidden min-h-[52vh] p-3 lg:block lg:h-screen lg:p-4">
+        <HeroCarousel images={HERO_IMAGES} />
       </section>
 
       <section className="relative flex min-h-screen items-center justify-center px-6 py-10">

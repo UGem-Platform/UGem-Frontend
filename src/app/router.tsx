@@ -321,8 +321,6 @@ const routers = createBrowserRouter([
                 subtitle="Theo dõi và xử lý hồ sơ merchant trong hệ thống."
                 fallbackName="Admin"
                 canReview
-                backTo="/admin/dashboard"
-                backLabel="Back"
               />
             </AdminShell>
           </ProtectedRoute>
@@ -351,8 +349,6 @@ const routers = createBrowserRouter([
                 shell="admin"
                 fallbackName="Admin"
                 canReview={false}
-                backTo="/admin/dashboard"
-                backLabel="Back"
               />
             </AdminShell>
           </ProtectedRoute>

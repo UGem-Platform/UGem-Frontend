@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { UserAccountMenu } from "@/shared/components";
 import { notify } from "@/shared/lib/notify";
 import {
@@ -13,7 +11,6 @@ import {
 import { STAFF_LIST_QUERY_KEY, useStaffList } from "../hooks/useStaff";
 
 export default function AdminStaffPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: staffList = [], isLoading, isError, error } = useStaffList();
   const [saving, setSaving] = useState(false);
@@ -118,15 +115,6 @@ export default function AdminStaffPage() {
 
           <UserAccountMenu fallbackName="Admin" />
         </div>
-
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/75 px-4 py-2 text-sm font-black text-cyan-800 shadow-lg shadow-cyan-950/5 ring-1 ring-slate-950/5 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
 
         {isLoading ? (
           <div className="space-y-4">
