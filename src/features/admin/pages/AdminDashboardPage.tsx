@@ -662,11 +662,11 @@ function MerchantRevenuePanel({
             variant="secondary"
             className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600"
           >
-            Trang {pageIndex}
+            10 quán / trang
           </Badge>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mt-4">
           <div className="relative max-w-2xl flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -688,27 +688,6 @@ function MerchantRevenuePanel({
                 <X className="h-4 w-4" />
               </Button>
             ) : null}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pageIndex === 1 || merchantRevenueQuery.isFetching}
-              onClick={() => setPageIndex((value) => Math.max(1, value - 1))}
-              className="rounded-2xl bg-white"
-            >
-              Trước
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!hasNextPage || merchantRevenueQuery.isFetching}
-              onClick={() => setPageIndex((value) => value + 1)}
-              className="rounded-2xl bg-white"
-            >
-              Sau
-            </Button>
           </div>
         </div>
       </div>
@@ -790,6 +769,60 @@ function MerchantRevenuePanel({
             : ""}
           .
         </p>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pageIndex === 1 || merchantRevenueQuery.isFetching}
+            onClick={() => setPageIndex((value) => Math.max(1, value - 1))}
+            className="h-10 rounded-2xl bg-white px-4 font-black"
+          >
+            Trước
+          </Button>
+
+          {pageIndex > 1 ? (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={merchantRevenueQuery.isFetching}
+              onClick={() => setPageIndex(pageIndex - 1)}
+              className="h-10 min-w-10 rounded-2xl bg-white px-3 font-black"
+            >
+              {pageIndex - 1}
+            </Button>
+          ) : null}
+
+          <Button
+            type="button"
+            disabled
+            className="h-10 min-w-10 rounded-2xl bg-slate-950 px-3 font-black text-white opacity-100"
+          >
+            {pageIndex}
+          </Button>
+
+          {hasNextPage ? (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={merchantRevenueQuery.isFetching}
+              onClick={() => setPageIndex(pageIndex + 1)}
+              className="h-10 min-w-10 rounded-2xl bg-white px-3 font-black"
+            >
+              {pageIndex + 1}
+            </Button>
+          ) : null}
+
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!hasNextPage || merchantRevenueQuery.isFetching}
+            onClick={() => setPageIndex((value) => value + 1)}
+            className="h-10 rounded-2xl bg-white px-4 font-black"
+          >
+            Sau
+          </Button>
+        </div>
 
         {merchantRevenueQuery.isFetching && !merchantRevenueQuery.isLoading ? (
           <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700">

@@ -345,7 +345,7 @@ export default function MerchantDetailPage() {
         paymentMethod: onlinePaymentMethod,
         notes: "",
         finalPrice: total,
-        affiliateLinkCode: getStoredAffiliateRef(merchant.id),
+        affiliateLinkCode: affiliateRef || getStoredAffiliateRef(merchant.id),
         foods: cart.map((item) => ({
           foodId: item.food.id,
           quantity: item.quantity,
