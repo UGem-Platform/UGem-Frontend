@@ -100,6 +100,7 @@ type RawCustomerOrderSummary = CustomerOrderSummary & {
   order_id?: string | number;
   orderNo?: string | number;
   orderNumber?: string | number;
+  Status?: string;
 };
 
 export function getCustomerOrderId(
@@ -122,6 +123,7 @@ function normalizeCustomerOrder(
   order: RawCustomerOrderSummary,
 ): CustomerOrderSummary {
   const orderId = getCustomerOrderId(order);
+  const status = normalizeOrderStatus(order.status ?? order.Status);
 
   if (orderId == null) {
     console.warn("[orders/mine] Missing order id in customer order summary", {
@@ -134,7 +136,12 @@ function normalizeCustomerOrder(
     ...order,
     id: orderId,
     orderId,
+    status,
   };
+}
+
+function normalizeOrderStatus(value: unknown) {
+  return typeof value === "string" ? value.trim() : String(value ?? "").trim();
 }
 
 function normalizeOrderId(value: unknown) {
