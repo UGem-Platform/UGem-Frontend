@@ -214,7 +214,8 @@ function campaignToForm(campaign: Campaign): CampaignFormState {
         ? ""
         : String(campaign.minOrderAmount),
     maxDiscountAmount:
-      campaign.maxDiscountAmount === null || campaign.maxDiscountAmount === undefined
+      campaign.maxDiscountAmount === null ||
+      campaign.maxDiscountAmount === undefined
         ? ""
         : String(campaign.maxDiscountAmount),
     quantity: String(campaign.quantity ?? ""),
@@ -256,9 +257,13 @@ export function MerchantCampaignPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null,
+  );
   const [searchTerm, setSearchTerm] = useState("");
-  const [form, setForm] = useState<CampaignFormState>(() => createEmptyCampaignForm());
+  const [form, setForm] = useState<CampaignFormState>(() =>
+    createEmptyCampaignForm(),
+  );
 
   async function loadCampaigns() {
     setLoading(true);
@@ -294,7 +299,11 @@ export function MerchantCampaignPage() {
       .filter((campaign) => {
         if (!term) return true;
 
-        const haystack = [campaign.code, campaign.title, campaign.description ?? ""]
+        const haystack = [
+          campaign.code,
+          campaign.title,
+          campaign.description ?? "",
+        ]
           .join(" ")
           .toLowerCase();
 
@@ -307,7 +316,9 @@ export function MerchantCampaignPage() {
       total: visibleCampaigns.length,
       active: visibleCampaigns.filter((campaign) => campaign.isActive).length,
       global: visibleCampaigns.filter((campaign) => campaign.isGlobal).length,
-      mine: visibleCampaigns.filter((campaign) => campaign.merchantId === merchantId).length,
+      mine: visibleCampaigns.filter(
+        (campaign) => campaign.merchantId === merchantId,
+      ).length,
     }),
     [merchantId, visibleCampaigns],
   );
@@ -373,7 +384,9 @@ export function MerchantCampaignPage() {
       return;
     }
 
-    if (new Date(form.endDate).getTime() <= new Date(form.startDate).getTime()) {
+    if (
+      new Date(form.endDate).getTime() <= new Date(form.startDate).getTime()
+    ) {
       notify.error("Thời gian kết thúc phải sau thời gian bắt đầu.");
       return;
     }
@@ -443,10 +456,26 @@ export function MerchantCampaignPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-105">
-                <CampaignStat label="Tổng" value={stats.total} icon={Sparkles} />
-                <CampaignStat label="Đang active" value={stats.active} icon={CalendarClock} />
-                <CampaignStat label="Global" value={stats.global} icon={Store} />
-                <CampaignStat label="Của tôi" value={stats.mine} icon={TicketPercent} />
+                <CampaignStat
+                  label="Tổng"
+                  value={stats.total}
+                  icon={Sparkles}
+                />
+                <CampaignStat
+                  label="Đang active"
+                  value={stats.active}
+                  icon={CalendarClock}
+                />
+                <CampaignStat
+                  label="Global"
+                  value={stats.global}
+                  icon={Store}
+                />
+                <CampaignStat
+                  label="Của tôi"
+                  value={stats.mine}
+                  icon={TicketPercent}
+                />
               </div>
             </div>
 
@@ -487,7 +516,10 @@ export function MerchantCampaignPage() {
                     <Input
                       value={form.code}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, code: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          code: event.target.value,
+                        }))
                       }
                       placeholder="SUMMER20"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -501,7 +533,10 @@ export function MerchantCampaignPage() {
                     <Input
                       value={form.title}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, title: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
                       }
                       placeholder="Giảm giá cuối tuần"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -517,7 +552,10 @@ export function MerchantCampaignPage() {
                       step="0.01"
                       value={form.discountValue}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, discountValue: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          discountValue: event.target.value,
+                        }))
                       }
                       placeholder="10"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -553,7 +591,10 @@ export function MerchantCampaignPage() {
                       step="0.01"
                       value={form.minOrderAmount}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, minOrderAmount: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          minOrderAmount: event.target.value,
+                        }))
                       }
                       placeholder="100000"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -569,7 +610,10 @@ export function MerchantCampaignPage() {
                       step="0.01"
                       value={form.maxDiscountAmount}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, maxDiscountAmount: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          maxDiscountAmount: event.target.value,
+                        }))
                       }
                       placeholder="50000"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -585,7 +629,10 @@ export function MerchantCampaignPage() {
                       min="0"
                       value={form.quantity}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, quantity: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          quantity: event.target.value,
+                        }))
                       }
                       placeholder="100"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -601,7 +648,10 @@ export function MerchantCampaignPage() {
                       min="0"
                       value={form.maxUsagePerUser}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, maxUsagePerUser: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          maxUsagePerUser: event.target.value,
+                        }))
                       }
                       placeholder="1"
                       className="h-11 rounded-2xl border-slate-200 bg-white"
@@ -616,7 +666,10 @@ export function MerchantCampaignPage() {
                       type="datetime-local"
                       value={form.startDate}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, startDate: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          startDate: event.target.value,
+                        }))
                       }
                       className="h-11 rounded-2xl border-slate-200 bg-white"
                     />
@@ -630,7 +683,10 @@ export function MerchantCampaignPage() {
                       type="datetime-local"
                       value={form.endDate}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, endDate: event.target.value }))
+                        setForm((current) => ({
+                          ...current,
+                          endDate: event.target.value,
+                        }))
                       }
                       className="h-11 rounded-2xl border-slate-200 bg-white"
                     />
@@ -644,7 +700,10 @@ export function MerchantCampaignPage() {
                   <Textarea
                     value={form.description}
                     onChange={(event) =>
-                      setForm((current) => ({ ...current, description: event.target.value }))
+                      setForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
                     }
                     placeholder="Mô tả ngắn về campaign..."
                     className="min-h-28 rounded-2xl border-slate-200 bg-white"
@@ -672,7 +731,10 @@ export function MerchantCampaignPage() {
                       type="checkbox"
                       checked={form.isActive}
                       onChange={(event) =>
-                        setForm((current) => ({ ...current, isActive: event.target.checked }))
+                        setForm((current) => ({
+                          ...current,
+                          isActive: event.target.checked,
+                        }))
                       }
                       className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                     />
@@ -691,7 +753,13 @@ export function MerchantCampaignPage() {
                     disabled={saving}
                     className="h-11 rounded-2xl bg-slate-950 px-5 font-black text-white shadow-lg shadow-slate-950/15 hover:bg-cyan-700"
                   >
-                    {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : form.id ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {saving ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : form.id ? (
+                      <Save className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                     {form.id ? "Cập nhật campaign" : "Tạo campaign"}
                   </Button>
 
@@ -724,7 +792,9 @@ export function MerchantCampaignPage() {
                   disabled={loading}
                   className="h-10 rounded-2xl bg-cyan-600 px-4 font-black text-white shadow-lg shadow-cyan-900/15 hover:bg-cyan-700"
                 >
-                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                  />
                   Làm mới
                 </Button>
               </div>
@@ -791,7 +861,8 @@ export function MerchantCampaignPage() {
 
                           <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-500">
                             <span className="rounded-full bg-slate-50 px-3 py-1">
-                              {formatDateTime(campaign.startDate)} → {formatDateTime(campaign.endDate)}
+                              {formatDateTime(campaign.startDate)} →{" "}
+                              {formatDateTime(campaign.endDate)}
                             </span>
                             <span className="rounded-full bg-slate-50 px-3 py-1">
                               {campaign.usedCount}/{campaign.quantity} lượt
@@ -896,10 +967,26 @@ export function MerchantCampaignPage() {
                   </div>
 
                   <div className="grid gap-3 rounded-3xl border border-white/80 bg-white p-4 shadow-sm ring-1 ring-slate-950/5 sm:grid-cols-2 xl:grid-cols-4">
-                    <CampaignDetail label="Đơn tối thiểu" value={formatOptionalCurrency(selectedCampaign.minOrderAmount)} />
-                    <CampaignDetail label="Giảm tối đa" value={formatOptionalCurrency(selectedCampaign.maxDiscountAmount)} />
-                    <CampaignDetail label="Số lượng" value={`${selectedCampaign.usedCount} / ${selectedCampaign.quantity}`} />
-                    <CampaignDetail label="Lượt / user" value={String(selectedCampaign.maxUsagePerUser)} />
+                    <CampaignDetail
+                      label="Đơn tối thiểu"
+                      value={formatOptionalCurrency(
+                        selectedCampaign.minOrderAmount,
+                      )}
+                    />
+                    <CampaignDetail
+                      label="Giảm tối đa"
+                      value={formatOptionalCurrency(
+                        selectedCampaign.maxDiscountAmount,
+                      )}
+                    />
+                    <CampaignDetail
+                      label="Số lượng"
+                      value={`${selectedCampaign.usedCount} / ${selectedCampaign.quantity}`}
+                    />
+                    <CampaignDetail
+                      label="Lượt / user"
+                      value={String(selectedCampaign.maxUsagePerUser)}
+                    />
                   </div>
 
                   <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
@@ -908,7 +995,8 @@ export function MerchantCampaignPage() {
                         Thời gian
                       </p>
                       <p className="mt-1 font-semibold text-slate-700">
-                        {formatDateTime(selectedCampaign.startDate)} → {formatDateTime(selectedCampaign.endDate)}
+                        {formatDateTime(selectedCampaign.startDate)} →{" "}
+                        {formatDateTime(selectedCampaign.endDate)}
                       </p>
                     </div>
 
@@ -929,7 +1017,8 @@ export function MerchantCampaignPage() {
                       Mô tả
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-700">
-                      {selectedCampaign.description || "Chưa có mô tả campaign."}
+                      {selectedCampaign.description ||
+                        "Chưa có mô tả campaign."}
                     </p>
                   </div>
 
@@ -952,7 +1041,10 @@ export function MerchantCampaignPage() {
                       <Button
                         type="button"
                         onClick={() => void handleDelete(selectedCampaign)}
-                        disabled={!selectedCanManage || deletingId === selectedCampaign.id}
+                        disabled={
+                          !selectedCanManage ||
+                          deletingId === selectedCampaign.id
+                        }
                         variant="outline"
                         className="h-10 rounded-2xl border-rose-200 px-4 font-black text-rose-600 hover:bg-rose-50"
                       >
@@ -967,7 +1059,8 @@ export function MerchantCampaignPage() {
 
                     {!selectedCanManage ? (
                       <div className="self-center text-xs font-semibold text-slate-400">
-                        Campaign global chỉ hiển thị, không sửa từ merchant portal.
+                        Campaign global chỉ hiển thị, không sửa từ merchant
+                        portal.
                       </div>
                     ) : null}
                   </DialogFooter>
